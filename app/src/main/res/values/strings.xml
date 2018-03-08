@@ -138,7 +138,7 @@
     <string name="title_setting">설정</string>
     <string name="title_infome">나의 경로</string>
     <string name="title_goal">목적지</string>
-    <string name="desweight">목표체중 :</string>
+    <string name="desweight">목표 체중 :</string>
     <string name="desbmi">목표 BMI :</string>
     <string name="desbodyfat">목표 체지방 :</string>
     <string name="desmusclemass">목표 골격근량 :</string>

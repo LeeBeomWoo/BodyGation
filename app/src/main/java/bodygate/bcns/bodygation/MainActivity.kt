@@ -38,6 +38,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         .beginTransaction()
                         .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "rageComicList")
                         .commit()
+                toolbar.setTitle(R.string.)
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_home -> {
