@@ -1,0 +1,283 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="bodygate.bcns.bodygation.navigationitem.GoalFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <LinearLayout
+        android:id="@+id/goal_weight_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="1dp"
+        android:paddingTop="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/goal_weight_lbl"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="3dp"
+                android:text="@string/desweight" />
+
+            <EditText
+                android:id="@+id/goal_weight_txtB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="number" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/goal_weight_fitlbl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1"
+            android:paddingStart="3dp"
+            android:text="@string/fitweight" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/goal_bmi_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="1dp"
+        android:paddingTop="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/goal_bmi_lbl"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="3dp"
+                android:text="@string/desbmi" />
+
+            <EditText
+                android:id="@+id/goal_bmi_txtB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_weight="1"
+                android:autoText="false"
+                android:ems="10"
+                android:inputType="number" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/goal_bmi_fit_lbl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1"
+            android:paddingStart="3dp"
+            android:text="@string/fitbmi" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/goal_bodyfat_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="1dp"
+        android:paddingTop="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/goal_bodyfat_lbl"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="3dp"
+                android:text="@string/desbodyfat" />
+
+            <EditText
+                android:id="@+id/goal_bodyfat_txtB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_weight="1"
+                android:autoText="false"
+                android:ems="10"
+                android:inputType="number" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/goal_bodyfat_fit_lbl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1"
+            android:paddingStart="3dp"
+            android:text="@string/fitbodyfat" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/goal_subcutaneousfat_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="1dp"
+        android:paddingTop="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/goal_subcutaneousfat_lbl"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="3dp"
+                android:text="@string/dessubcutaneousfat" />
+
+            <EditText
+                android:id="@+id/goal_subcutaneousfat_txtB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_weight="1"
+                android:autoText="false"
+                android:ems="10"
+                android:inputType="number" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/goal_subcutaneousfat_fit_lbl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1"
+            android:paddingStart="3dp"
+            android:text="@string/fitsubcutaneousfat" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/goal_musclemass_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="1dp"
+        android:paddingTop="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/goal_musclemass_lbl"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="3dp"
+                android:text="@string/desmusclemass" />
+
+            <EditText
+                android:id="@+id/goal_musclemass_txtB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_weight="1"
+                android:autoText="false"
+                android:ems="10"
+                android:inputType="number" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/goal_musclemass_fit_lbl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1"
+            android:paddingStart="3dp"
+            android:text="@string/fitmusclemass" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/goal_visceralfat_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="1dp"
+        android:paddingTop="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/goal_visceralfat_lbl"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingLeft="3dp"
+                android:text="@string/desvisceralfat" />
+
+            <EditText
+                android:id="@+id/goal_visceralfat_txtB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_weight="1"
+                android:autoText="false"
+                android:ems="10"
+                android:inputType="number" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/goal_visceralfat_fit_lbl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_weight="1"
+            android:paddingStart="3dp"
+            android:text="@string/fitvisceralfat" />
+
+    </LinearLayout>
+
+</LinearLayout>

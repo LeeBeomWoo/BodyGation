@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group >
+        <item
+            android:id="@+id/navigation_home"
+            android:icon="@drawable/main_home_selector"
+            android:title="@string/movie" />
+        <item
+            android:id="@+id/navigation_goal"
+            android:icon="@drawable/ic_dashboard_black_24dp"
+            android:title="@string/title_goal" />
+    </group>
+    <group >
+        <item
+            android:id="@+id/navigation_follow"
+            android:icon="@drawable/ic_directions_run_black_24dp"
+            android:title="@string/follow_media" />
+        <item
+            android:id="@+id/navigation_infome"
+            android:icon="@drawable/ic_person_black_24dp"
+            android:title="@string/title_infome" />
+    </group>
+
+</menu>
