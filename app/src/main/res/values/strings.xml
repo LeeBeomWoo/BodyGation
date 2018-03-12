@@ -157,4 +157,5 @@
     <string name="bodyfat">체지방 변화</string>
     <string name="musclemass">골격근량 변화</string>
     <string name="fitheghit">아쉽게도 키는 목표를 잡을 수가 없네요</string>
+    <string name="server_client_id">193944482415-4v8193can7megnbvbfmhrh21crrbsqgp.apps.googleusercontent.com </string>
 </resources>

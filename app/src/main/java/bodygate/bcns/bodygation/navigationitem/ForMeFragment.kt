@@ -12,7 +12,6 @@ import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
-import kotlinx.android.synthetic.main.fragment_for_me.*
 
 
 /**
@@ -39,7 +38,9 @@ class ForMeFragment : Fragment() {
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-       val view = inflater.inflate(R.layout.fragment_for_me, container, false)
+        val view = inflater.inflate(R.layout.fragment_for_me, container, false)
+        val bmi_graph:GraphView = view.findViewById(R.id.bmi_graph)
+        val weight_graph:GraphView = view.findViewById(R.id.weight_graph)
         bmi_graph.title = getString(R.string.bmi)
         weight_graph.title = getString(R.string.weight)
        // val bmi_barseries = BarGraphSeries<DataPoint>(arrayOf<DataPoint>(GoogleFitManeger.getFitnessData()[1].getResult().dataPoints.get(1), DataPoint(1.0, 5.0), DataPoint(2.0, 3.0), DataPoint(3.0, 2.0), DataPoint(4.0, 6.0)))
@@ -52,7 +53,7 @@ class ForMeFragment : Fragment() {
         weight_graph.addSeries(weight_lineseries)
         return view
     }
-    fun graphviewSet(view:GraphView): GraphView {
+    fun graphviewSet(view: GraphView): GraphView {
         // activate horizontal zooming and scrolling
         view.getViewport().setScalable(true);
         // activate horizontal scrolling
