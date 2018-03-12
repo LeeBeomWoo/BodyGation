@@ -109,8 +109,8 @@
     <string name="password">비밀번호</string>
     <string name="login">로그인</string>
     <string name="password_ck">비밀번호 확인</string>
-    <string name="weight">체중</string>
-    <string name="tall">키</string>
+    <string name="weight">체중 변화</string>
+    <string name="tall">키 :</string>
     <string name="hope">운동을 하는 이유</string>
     <string name="cancel">취소</string>
     <string name="join_text">우리 프로그램에 가입하여 주셔서 감사합니다. \n우리 어플은 운동과 몸을
@@ -151,4 +151,10 @@
     <string name="fitsubcutaneousfat">당신의 적정 피하지방은</string>
     <string name="fitvisceralfat">당신의 적정 내장지방은</string>
     <string name="movie">자료보기</string>
+    <string name="pop_week">주간 인기 영상</string>
+    <string name="new_week">새로 올라온 영상</string>
+    <string name="bmi">BMI 변화</string>
+    <string name="bodyfat">체지방 변화</string>
+    <string name="musclemass">골격근량 변화</string>
+    <string name="fitheghit">아쉽게도 키는 목표를 잡을 수가 없네요</string>
 </resources>
