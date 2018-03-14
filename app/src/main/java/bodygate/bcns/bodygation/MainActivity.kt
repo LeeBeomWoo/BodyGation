@@ -1,7 +1,8 @@
 package bodygate.bcns.bodygation
 
 import android.app.Activity
-import android.content.Intent
+import android.content.Context
+import android.content.IntentSender
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
@@ -13,126 +14,92 @@ import bodygate.bcns.bodygation.navigationitem.ForMeFragment
 import bodygate.bcns.bodygation.navigationitem.GoalFragment
 import bodygate.bcns.bodygation.navigationitem.MovieFragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.fitness.Fitness
-import com.google.android.gms.fitness.FitnessOptions
-import com.google.android.gms.fitness.data.DataType
-import com.google.android.gms.fitness.data.DataType.TYPE_STEP_COUNT_DELTA
-import com.google.android.gms.fitness.data.Field.FIELD_WEIGHT
-import com.google.android.gms.tasks.Tasks
+import com.google.android.gms.common.GooglePlayServicesUtil
+import com.google.android.gms.common.Scopes
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.Scope
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
-import java.util.*
-import com.google.android.gms.auth.api.Auth
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import android.R.attr.data
-import com.google.android.gms.auth.api.signin.GoogleSignInResult
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import android.widget.Toast
-import jdk.nashorn.internal.runtime.ECMAException.getException
-import org.junit.experimental.results.ResultMatchers.isSuccessful
-import com.google.firebase.auth.AuthResult
+import kotlinx.coroutines.experimental.android.UI
+import kotlin.coroutines.experimental.CoroutineContext
+import android.content.Intent
 import android.support.annotation.NonNull
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.AuthCredential
-
-
-
-
+import com.google.android.gms.fitness.request.DataReadRequest
+import android.view.MotionEvent
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.api.ResultCallback
+import com.google.android.gms.fitness.*
+import com.google.android.gms.fitness.data.*
+import com.google.android.gms.fitness.request.DataSourcesRequest
+import com.google.android.gms.fitness.request.OnDataPointListener
+import com.google.android.gms.fitness.result.DataReadResponse
+import com.google.android.gms.fitness.result.DataSourcesResult
+import com.google.android.gms.tasks.*
+import com.google.android.gms.tasks.Tasks.await
+import com.google.firebase.storage.UploadTask
+import com.jjoe64.graphview.series.LineGraphSeries
+import com.jjoe64.graphview.series.Series
+import kotlinx.android.synthetic.main.fragment_for_me.*
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
+import java.lang.Exception
+import java.text.DateFormat
+import java.text.DateFormat.getTimeInstance
+import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-                            ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction{
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener {
+
     override fun OnGoalInteractionListener(uri: Uri) {
         //TODO("not implemented") To change body of created functions use File | Settings | File Templates.
     }
 
     override fun OnFollowInteraction(uri: Uri) {
-       // TODO("not implemented") To change body of created functions use File | Settings | File Templates.
+        // TODO("not implemented") To change body of created functions use File | Settings | File Templates.
     }
 
     override fun OnForMeInteraction(uri: Uri) {
-       // TODO("not implemented") To change body of created functions use File | Settings | File Templates.
+        // TODO("not implemented") To change body of created functions use File | Settings | File Templates.
     }
 
     override fun OnMovieInteraction(item: DummyContent.DummyItem) {
-      //  TODO("not implemented") To change body of created functions use File | Settings | File Templates.
+        //  TODO("not implemented") To change body of created functions use File | Settings | File Templates.
     }
 
-    val mAuth = FirebaseAuth.getInstance();
+    private var authInProgress = false
+    lateinit var mFitnessClient: GoogleApiClient
+    lateinit var mGoogleSignInAccount: GoogleSignInAccount
+    private val REQUEST_OAUTH = 1001
     val ID: String? = null
     val PW: String? = null
-    val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE:Int = 533
-    val TAG:String = "MainActivity"
-    val activity:MainActivity = this
-     private val REQUEST_OAUTH_REQUEST_CODE = 1
-    public override fun onStart() {
-        super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
-        val currentUser = mAuth.currentUser
-        updateUI(currentUser)
-    }
-    private fun signIn() {
-        val signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient)
-        startActivityForResult(signInIntent, RC_SIGN_IN)
-    }
-
-    private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount) {
-        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.id!!)
-
-        val credential = GoogleAuthProvider.getCredential(acct.idToken, null)
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, object : OnCompleteListener<AuthResult> {
-                    fun onComplete(task: Task<AuthResult>) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success")
-                            val user = mAuth.currentUser
-                            updateUI(user)
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException())
-                            Toast.makeText(activity, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show()
-                            updateUI(null)
-                        }
-
-                        // ...
-                    }
-                })
-    }
-    fun getData90():String {
-        val extension = FitnessOptions.builder()
-                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-                .build()
-        val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+    val TAG:String = "MainActivity_"
+    private val AUTH_PENDING = "auth_state_pending"
+    fun buildGoogleSignInClient(): GoogleSignInClient{
+        val extension =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
+                        .build()
+       val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestScopes(Fitness.SCOPE_LOCATION_READ_WRITE)
+                .requestScopes(Fitness.SCOPE_ACTIVITY_READ_WRITE)
+                .requestScopes(Fitness.SCOPE_BODY_READ_WRITE)
+                .requestScopes(Fitness.SCOPE_NUTRITION_READ_WRITE)
                 .requestIdToken(getString(R.string.server_client_id))
-                .requestEmail()
-                .addExtension(extension)
+               .addExtension(extension)
                 .build();
-        val task = GoogleSignIn.getClient(this, signInOptions)
-        .silentSignIn()
-        val googleSigninAccount = Tasks.await(task)
-        val response = Fitness.getHistoryClient(this, googleSigninAccount)
-                .readDailyTotalFromLocalDevice(TYPE_STEP_COUNT_DELTA)
-        val totalSet = Tasks.await(response)
-        if (response.isSuccessful) {
-            val total = (if (totalSet.isEmpty){
-                Log.d(TAG + "_data_get", totalSet.toString())
-            } else
-                totalSet.dataPoints[0].getValue(FIELD_WEIGHT).asInt())
-        } else {
-            // handle failure
-        }
-        return totalSet.toString()
+
+        return GoogleSignIn.getClient(this, signInOptions);
     }
-     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
+
+    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
-            //해당 페이지로 이동
+        //해당 페이지로 이동
             R.id.navigation_goal -> {
                 supportFragmentManager
                         .beginTransaction()
@@ -159,81 +126,160 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         .beginTransaction()
                         .replace(R.id.root_layout, ForMeFragment.newInstance(ID, PW), "rageComicList")
                         .commit()
-                    loadDataAsync()
                 return@OnNavigationItemSelectedListener true
             }
         }
         false
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        if (savedInstanceState == null) {
-            supportFragmentManager
-                    .beginTransaction()
+        Log.d(TAG +"_", "onCreate")
+        if (savedInstanceState != null) {
+
+            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
+        }else {
+            supportFragmentManager.beginTransaction()
                     .add(R.id.root_layout, MovieFragment.newInstance(), "rageComicList")
                     .commit()
-        }else {
         }
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
-        val fitnessOptions = FitnessOptions.builder()
-            //.addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-            //.addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-                //.addDataType(DataType.TYPE_WORKOUT_EXERCISE, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.AGGREGATE_WEIGHT_SUMMARY, FitnessOptions.ACCESS_READ)
-                //.addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_READ)
-                //.addDataType(DataType.AGGREGATE_BASAL_METABOLIC_RATE_SUMMARY, FitnessOptions.ACCESS_READ)
-                //.addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_READ)
-                //.addDataType(DataType.AGGREGATE_BODY_FAT_PERCENTAGE_SUMMARY, FitnessOptions.ACCESS_READ)
-            .build();
+        mFitnessClient = GoogleApiClient.Builder(this)
+                .addApi(Fitness.HISTORY_API)
+                .addScope(Scope(Scopes.FITNESS_LOCATION_READ))
+                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build()
+        mFitnessClient.connect()
+    }
 
-        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this))) {
-            GoogleSignIn.requestPermissions(
-                    this, // your activity
-                    GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
-                    GoogleSignIn.getLastSignedInAccount(this),
-                    fitnessOptions);
-        } else {
-            loadDataAsync()
+    override fun onStart() {
+        super.onStart()
+        // Connect to the Fitness API
+        Log.i(TAG, "Connecting...")
+        mFitnessClient!!.connect()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (mFitnessClient!!.isConnected()) {
+            mFitnessClient!!.disconnect()
         }
     }
-    fun loadDataAsync() = async(CommonPool) {
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        if (requestCode == REQUEST_OAUTH) {
+            authInProgress = false
+            if (resultCode == Activity.RESULT_OK) {
+                // Make sure the app is not already connected or attempting to connect
+                if (!mFitnessClient!!.isConnecting() && !mFitnessClient!!.isConnected()) {
+                    mFitnessClient!!.connect()
+                }
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+    }
+    fun printData(dataReadResult:DataReadResponse) {
+    // [START parse_read_data_result]
+    // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
+    // as buckets containing DataSets, instead of just DataSets.
+    if (dataReadResult.getBuckets().size > 0) {
+      Log.i(
+          TAG, "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size);
+      for (bucket: Bucket in dataReadResult.getBuckets()) {
+       val dataSets = bucket.getDataSets()
+        for (dataSet : DataSet in dataSets) {
+          dumpDataSet(dataSet);
+        }
+      }
+    } else if (dataReadResult.getDataSets().size > 0) {
+      Log.i(TAG, "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
+      for (dataSet in dataReadResult.getDataSets()) {
+        dumpDataSet(dataSet);
+      }
+    }
+    // [END parse_read_data_result]
+  }
+    private fun dumpDataSet(dataSet:DataSet) {
+  Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
+  val dateFormat = getTimeInstance()
+
+  for (dp:DataPoint in dataSet.getDataPoints()) {
+    Log.i(TAG, "Data point:");
+    Log.i(TAG, "\tType: " + dp.getDataType().getName());
+    Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+    Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+    for (field:Field in dp.getDataType().getFields()) {
+      Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
+    }
+  }
+}
+    override fun onConnected(p0: Bundle?) {
+        Log.i(TAG, "onConnected")
+        //Google Fit Client에 연결되었습니다.
+val dataSourceRequest = DataSourcesRequest.Builder()
+            .setDataTypes( DataType.TYPE_WEIGHT )
+            .setDataSourceTypes( DataSource.TYPE_RAW )
+            .build();
+    //ResultCallback<DataSourcesResult>
+    val dataSourcesResultCallback = ResultCallback<DataSourcesResult>() {
+        @Override
+        public void onResult(DataSourcesResult dataSourcesResult) {
+            for( DataSource dataSource : dataSourcesResult.getDataSources() ) {
+                if( DataType.TYPE_STEP_COUNT_CUMULATIVE.equals( dataSource.getDataType() ) ) {
+                    registerFitnessDataListener(dataSource, DataType.TYPE_STEP_COUNT_CUMULATIVE);
+                }
+            }
+        }
+    };
+
+    Fitness.SensorsApi.findDataSources(mApiClient, dataSourceRequest)
+            .setResultCallback(dataSourcesResultCallback);
+        //Log.i(TAG + "dataSet", result.toString())
+    }
+    override fun onDataPoint(dataPoint:DataPoint) {
+        Log.i(TAG, "onDataPoint")
+            // Do cool stuff that matters. 중요한 것을 멋지게 처리하십시오.
+        }
+
+    override fun onConnectionSuspended(cause:Int) {
+        Log.i(TAG, "onConnectionSuspended")
+            // The connection has been interrupted. Wait until onConnected() is called.
+        }
+    fun loadDataAsync() = async(UI) {
         try {
             //Turn on busy indicator.
             val job = async(CommonPool) {
                 //We're on a background thread here.
                 //Execute blocking calls, such as retrofit call.execute().body() + caching.
-                Log.d(TAG + "_data_load", getData90())
             }
             job.await();
             //We're back on the main thread here.
             //Update UI controls such as RecyclerView adapter data.
         }
         catch (e: Exception) {
-            Log.d(TAG + "_error", e.toString())
         }
         finally {
             //Turn off busy indicator.
-            Log.d(TAG + "_data", "Successed")
         }
     }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == GOOGLE_FIT_PERMISSIONS_REQUEST_CODE) {
-                val result = Auth.GoogleSignInApi.getSignInResultFromIntent(data)
-                if (result.isSuccess) {
-                    // Google Sign In was successful, authenticate with Firebase
-                    val account = result.signInAccount
-                    firebaseAuthWithGoogle(account)
-                } else {
-                    // Google Sign In failed, update UI appropriately
-                    // ...
+    override fun onConnectionFailed(result: ConnectionResult) {
+        Log.i(TAG, "onConnectionFailed")
+            // Error while connecting. Try to resolve using the pending intent returned.
+            if (result.getErrorCode() == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
+                try {
+                    result.startResolutionForResult(this, REQUEST_OAUTH);
+                } catch (e: IntentSender.SendIntentException) {
                 }
-                loadDataAsync()
             }
         }
-    }
 }
 
 

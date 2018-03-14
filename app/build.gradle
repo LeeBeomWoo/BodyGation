@@ -34,6 +34,8 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:27.1.0'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:0.22.2"
     implementation 'com.android.support:support-vector-drawable:27.1.0'
     implementation 'com.android.support:support-annotations:27.1.0'
     implementation 'com.android.support:design:27.1.0'
@@ -47,7 +49,9 @@ dependencies {
     compile 'com.google.android.gms:play-services-fitness:11.8.0'
     compile 'com.google.android.gms:play-services-auth:11.8.0'
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.2'
+
     testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:2.8.47'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
@@ -55,3 +59,8 @@ dependencies {
 
 
 apply plugin: 'com.google.gms.google-services'
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
