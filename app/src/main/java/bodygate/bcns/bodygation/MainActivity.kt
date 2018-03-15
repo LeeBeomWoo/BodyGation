@@ -18,24 +18,25 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.Scopes
-import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.common.api.Scope
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlin.coroutines.experimental.CoroutineContext
 import android.content.Intent
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.annotation.NonNull
 import com.google.android.gms.fitness.request.DataReadRequest
 import android.view.MotionEvent
+import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.api.ResultCallback
+import com.google.android.gms.common.api.*
 import com.google.android.gms.fitness.*
 import com.google.android.gms.fitness.data.*
 import com.google.android.gms.fitness.request.DataSourcesRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
+import com.google.android.gms.fitness.result.DataReadResult
 import com.google.android.gms.fitness.result.DataSourcesResult
 import com.google.android.gms.tasks.*
 import com.google.android.gms.tasks.Tasks.await
@@ -43,18 +44,19 @@ import com.google.firebase.storage.UploadTask
 import com.jjoe64.graphview.series.LineGraphSeries
 import com.jjoe64.graphview.series.Series
 import kotlinx.android.synthetic.main.fragment_for_me.*
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.*
 import java.lang.Exception
 import java.text.DateFormat
+import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getTimeInstance
 import java.util.*
+import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener {
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable {
 
     override fun OnGoalInteractionListener(uri: Uri) {
         //TODO("not implemented") To change body of created functions use File | Settings | File Templates.
@@ -130,6 +132,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
         false
+    }
+
+    constructor(parcel: Parcel) : this() {
+        authInProgress = parcel.readByte() != 0.toByte()
+        mGoogleSignInAccount = parcel.readParcelable(GoogleSignInAccount::class.java.classLoader)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -224,51 +231,54 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onConnected(p0: Bundle?) {
         Log.i(TAG, "onConnected")
         //Google Fit Client에 연결되었습니다.
-val dataSourceRequest = DataSourcesRequest.Builder()
-            .setDataTypes( DataType.TYPE_WEIGHT )
-            .setDataSourceTypes( DataSource.TYPE_RAW )
-            .build();
-    //ResultCallback<DataSourcesResult>
-    val dataSourcesResultCallback = ResultCallback<DataSourcesResult>() {
-        @Override
-        public void onResult(DataSourcesResult dataSourcesResult) {
-            for( DataSource dataSource : dataSourcesResult.getDataSources() ) {
-                if( DataType.TYPE_STEP_COUNT_CUMULATIVE.equals( dataSource.getDataType() ) ) {
-                    registerFitnessDataListener(dataSource, DataType.TYPE_STEP_COUNT_CUMULATIVE);
-                }
+
+        registerFitnessDataListener()
+    }
+    override fun onResult(dataSourcesResult:DataSourcesResult) {
+        for( dataSource:DataSource in dataSourcesResult.getDataSources() ) {
+            if( DataType.TYPE_STEP_COUNT_CUMULATIVE.equals( dataSource.getDataType() ) ) {
+
             }
         }
-    };
-
-    Fitness.SensorsApi.findDataSources(mApiClient, dataSourceRequest)
-            .setResultCallback(dataSourcesResultCallback);
-        //Log.i(TAG + "dataSet", result.toString())
     }
     override fun onDataPoint(dataPoint:DataPoint) {
         Log.i(TAG, "onDataPoint")
-            // Do cool stuff that matters. 중요한 것을 멋지게 처리하십시오.
+        // Do cool stuff that matters. 중요한 것을 멋지게 처리하십시오.
+        for( field:Field in dataPoint.getDataType().getFields() ) {
+            val value = dataPoint.getValue( field );
         }
+    }
 
     override fun onConnectionSuspended(cause:Int) {
         Log.i(TAG, "onConnectionSuspended")
             // The connection has been interrupted. Wait until onConnected() is called.
         }
-    fun loadDataAsync() = async(UI) {
-        try {
-            //Turn on busy indicator.
-            val job = async(CommonPool) {
-                //We're on a background thread here.
-                //Execute blocking calls, such as retrofit call.execute().body() + caching.
-            }
-            job.await();
-            //We're back on the main thread here.
-            //Update UI controls such as RecyclerView adapter data.
-        }
-        catch (e: Exception) {
-        }
-        finally {
-            //Turn off busy indicator.
-        }
+
+    //fun registerFitnessDataListener(dataSource:DataSource, dataType:DataType) :List<DataSet> {
+       fun registerFitnessDataListener() = launch(CommonPool) {
+
+        val cal = Calendar.getInstance()
+        val now = Date()
+        cal.time = now
+        val endTime = cal.timeInMillis
+        cal.add(Calendar.WEEK_OF_YEAR, -1)
+        val startTime = cal.timeInMillis
+
+        val dateFormat = getDateInstance()
+        Log.i(TAG, "Range Start: " + dateFormat.format(startTime))
+        Log.i(TAG, "Range End: " + dateFormat.format(endTime))
+        //PendingResult<DataReadResult>
+        val pendingResult = Fitness.HistoryApi.readData(
+         mFitnessClient,
+         DataReadRequest.Builder()
+             .read(DataType.TYPE_WEIGHT)
+                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+             .build());
+        Log.i(TAG, pendingResult.toString())
+        //List<DataSet>
+        val dataSets = pendingResult.await()
+        val readResult = dataSets.getDataSet(DataType.TYPE_WEIGHT)
+        Log.i(TAG + "dataSet", readResult.toString())
     }
     override fun onConnectionFailed(result: ConnectionResult) {
         Log.i(TAG, "onConnectionFailed")
@@ -280,6 +290,28 @@ val dataSourceRequest = DataSourcesRequest.Builder()
                 }
             }
         }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeByte(if (authInProgress) 1 else 0)
+        parcel.writeParcelable(mGoogleSignInAccount, flags)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+    suspend fun dataReade(pendingResult: PendingResult<DataReadResult>):DataReadResult {
+        val readDataResult = async { pendingResult.await()}
+        return readDataResult.await()
+    }
+    companion object CREATOR : Parcelable.Creator<MainActivity> {
+        override fun createFromParcel(parcel: Parcel): MainActivity {
+            return MainActivity(parcel)
+        }
+
+        override fun newArray(size: Int): Array<MainActivity?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 

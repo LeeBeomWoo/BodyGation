@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
+import com.google.android.gms.fitness.result.DataSourcesResult
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
@@ -97,6 +98,8 @@ class ForMeFragment : Fragment() {
     interface OnForMeInteraction {
         // TODO: Update argument type and name
         fun OnForMeInteraction(uri: Uri)
+
+        fun onResult(dataSourcesResult: DataSourcesResult)
     }
 
     companion object {

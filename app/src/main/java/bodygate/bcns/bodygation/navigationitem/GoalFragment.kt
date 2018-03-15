@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
+import com.google.android.gms.fitness.result.DataSourcesResult
 
 
 /**
@@ -72,6 +73,7 @@ class GoalFragment : Fragment() {
     interface OnGoalInteractionListener {
         // TODO: Update argument type and name
         fun OnGoalInteractionListener(uri: Uri)
+
     }
 
     companion object {
