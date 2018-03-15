@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
+import com.google.android.gms.fitness.data.DataSet
 import com.google.android.gms.fitness.result.DataSourcesResult
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.BarGraphSeries
@@ -29,6 +30,7 @@ class ForMeFragment : Fragment() {
     private var mParam1: String? = null
     private var mParam2: String? = null
     private var mListener: OnForMeInteraction? = null
+    lateinit var fitnessdata: DataSet
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,11 +68,6 @@ class ForMeFragment : Fragment() {
         return view
     }
     // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        if (mListener != null) {
-            mListener!!.OnForMeInteraction(uri)
-        }
-    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -97,9 +94,7 @@ class ForMeFragment : Fragment() {
      */
     interface OnForMeInteraction {
         // TODO: Update argument type and name
-        fun OnForMeInteraction(uri: Uri)
-
-        fun onResult(dataSourcesResult: DataSourcesResult)
+        fun OnForMeInteraction(uri: List<DataSet>)
     }
 
     companion object {

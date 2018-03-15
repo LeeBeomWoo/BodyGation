@@ -41,6 +41,7 @@ import com.google.android.gms.fitness.result.DataSourcesResult
 import com.google.android.gms.tasks.*
 import com.google.android.gms.tasks.Tasks.await
 import com.google.firebase.storage.UploadTask
+import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.LineGraphSeries
 import com.jjoe64.graphview.series.Series
 import kotlinx.android.synthetic.main.fragment_for_me.*
@@ -53,6 +54,7 @@ import java.util.*
 import java.util.concurrent.ForkJoinPool
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
+import kotlin.text.Typography.times
 
 
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
@@ -66,8 +68,22 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // TODO("not implemented") To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun OnForMeInteraction(uri: Uri) {
-        // TODO("not implemented") To change body of created functions use File | Settings | File Templates.
+    override fun OnForMeInteraction(dataSetList: List<DataSet>) {
+        val dateFormat = getTimeInstance()
+        for (dataSet: DataSet in dataSetList) {
+            for (dp: DataPoint in dataSet.getDataPoints()) {
+                Log.i(TAG, "Data point:");
+                Log.i(TAG, "\tType: " + dp.getDataType().getName());
+                Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+                Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+                var dataPoint: com.jjoe64.graphview.series.DataPoint? = null
+                val pointSet: DataPoint = dp
+                for (field: Field in dp.getDataType().getFields()) {
+                    Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
+
+                }
+            }
+        }
     }
 
     override fun OnMovieInteraction(item: DummyContent.DummyItem) {
@@ -82,22 +98,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val PW: String? = null
     val TAG:String = "MainActivity_"
     private val AUTH_PENDING = "auth_state_pending"
-    fun buildGoogleSignInClient(): GoogleSignInClient{
-        val extension =
-                FitnessOptions.builder()
-                        .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
-                        .build()
-       val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestScopes(Fitness.SCOPE_LOCATION_READ_WRITE)
-                .requestScopes(Fitness.SCOPE_ACTIVITY_READ_WRITE)
-                .requestScopes(Fitness.SCOPE_BODY_READ_WRITE)
-                .requestScopes(Fitness.SCOPE_NUTRITION_READ_WRITE)
-                .requestIdToken(getString(R.string.server_client_id))
-               .addExtension(extension)
-                .build();
 
-        return GoogleSignIn.getClient(this, signInOptions);
-    }
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
@@ -234,13 +235,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
         registerFitnessDataListener()
     }
-    override fun onResult(dataSourcesResult:DataSourcesResult) {
-        for( dataSource:DataSource in dataSourcesResult.getDataSources() ) {
-            if( DataType.TYPE_STEP_COUNT_CUMULATIVE.equals( dataSource.getDataType() ) ) {
-
-            }
-        }
-    }
     override fun onDataPoint(dataPoint:DataPoint) {
         Log.i(TAG, "onDataPoint")
         // Do cool stuff that matters. 중요한 것을 멋지게 처리하십시오.
@@ -259,26 +253,53 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
         val cal = Calendar.getInstance()
         val now = Date()
-        cal.time = now
-        val endTime = cal.timeInMillis
-        cal.add(Calendar.WEEK_OF_YEAR, -1)
+        val endTime = now.time
+        cal.set(2000,1,1)
         val startTime = cal.timeInMillis
-
         val dateFormat = getDateInstance()
-        Log.i(TAG, "Range Start: " + dateFormat.format(startTime))
-        Log.i(TAG, "Range End: " + dateFormat.format(endTime))
+        Log.i(TAG, "Range Start: " + startTime.toString())
+        Log.i(TAG, "Range End: " + endTime.toString())
+
         //PendingResult<DataReadResult>
+        /**
         val pendingResult = Fitness.HistoryApi.readData(
          mFitnessClient,
          DataReadRequest.Builder()
-             .read(DataType.TYPE_WEIGHT)
                  .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-             .build());
+                 .bucketByTime(1, TimeUnit.DAYS)
+                 .aggregate(DataType.TYPE_WEIGHT, DataType.AGGREGATE_WEIGHT_SUMMARY)
+             .build())
         Log.i(TAG, pendingResult.toString())
         //List<DataSet>
         val dataSets = pendingResult.await()
-        val readResult = dataSets.getDataSet(DataType.TYPE_WEIGHT)
-        Log.i(TAG + "dataSet", readResult.toString())
+        val readResult = dataSets.dataSets
+        */
+        val extension =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
+                        .build()
+        val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestScopes(Fitness.SCOPE_LOCATION_READ_WRITE)
+                .requestScopes(Fitness.SCOPE_ACTIVITY_READ_WRITE)
+                .requestScopes(Fitness.SCOPE_BODY_READ_WRITE)
+                .requestScopes(Fitness.SCOPE_NUTRITION_READ_WRITE)
+                .requestIdToken(getString(R.string.server_client_id))
+                .addExtension(extension)
+                .build()
+       val task = GoogleSignIn.getClient(this@MainActivity, signInOptions)
+                .silentSignIn()
+        val googleSigninAccount = Tasks.await(task)
+        val response = Fitness.getHistoryClient(this@MainActivity, googleSigninAccount)
+        .readData(DataReadRequest.Builder()
+            .read(DataType.TYPE_WEIGHT)
+            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+            .build());
+
+        val readDataResult = Tasks.await(response);
+        val dataSet = readDataResult.getDataSet(DataType.TYPE_WEIGHT);
+        Log.i(TAG + "dataSet", dataSet.toString())
+        OnForMeInteraction(readDataResult.dataSets)
+        printData(readDataResult)
     }
     override fun onConnectionFailed(result: ConnectionResult) {
         Log.i(TAG, "onConnectionFailed")
@@ -298,10 +319,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun describeContents(): Int {
         return 0
-    }
-    suspend fun dataReade(pendingResult: PendingResult<DataReadResult>):DataReadResult {
-        val readDataResult = async { pendingResult.await()}
-        return readDataResult.await()
     }
     companion object CREATOR : Parcelable.Creator<MainActivity> {
         override fun createFromParcel(parcel: Parcel): MainActivity {
