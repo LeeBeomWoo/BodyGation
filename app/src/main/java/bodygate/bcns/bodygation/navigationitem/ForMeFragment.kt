@@ -4,16 +4,25 @@ import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.R.id.weight_graph
+import com.google.android.gms.fitness.data.Bucket
 import com.google.android.gms.fitness.data.DataSet
+import com.google.android.gms.fitness.data.Field
+import com.google.android.gms.fitness.data.Value
+import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.fitness.result.DataSourcesResult
 import com.jjoe64.graphview.GraphView
 import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
+import java.text.DateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 /**
@@ -30,7 +39,7 @@ class ForMeFragment : Fragment() {
     private var mParam1: String? = null
     private var mParam2: String? = null
     private var mListener: OnForMeInteraction? = null
-    lateinit var fitnessdata: DataSet
+    val TAG = "ForMeFragment_"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,25 +55,11 @@ class ForMeFragment : Fragment() {
         val weight_graph:GraphView = view.findViewById(R.id.weight_graph)
         bmi_graph.title = getString(R.string.bmi)
         weight_graph.title = getString(R.string.weight)
-       // val bmi_barseries = BarGraphSeries<DataPoint>(arrayOf<DataPoint>(GoogleFitManeger.getFitnessData()[1].getResult().dataPoints.get(1), DataPoint(1.0, 5.0), DataPoint(2.0, 3.0), DataPoint(3.0, 2.0), DataPoint(4.0, 6.0)))
-       // bmi_graph.addSeries(bmi_barseries)
         val bmi_lineseries = LineGraphSeries<DataPoint>(arrayOf<DataPoint>(DataPoint(0.0, 6.0), DataPoint(1.0, 6.0), DataPoint(2.0, 6.0), DataPoint(3.0, 6.0), DataPoint(4.0, 6.0)))
+        mListener!!.OnForMeInteraction()
         bmi_graph.addSeries(bmi_lineseries)
-        val weight_barseries = BarGraphSeries<DataPoint>(arrayOf<DataPoint>(DataPoint(0.0, -2.0), DataPoint(1.0, 5.0), DataPoint(2.0, 3.0), DataPoint(3.0, 2.0), DataPoint(4.0, 6.0)))
-        weight_graph.addSeries(weight_barseries)
-        val weight_lineseries = LineGraphSeries<DataPoint>(arrayOf<DataPoint>(DataPoint(0.0, 6.0), DataPoint(1.0, 6.0), DataPoint(2.0, 6.0), DataPoint(3.0, 6.0), DataPoint(4.0, 6.0)))
-        weight_graph.addSeries(weight_lineseries)
-        return view
-    }
-    fun graphviewSet(view: GraphView): GraphView {
-        // activate horizontal zooming and scrolling
-        view.getViewport().setScalable(true);
-        // activate horizontal scrolling
-        view.getViewport().setScrollable(true);
-        // activate horizontal and vertical zooming and scrolling
-        view.getViewport().setScalableY(true);
-        // activate vertical scrolling
-        view.getViewport().setScrollableY(true);
+        bmi_graph.getViewport().setScalable(true)
+        weight_graph.getViewport().setScalable(true)
         return view
     }
     // TODO: Rename method, update argument and hook method into UI event
@@ -94,7 +89,12 @@ class ForMeFragment : Fragment() {
      */
     interface OnForMeInteraction {
         // TODO: Update argument type and name
-        fun OnForMeInteraction(uri: List<DataSet>)
+        fun OnForMeInteraction():DataSet
+
+        fun printData(dataReadResult: DataReadResponse)
+
+        fun dumpDataSet(dataSet: DataSet):LineGraphSeries<com.jjoe64.graphview.series.DataPoint>
+
     }
 
     companion object {
