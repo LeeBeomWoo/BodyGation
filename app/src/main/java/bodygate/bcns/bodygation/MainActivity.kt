@@ -62,16 +62,23 @@ import kotlin.text.Typography.times
 
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable {
+    override fun describeContents(): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun writeToParcel(p0: Parcel?, p1: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     private var authInProgress = false
     lateinit var mFitnessClient: GoogleApiClient
-    lateinit var mGoogleSignInAccount: GoogleSignInAccount
     private val REQUEST_OAUTH = 1001
     val ID: String? = null
     val PW: String? = null
     val TAG: String = "MainActivity_"
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
+    private val REQUEST_OAUTH_REQUEST_CODE = 1
 
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     override fun OnGoalInteractionListener(uri: Uri) {
@@ -142,7 +149,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     constructor(parcel: Parcel) : this() {
         authInProgress = parcel.readByte() != 0.toByte()
-        mGoogleSignInAccount = parcel.readParcelable(GoogleSignInAccount::class.java.classLoader)
     }
 
     private fun configureGoogleSignIn() {
@@ -201,6 +207,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .add(R.id.root_layout, MovieFragment.newInstance(), "rageComicList")
                     .commit()
         }
+        val fitnessOptions = FitnessOptions.builder().addDataType(DataType.TYPE_WEIGHT).build();
+        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
+            GoogleSignIn.requestPermissions(
+                    this,
+                    REQUEST_OAUTH_REQUEST_CODE,
+                    GoogleSignIn.getLastSignedInAccount(this),
+                    fitnessOptions);
+        } else {
+            registerFitnessDataListener();
+        }
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
@@ -220,7 +236,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, "Connecting...")
         val account = GoogleSignIn.getLastSignedInAccount(this)
         //update the UI if user has already sign in with the google for this app
-        mFitnessClient!!.connect()
+        mFitnessClient.connect()
         //getProfileInformation(account)
     }
 
@@ -232,22 +248,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        if (requestCode == RC_SIGN_IN) {
-            // The Task returned from this call is always completed, no need to attach
-            // a listener.
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            //method to handle google sign in result
-            handleSignInResult(task)
-        }
-        if (requestCode == REQUEST_OAUTH) {
-            authInProgress = false
-            if (resultCode == Activity.RESULT_OK) {
-                // Make sure the app is not already connected or attempting to connect
-                if (!mFitnessClient!!.isConnecting() && !mFitnessClient!!.isConnected()) {
-                    mFitnessClient!!.connect()
-                }
+            if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_OAUTH) {
+                authInProgress = false
+                mFitnessClient.connect()
             }
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -321,14 +325,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val startTime = cal.timeInMillis
         Log.i(TAG, "Range Start: " + startTime.toString())
         Log.i(TAG, "Range End: " + endTime.toString())
-
         val task = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
         val response = Fitness.getHistoryClient(this@MainActivity, task)
                 .readData(DataReadRequest.Builder()
                         .read(DataType.TYPE_WEIGHT)
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                         .build());
-
         val readDataResult = Tasks.await(response);
         val dataSet = readDataResult.getDataSet(DataType.TYPE_WEIGHT);
         Log.i(TAG + "dataSet", dataSet.toString())
@@ -339,30 +341,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onConnectionFailed(result: ConnectionResult) {
         Log.i(TAG, "onConnectionFailed")
         // Error while connecting. Try to resolve using the pending intent returned.
+        Log.i(TAG, "onConnectionFailed" + ":" + result.toString())
         if (result.getErrorCode() == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
             try {
                 result.startResolutionForResult(this, REQUEST_OAUTH);
             } catch (e: IntentSender.SendIntentException) {
+                Log.i(TAG, "onConnectionFailed" + ":" + e.toString())
             }
-        }
-    }
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeByte(if (authInProgress) 1 else 0)
-        parcel.writeParcelable(mGoogleSignInAccount, flags)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<MainActivity> {
-        override fun createFromParcel(parcel: Parcel): MainActivity {
-            return MainActivity(parcel)
-        }
-
-        override fun newArray(size: Int): Array<MainActivity?> {
-            return arrayOfNulls(size)
         }
     }
 
@@ -463,6 +448,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 Toast.makeText(this, "Google access revoked.", Toast.LENGTH_SHORT).show()
                 getProfileInformation(null)
         })
+    }
+
+    companion object CREATOR : Parcelable.Creator<MainActivity> {
+        override fun createFromParcel(parcel: Parcel): MainActivity {
+            return MainActivity(parcel)
+        }
+
+        override fun newArray(size: Int): Array<MainActivity?> {
+            return arrayOfNulls(size)
+        }
     }
 }
 
