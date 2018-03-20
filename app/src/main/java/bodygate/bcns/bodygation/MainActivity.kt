@@ -53,14 +53,24 @@ import kotlin.collections.ArrayList
 
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable {
-    override var dateSET: DataSet?
-        get() = data
+    override var bfp_dateSET: DataSet?
+        get() = bfp_data
         set(value) {}
-    override var list: Array<com.jjoe64.graphview.series.DataPoint>?
+
+    override var bfp_list: Array<com.jjoe64.graphview.series.DataPoint>?
         set(value) {}
         get() = arrayOf()
 
-            override fun describeContents(): Int {
+    override var weight_dateSET: DataSet?
+        get() = weight_data
+        set(value) {}
+
+    override var weight_list: Array<com.jjoe64.graphview.series.DataPoint>?
+        set(value) {}
+        get() = arrayOf()
+
+
+    override fun describeContents(): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -78,7 +88,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
     val forMeFragment: ForMeFragment = ForMeFragment()
-    var data:DataSet? = null
+    var weight_data:DataSet? = null
+    var bfp_data:DataSet? = null
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     override fun OnGoalInteractionListener(uri: Uri) {
         //TODO("not implemented") To change body of created functions use File | Settings | File Templates.
@@ -139,7 +150,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.server_client_home_id))
+                .requestIdToken(getString(R.string.server_client_id))
                 .requestEmail()//request email id
                 .build()
 
@@ -257,28 +268,39 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // [START parse_read_data_result]
         // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
         // as buckets containing DataSets, instead of just DataSets.
-        if (dataReadResult.getBuckets().size > 0) {
-            Log.i(
-                    TAG, "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size);
-            for (bucket: Bucket in dataReadResult.getBuckets()) {
-                val dataSets = bucket.getDataSets()
-                for (dataSet: DataSet in dataSets) {
-                    dumpDataSet(dataSet);
-                }
-            }
-        } else if (dataReadResult.getDataSets().size > 0) {
+        if (dataReadResult.getDataSets().size > 0) {
             Log.i(TAG, "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
             for (dataSet in dataReadResult.getDataSets()) {
-                dumpDataSet(dataSet);
+               if(dataSet.dataType == DataType.TYPE_WEIGHT) {
+                   Log.i(TAG, "Data Type:" + "TYPE_WEIGHT")
+                   weight_dumpDataSet(dataSet)
+               }else if(dataSet.dataType == DataType.TYPE_BODY_FAT_PERCENTAGE){
+                   Log.i(TAG, "Data Type:" + "TYPE_BODY_FAT_PERCENTAGE")
+                   bfp_dumpDataSet(dataSet)
+               }
             }
         }
         // [END parse_read_data_result]
     }
-
-     override fun dumpDataSet(dataSet: DataSet) {
+    override fun bfp_dumpDataSet(dataSet: DataSet) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
         val dateFormat = getDateInstance()
-         data = dataSet
+        bfp_data = dataSet
+        for (dp: DataPoint in dataSet.getDataPoints()) {
+            Log.i(TAG, "Data point:" + dp.toString())
+            Log.i(TAG, "Type: " + dp.getDataType().getName());
+            Log.i(TAG, "Start: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+            Log.i(TAG, "End: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+            Log.i(TAG, "TimeStemp: " + dateFormat.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
+            Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_PERCENTAGE) + "type: " + dp.getValue(Field.FIELD_PERCENTAGE).javaClass)
+        }
+        Log.i(TAG, "list point:" + bfp_list.toString())
+    }
+
+     override fun weight_dumpDataSet(dataSet: DataSet) {
+        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
+        val dateFormat = getDateInstance()
+        weight_data = dataSet
         for (dp: DataPoint in dataSet.getDataPoints()) {
             Log.i(TAG, "Data point:" + dp.toString())
             Log.i(TAG, "Type: " + dp.getDataType().getName());
@@ -287,7 +309,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             Log.i(TAG, "TimeStemp: " + dateFormat.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
             Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_WEIGHT) + "type: " + dp.getValue(Field.FIELD_WEIGHT).javaClass)
         }
-         Log.i(TAG, "list point:" + list.toString())
+        Log.i(TAG, "list point:" + weight_list.toString())
     }
 
     override fun onConnected(p0: Bundle?) {
@@ -321,6 +343,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val response = Fitness.getHistoryClient(this@MainActivity, task)
                 .readData(DataReadRequest.Builder()
                         .read(DataType.TYPE_WEIGHT)
+                        .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                         .build());
         val readDataResult = Tasks.await(response);
