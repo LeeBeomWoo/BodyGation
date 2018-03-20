@@ -38,19 +38,29 @@ import com.google.android.gms.tasks.Tasks
 import com.jjoe64.graphview.series.LineGraphSeries
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.android.synthetic.main.google_login.*
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import java.text.DateFormat.FULL
 import java.text.DateFormat.getDateInstance
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 
 
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable {
-    override fun describeContents(): Int {
+    override var dateSET: DataSet?
+        get() = data
+        set(value) {}
+    override var list: Array<com.jjoe64.graphview.series.DataPoint>?
+        set(value) {}
+        get() = arrayOf()
+
+            override fun describeContents(): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -67,10 +77,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
-    lateinit var list:MutableList<com.jjoe64.graphview.series.DataPoint>
-    lateinit var dataSet:DataSet
     val forMeFragment: ForMeFragment = ForMeFragment()
-
+    var data:DataSet? = null
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     override fun OnGoalInteractionListener(uri: Uri) {
         //TODO("not implemented") To change body of created functions use File | Settings | File Templates.
@@ -80,11 +88,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // TODO("not implemented") To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun OnForMeInteraction(): DataSet {
-        if(dataSet == null){
-            registerFitnessDataListener()
-        }
-        return dataSet
+    override fun OnForMeInteraction() {
     }
 
     override fun OnMovieInteraction(item: DummyContent.DummyItem) {
@@ -119,7 +123,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             R.id.navigation_infome -> {
                 supportFragmentManager
                         .beginTransaction()
-                        .replace(R.id.root_layout, ForMeFragment.newInstance(ID, PW), "rageComicList")
+                        .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
                         .commit()
                 return@OnNavigationItemSelectedListener true
             }
@@ -135,7 +139,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.server_client_id))
+                .requestIdToken(getString(R.string.server_client_home_id))
                 .requestEmail()//request email id
                 .build()
 
@@ -187,7 +191,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .add(R.id.root_layout, MovieFragment.newInstance(), "rageComicList")
                     .commit()
         }
-        val fitnessOptions = FitnessOptions.builder().addDataType(DataType.TYPE_WEIGHT).build();
+        val fitnessOptions = FitnessOptions.builder()
+                .addDataType(DataType.TYPE_WEIGHT)
+                .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE)
+                .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE)
+                .build()
         if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
             GoogleSignIn.requestPermissions(
                     this,
@@ -202,8 +210,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addApi(Fitness.HISTORY_API)
                 .addScope(Scope(Scopes.FITNESS_LOCATION_READ))
                 .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ))
                 .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
                 .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_BODY_READ))
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build()
@@ -222,16 +232,21 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun onStop() {
         super.onStop()
-        if (mFitnessClient!!.isConnected()) {
-            mFitnessClient!!.disconnect()
+        if (mFitnessClient.isConnected()) {
+            mFitnessClient.disconnect()
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-            if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_OAUTH) {
-                authInProgress = false
-                mFitnessClient.connect()
+        if (requestCode == REQUEST_OAUTH) {
+            authInProgress = false;
+            if (resultCode == RESULT_OK) {
+                // Make sure the app is not already connected or attempting to connect
+                if (!mFitnessClient.isConnecting() && !mFitnessClient.isConnected()) {
+                    mFitnessClient.connect();
+                }
             }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -260,35 +275,24 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // [END parse_read_data_result]
     }
 
-     override fun dumpDataSet(dataSet: DataSet):LineGraphSeries<com.jjoe64.graphview.series.DataPoint> {
+     override fun dumpDataSet(dataSet: DataSet) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-        val dateFormat = getDateInstance(FULL)
-         var weight_lineseries = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>()
+        val dateFormat = getDateInstance()
+         data = dataSet
         for (dp: DataPoint in dataSet.getDataPoints()) {
             Log.i(TAG, "Data point:" + dp.toString())
             Log.i(TAG, "Type: " + dp.getDataType().getName());
             Log.i(TAG, "Start: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
             Log.i(TAG, "End: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG, "TimeStemp: " + dateFormat.format(dp.getTimestamp(TimeUnit.MILLISECONDS)));
-            for (field: Field in dp.getDataType().getFields()) {
-                Log.i(TAG, "Field: " + field.toString() + " Value: " + dp.getValue(field));
-            }
-            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
-                for (field: Field in dp.getDataType().getFields()) {
-                    val setDate = Date(dp.getTimestamp(TimeUnit.MILLISECONDS))
-                    weight_lineseries. = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(arrayOf<com.jjoe64.graphview.series.DataPoint>(com.jjoe64.graphview.series.DataPoint(setDate, dp.getValue(field).asFloat().toDouble())))
-                }
-            }
+            Log.i(TAG, "TimeStemp: " + dateFormat.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
+            Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_WEIGHT) + "type: " + dp.getValue(Field.FIELD_WEIGHT).javaClass)
         }
-         this.dataSet = dataSet
-
-         return weight_lineseries
+         Log.i(TAG, "list point:" + list.toString())
     }
 
     override fun onConnected(p0: Bundle?) {
         Log.i(TAG, "onConnected")
         //Google Fit Client에 연결되었습니다.
-
         registerFitnessDataListener()
     }
 
@@ -305,8 +309,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // The connection has been interrupted. Wait until onConnected() is called.
     }
 
-    fun registerFitnessDataListener() = launch(CommonPool) {
-
+    override fun registerFitnessDataListener() = launch(CommonPool) {
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -323,7 +326,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val readDataResult = Tasks.await(response);
         val dataSet = readDataResult.getDataSet(DataType.TYPE_WEIGHT);
         Log.i(TAG + "dataSet", dataSet.toString())
-        printData(readDataResult)
+        async(UI) { printData(readDataResult) }
     }
 
     override fun onConnectionFailed(result: ConnectionResult) {
@@ -448,6 +451,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 }
+
 
 
 
