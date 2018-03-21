@@ -162,4 +162,19 @@
     <string name="custom_sign_in_button">다른 구글 계정으로 연동합니다.</string>
     <string name="sign_in">로그인</string>
     <string name="sign_out">로그아웃</string>
+    <string name="weight_excercise">근력운동</string>
+    <string name="arm">팔</string>
+    <string name="leg">다리</string>
+    <string name="abs">복근</string>
+    <string name="waist">허리</string>
+    <string name="chest">가슴</string>
+    <string name="back">등</string>
+    <string name="shoulder">어깨</string>
+    <string name="house">집</string>
+    <string name="office">사무실</string>
+    <string name="car">자동차</string>
+    <string name="excercise_category">운동 종류</string>
+    <string name="section">운동 부위</string>
+    <string name="place">운동장소</string>
+    <string name="search">검색</string>
 </resources>
