@@ -334,11 +334,11 @@ public class Topics {
 
             // Double checks the kind is video.
             if(rId.getKind().equals("youtube#video")) {
-                Object thumbnail = singleVideo.getSnippet().getThumbnails().get("default");
+                Thumbnail thumbnail = (Thumbnail) singleVideo.getSnippet().getThumbnails().get("default");
 
                 System.out.println(" Video Id" + rId.getVideoId());
                 System.out.println(" Title: " + singleVideo.getSnippet().getTitle());
-                System.out.println(" Thumbnail: " + thumbnail.toString());
+                System.out.println(" Thumbnail: " + thumbnail.getUrl());
                 System.out.println("\n-------------------------------------------------------------\n");
             }
         }
