@@ -1,6 +1,7 @@
 package bodygate.bcns.bodygation
 
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.content.IntentSender
 import android.net.Uri
@@ -11,6 +12,8 @@ import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.FollowFragment
@@ -35,6 +38,8 @@ import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.services.youtube.YouTubeScopes
 import com.jjoe64.graphview.series.LineGraphSeries
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
@@ -77,7 +82,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun writeToParcel(p0: Parcel?, p1: Int) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
-
     private var authInProgress = false
     lateinit var mFitnessClient: GoogleApiClient
     private val REQUEST_OAUTH = 1001
