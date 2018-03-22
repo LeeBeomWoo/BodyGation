@@ -14,6 +14,8 @@ package bodygate.bcns.bodygation.youtube;
  */
 
 
+        import android.util.ArrayMap;
+
         import com.google.api.client.googleapis.json.GoogleJsonResponseException;
         import com.google.api.client.http.HttpRequest;
         import com.google.api.client.http.HttpRequestInitializer;
@@ -27,12 +29,16 @@ package bodygate.bcns.bodygation.youtube;
         import com.google.api.services.youtube.model.SearchResult;
         import com.google.api.services.youtube.model.Thumbnail;
 
+        import org.json.JSONArray;
+
         import java.io.BufferedReader;
         import java.io.IOException;
         import java.io.InputStream;
         import java.io.InputStreamReader;
+        import java.util.ArrayList;
         import java.util.Iterator;
         import java.util.List;
+        import java.util.Map;
         import java.util.Properties;
 
 /**
@@ -64,7 +70,7 @@ public class Search {
      *
      * @param args command line args.
      */
-    public static void main(String[] args) {
+    public static ArrayList<ArrayMap<String, String>>  main(String[] args) {
         // Read the developer key from youtube.properties
         Properties properties = new Properties();
         try {
@@ -115,7 +121,7 @@ public class Search {
             List<SearchResult> searchResultList = searchResponse.getItems();
 
             if (searchResultList != null) {
-                prettyPrint(searchResultList.iterator(), queryTerm);
+                return prettyPrint(searchResultList.iterator(), queryTerm);
             }
         } catch (GoogleJsonResponseException e) {
             System.err.println("There was a service error: " + e.getDetails().getCode() + " : "
@@ -125,6 +131,7 @@ public class Search {
         } catch (Throwable t) {
             t.printStackTrace();
         }
+        return null;
     }
 
     /*
@@ -153,17 +160,17 @@ public class Search {
      *
      * @param query Search query (String)
      */
-    private static void prettyPrint(Iterator<SearchResult> iteratorSearchResults, String query) {
+    private static ArrayList<ArrayMap<String, String>> prettyPrint(Iterator<SearchResult> iteratorSearchResults, String query) {
 
         System.out.println("\n=============================================================");
         System.out.println(
                 "   First " + NUMBER_OF_VIDEOS_RETURNED + " videos for search on \"" + query + "\".");
         System.out.println("=============================================================\n");
-
         if (!iteratorSearchResults.hasNext()) {
             System.out.println(" There aren't any results for your query.");
         }
-
+        int i = 0;
+        ArrayList<ArrayMap<String, String>> result = new ArrayList<>();
         while (iteratorSearchResults.hasNext()) {
 
             SearchResult singleVideo = iteratorSearchResults.next();
@@ -171,13 +178,19 @@ public class Search {
 
             // Double checks the kind is video.
             if (rId.getKind().equals("youtube#video")) {
+                ArrayMap<String, String> temp = new ArrayMap<String, String>();
                 Thumbnail thumbnail = (Thumbnail) singleVideo.getSnippet().getThumbnails().get("default");
-
+                temp.put("Id", rId.getVideoId());
+                temp.put("Title", singleVideo.getSnippet().getTitle());
+                temp.put("Thumbnail", thumbnail.getUrl());
                 System.out.println(" Video Id" + rId.getVideoId());
                 System.out.println(" Title: " + singleVideo.getSnippet().getTitle());
                 System.out.println(" Thumbnail: " + thumbnail.getUrl());
                 System.out.println("\n-------------------------------------------------------------\n");
+                result.add(i, temp);
+                i++;
             }
         }
+        return result;
     }
 }

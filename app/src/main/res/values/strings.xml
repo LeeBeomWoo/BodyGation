@@ -170,9 +170,9 @@
     <string name="chest">가슴</string>
     <string name="back">등</string>
     <string name="shoulder">어깨</string>
-    <string name="house">집</string>
-    <string name="office">사무실</string>
-    <string name="car">자동차</string>
+    <string name="house">집에서</string>
+    <string name="office">사무실에서</string>
+    <string name="car">자동차안에서</string>
     <string name="excercise_category">운동 종류</string>
     <string name="section">운동 부위</string>
     <string name="place">운동장소</string>
