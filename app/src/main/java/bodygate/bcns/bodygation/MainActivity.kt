@@ -9,9 +9,13 @@ import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
 import android.support.design.widget.BottomNavigationView
+import android.support.design.widget.CoordinatorLayout
 import android.support.v7.app.AppCompatActivity
+import android.text.Layout
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
+import android.view.animation.Animation
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -57,7 +61,7 @@ import kotlin.collections.ArrayList
 
 
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable {
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable{
     override var bfp_dateSET: DataSet?
         get() = bfp_data
         set(value) {}
