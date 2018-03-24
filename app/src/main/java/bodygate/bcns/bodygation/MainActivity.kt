@@ -22,6 +22,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent
+import bodygate.bcns.bodygation.dummy.SearchData
 import bodygate.bcns.bodygation.dummy.listContent
 import bodygate.bcns.bodygation.navigationitem.*
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -69,8 +70,14 @@ import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
+import org.apache.http.client.ClientProtocolException
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.DefaultHttpClient
+import org.json.JSONException
+import org.json.JSONObject
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.IOException
+import java.io.UnsupportedEncodingException
 import java.text.DateFormat.getDateInstance
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -91,7 +98,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
     private val PROPERTIES_FILENAME = "youtube.properties"
     private var authInProgress = false
-    lateinit var searchquery: Array<String>
     lateinit var mFitnessClient: GoogleApiClient
     private val REQUEST_OAUTH = 1001
     val ID: String? = null
@@ -108,21 +114,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val NUMBER_OF_VIDEOS_RETURNED: Long = 30
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
+    var queryKey:kotlin.collections.ArrayList<String>? = null
+    var dataResult:kotlin.collections.ArrayList<SearchData>? = null
+    /** Global instance of the HTTP transport.  */
+    var HTTP_TRANSPORT:NetHttpTransport = NetHttpTransport()
 
-    override var query: Array<String>
-        get() = searchquery
-        set(value) {}
+    /** Global instance of the JSON factory.  */
+    var JSON_FACTORY: JsonFactory? = JacksonFactory()
 
-    override var JSON_FACTORY: JsonFactory?
-        get() = JacksonFactory()
-        set(value) {}
-    override var HTTP_TRANSPORT: HttpTransport?
-        get() = NetHttpTransport()
-        set(value) {}
-
-    override fun OnYoutubeResultInteraction(item: ArrayList<String>): YoutubeResultListViewAdapter?{
+    override fun OnYoutubeResultInteraction(item: ArrayList<String>){
         getYoutubeAdapter(item)
-        return adapter
     }
 
     fun  getYoutubeAdapter(item: ArrayList<String>)  = launch(CommonPool) { try {
@@ -170,16 +171,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
            if (rId.getKind() == "youtube#video") {
                val thumbnail = singleVideo.getSnippet().getThumbnails().get("default") as Thumbnail
 
-               Log.i(TAG +" Video Id" , rId.getVideoId())
-               Log.i(TAG+" Title", singleVideo.getSnippet().getTitle())
-               Log.i(TAG+" Thumbnail", thumbnail.url)
+               Log.i(TAG +"Video Id" , rId.getVideoId())
+               Log.i(TAG+"Title", singleVideo.getSnippet().getTitle())
+               Log.i(TAG+"Thumbnail", thumbnail.url)
                result.add(i, listContent.DummyItem(rId.getVideoId(), singleVideo.getSnippet().getTitle(), thumbnail.url))
                i += 1
            }
 
        }
         async(UI) {
-            adapter = YoutubeResultListViewAdapter(result, applicationContext) }
+            adapter = YoutubeResultListViewAdapter(result, this@MainActivity) }
    } catch (e: GoogleJsonResponseException) {
        Log.i(TAG, ("There was a service error: " + e.getDetails().getCode() + " : "
                + e.getDetails().getMessage()))
@@ -221,6 +222,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnFollowInteraction(uri: ArrayList<String>?) {
         Log.i(TAG, "OnFollowInteraction")
         Log.i(TAG, uri?.get(2))
+        queryKey = uri
+        getUtube(queryKey)
         supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.root_layout, YouTubeResult.newInstance(uri!!), "rageComicList")
@@ -327,8 +330,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         setContentView(R.layout.activity_main)
         Log.d(TAG + "_", "onCreate")
         configureGoogleSignIn()
-
-        getResultsFromApi()
         mCredential = GoogleAccountCredential.usingOAuth2(
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(ExponentialBackOff());
@@ -353,6 +354,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         } else {
             registerFitnessDataListener();
         }
+        getResultsFromApi()
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
@@ -671,7 +673,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         } else if (!isDeviceOnline()) {
         } else {
             val task = MakeRequestTask(mCredential)
-            task.execute();
+            task.execute()
         }
     }
 
@@ -808,9 +810,118 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
      * An asynchronous task that handles the YouTube Data API call.
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
+
+    fun getUtube(qt:kotlin.collections.ArrayList<String>?): JSONObject {
+        val httpGet = HttpGet(
+                "https://www.googleapis.com/youtube/v3/search?"
+                        + "part=snippet&q=" + qt.toString()
+                        + "&key="+ getString(R.string.API_key)+"&maxResults=50");  //EditText에 입력된 값으로 겁색을 합니다.
+        // part(snippet),  q(검색값) , key(서버키)
+        val client = DefaultHttpClient()
+        val stringBuilder = StringBuilder()
+
+        try {
+            val response = client.execute(httpGet)
+            val entity = response.getEntity()
+            val stream = entity.getContent()
+            while (stream.read() !== -1) {
+                stringBuilder.append(stream.read() as Char)
+            }
+
+        } catch (e: ClientProtocolException) {
+        } catch (e:IOException) {
+        }
+
+        var jsonObject = JSONObject()
+        try {
+            jsonObject = JSONObject(stringBuilder.toString())
+        } catch (e: JSONException) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return jsonObject;
+    }
+    private fun paringJsonData(jsonObject:JSONObject) {
+        dataResult?.clear();
+
+        var youtube = YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, HttpRequestInitializer { }).setApplicationName(application.packageName).build()
+        val contacts = jsonObject.getJSONArray("items");
+        var vodid = ""
+        val a  = contacts.length()
+        for (i:Int in 0..a) {
+            val c = contacts.getJSONObject(i)
+            val kind =  c.getJSONObject("id").getString("kind") // 종류를 체크하여 playlist도 저장
+            if(kind.equals("youtube#video")){
+                vodid = c.getJSONObject("id").getString("videoId"); // 유튜브
+                // 동영상
+                // 아이디
+                // 값입니다.
+                // 재생시
+                // 필요합니다.
+            }else{
+                vodid = c.getJSONObject("id").getString("playlistId"); // 유튜브
+            }
+
+            val title = c.getJSONObject("snippet").getString("title"); //유튜브 제목을 받아옵니다
+            var changString = "";
+            try {
+                changString = String(title.toByteArray( charset("8859_1")), charset("utf-8")); //한글이 깨져서 인코딩 해주었습니다
+            } catch (e: UnsupportedEncodingException) {
+                e.printStackTrace();
+            }
+
+            val date = c.getJSONObject("snippet").getString("publishedAt") //등록날짜
+                    .substring(0, 10);
+            val imgUrl = c.getJSONObject("snippet").getJSONObject("thumbnails")
+                    .getJSONObject("default").getString("url");  //썸내일 이미지 URL값
+            dataResult?.add(SearchData(vodid, changString, imgUrl, date));
+            Log.i(TAG, vodid+ "/" + changString+ "/" + imgUrl+ "/"+ date)
+        }
+
+    }
+
+    class MakeRequestTask(mCredential: GoogleAccountCredential?): AsyncTask<Void, Void, MutableList<String>?>() {
+        private var mService: com.google.api.services.youtube.YouTube? = null
+        private val mLastError: Exception? = null
+        fun MakeRequestTask(credential: GoogleAccountCredential):  com.google.api.services.youtube.YouTube? {
+            val transport = AndroidHttp.newCompatibleTransport()
+            val jsonFactory = JacksonFactory.getDefaultInstance()
+            mService = com.google.api.services.youtube.YouTube.Builder(
+                    transport, jsonFactory, credential)
+                    .setApplicationName("YouTube Data API Android Quickstart")
+                    .build()
+            return mService
+        }
+        override fun doInBackground(vararg p0: Void): MutableList<String>? {
+            val channelInfo = ArrayList<String>()
+            val result = mService!!.channels().list("snippet,contentDetails,statistics")
+                    .setForUsername("GoogleDevelopers")
+                    .execute();
+            val channels = result.getItems();
+            if (channels != null) {
+                val channel = channels.get(0);
+                channelInfo.add("This channel's ID is " + channel.getId() + ". " +
+                        "Its title is '" + channel.getSnippet().getTitle() + ", " +
+                        "and it has " + channel.getStatistics().getViewCount() + " views.");
+            }
+            return channelInfo
+        }
+        override fun onPreExecute() {
+            super.onPreExecute()
+            // ...
+        }
+
+        override fun onPostExecute(result: MutableList<String>?) {
+            super.onPostExecute(result)
+            // ...
+        }
+
+    } /**
+    @SuppressLint("StaticFieldLeak")
     inner class MakeRequestTask(mCredential: GoogleAccountCredential?) : AsyncTask<Void, Void, MutableList<String>?>() {
         override fun doInBackground(vararg p0: Void?): MutableList<String>? {
-
+            Log.i(TAG, "MakeRequestTask")
             val transport = AndroidHttp.newCompatibleTransport ();
             val jsonFactory = JacksonFactory.getDefaultInstance ();
             mService = com.google.api.services.youtube.YouTube.Builder(
@@ -835,19 +946,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
              * @throws IOException
              */
             private fun getDataFromApi(): MutableList<String> {
+                Log.i(TAG, "getDataFromApi")
                 // Get a list of up to 10 files.
-                val channelInfo = ArrayList<String>()
-                val result = mService!!.channels().list("snippet,contentDetails,statistics")
-                        .setForUsername("GoogleDevelopers")
-                        .execute();
-                val channels = result.getItems();
-                if (channels != null) {
-                    val channel = channels.get(0);
-                    channelInfo.add("This channel's ID is " + channel.getId() + ". " +
-                            "Its title is '" + channel.getSnippet().getTitle() + ", " +
-                            "and it has " + channel.getStatistics().getViewCount() + " views.");
-                }
-                return channelInfo;
+
             }
 
             override fun onPreExecute() {
@@ -888,8 +989,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
         }
-
+*/
 }
+
 
 
 

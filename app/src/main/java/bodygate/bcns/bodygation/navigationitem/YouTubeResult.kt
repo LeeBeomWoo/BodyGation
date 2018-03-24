@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import bodygate.bcns.bodygation.dummy.listContent
+import bodygate.bcns.bodygation.youtube.Topics
 import com.google.api.client.http.HttpTransport
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.JsonFactory
@@ -39,7 +40,7 @@ class YouTubeResult : Fragment() {
 
     /** Global instance of the JSON factory.  */
     private val JSON_FACTORY = JacksonFactory()
-
+    val topic = Topics()
     /** Global instance of the max number of videos we want returned (50 = upper limit per page).  */
 
     /** Global instance of Youtube object to make all API requests.  */
@@ -61,14 +62,11 @@ class YouTubeResult : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Log.i(TAG, "onActivityCreated")
-        mListener!!.HTTP_TRANSPORT = HTTP_TRANSPORT
-        mListener!!.JSON_FACTORY = JSON_FACTORY
-        val pop_adapter = mListener!!.OnYoutubeResultInteraction(mParam1 as ArrayList<String>)
         // Set the adapter
+
         val pop_linearLayoutManager = LinearLayoutManager(context)
         pop_linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL)
         result_list.setLayoutManager(pop_linearLayoutManager)
-        result_list.setAdapter(pop_adapter)
     }
     // TODO: Rename method, update argument and hook method into UI event
 
@@ -96,13 +94,8 @@ class YouTubeResult : Fragment() {
      * See the Android Training lesson [Communicating with Other Fragments](http://developer.android.com/training/basics/fragments/communicating.html) for more information.
      */
     interface OnYoutubeResultInteraction {
-        var HTTP_TRANSPORT: HttpTransport?
-
-        var JSON_FACTORY: JsonFactory?
-
-        var query:Array<String>
         // TODO: Update argument type and name
-        fun OnYoutubeResultInteraction(item: ArrayList<String>): YoutubeResultListViewAdapter?
+        fun OnYoutubeResultInteraction(item: ArrayList<String>)
     }
 
     companion object {
