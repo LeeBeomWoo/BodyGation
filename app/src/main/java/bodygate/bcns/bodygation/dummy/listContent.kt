@@ -1,7 +1,10 @@
 package bodygate.bcns.bodygation.dummy
 
 import com.google.android.youtube.player.YouTubePlayer
-import java.util.*
+import com.google.api.services.youtube.model.SearchResult
+import com.google.api.services.youtube.model.Thumbnail
+import java.util.ArrayList
+import java.util.HashMap
 
 /**
  * Helper class for providing sample content for user interfaces created by
@@ -10,7 +13,7 @@ import java.util.*
  *
  * TODO: Replace all uses of this class before publishing your app.
  */
-object DummyContent {
+object listContent {
 
     /**
      * An array of sample (dummy) items.
@@ -22,35 +25,13 @@ object DummyContent {
      */
     val ITEM_MAP: MutableMap<String, DummyItem> = HashMap()
 
-    private val COUNT = 25
-
-    init {
-        // Add some sample items.
-        for (i in 1..COUNT) {
-            addItem(createDummyItem(i))
-        }
-    }
-
-    private fun addItem(item: DummyItem) {
+    fun addItem(item: DummyItem) {
         ITEMS.add(item)
         ITEM_MAP[item.id] = item
     }
-
-    private fun createDummyItem(position: Int): DummyItem {
-        return DummyItem(position.toString(), "Item $position", makeDetails(position))
-    }
-
-    private fun makeDetails(position: Int): String {
-        val builder = "More details information here."
-        return builder
-    }
-
     /**
      * A dummy item representing a piece of content.
      */
     class DummyItem(val id: String, val title: String, val details: String) {
-        override fun toString(): String {
-            return title
-        }
     }
 }

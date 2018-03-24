@@ -19,6 +19,7 @@ import com.jjoe64.graphview.helper.StaticLabelsFormatter
 import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
+import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import java.text.DateFormat
@@ -61,9 +62,12 @@ class ForMeFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.i(TAG, "onCreateView")
         // Inflate the layout for this fragment
-        val view = inflater.inflate(R.layout.fragment_for_me, container, false)
-        val bfp_graph:GraphView = view.findViewById(R.id.bfp_graph)
-        val weight_graph:GraphView = view.findViewById(R.id.weight_graph)
+        return inflater.inflate(R.layout.fragment_for_me, container, false)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
         mListener!!.OnForMeInteraction()
         weight_graph.title = getString(R.string.weight)
         weight_graph.addSeries(dumpDataSet(mListener!!.weight_dateSET))
@@ -81,7 +85,6 @@ class ForMeFragment : Fragment() {
         bfp_graph.getGridLabelRenderer().setLabelFormatter(bfp_labelhorizon)
         bfp_graph.gridLabelRenderer.setHumanRounding(false)
         bfp_graph.viewport.isScalable = true
-        return view
     }
     @SuppressLint("SimpleDateFormat")
 // TODO: Rename method, update argument and hook method into UI event

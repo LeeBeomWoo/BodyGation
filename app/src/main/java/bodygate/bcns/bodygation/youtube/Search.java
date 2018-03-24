@@ -70,7 +70,7 @@ public class Search {
      *
      * @param args command line args.
      */
-    public static ArrayList<ArrayMap<String, String>>  main(String[] args) {
+    public static void main(String[] args) {
         // Read the developer key from youtube.properties
         Properties properties = new Properties();
         try {
@@ -121,7 +121,7 @@ public class Search {
             List<SearchResult> searchResultList = searchResponse.getItems();
 
             if (searchResultList != null) {
-                return prettyPrint(searchResultList.iterator(), queryTerm);
+                prettyPrint(searchResultList.iterator(), queryTerm);
             }
         } catch (GoogleJsonResponseException e) {
             System.err.println("There was a service error: " + e.getDetails().getCode() + " : "
@@ -131,7 +131,6 @@ public class Search {
         } catch (Throwable t) {
             t.printStackTrace();
         }
-        return null;
     }
 
     /*
@@ -160,7 +159,7 @@ public class Search {
      *
      * @param query Search query (String)
      */
-    private static ArrayList<ArrayMap<String, String>> prettyPrint(Iterator<SearchResult> iteratorSearchResults, String query) {
+    private static void prettyPrint(Iterator<SearchResult> iteratorSearchResults, String query) {
 
         System.out.println("\n=============================================================");
         System.out.println(
@@ -191,6 +190,5 @@ public class Search {
                 i++;
             }
         }
-        return result;
     }
 }

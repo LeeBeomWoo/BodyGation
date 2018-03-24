@@ -158,6 +158,7 @@
     <string name="musclemass">골격근량 변화</string>
     <string name="fitheghit">아쉽게도 키는 목표를 잡을 수가 없네요</string>
     <string name="server_client_id">193944482415-v5dg6cel56tugrv4r5j0k7c93944kimn.apps.googleusercontent.com</string>
+    <string name="API_key">AIzaSyDYApmvsPUrZkd1vr8yeN4ZvxkmE75HDa4</string>
     <string name="default_sign_in_button">구글 계정과 연동 합니다.</string>
     <string name="custom_sign_in_button">다른 구글 계정으로 연동합니다.</string>
     <string name="sign_in">로그인</string>
@@ -177,4 +178,5 @@
     <string name="section">운동 부위</string>
     <string name="place">운동장소</string>
     <string name="search">검색</string>
+    <string name="failed">유튜브 계정연결에 실패했습니다</string>
 </resources>

@@ -41,14 +41,6 @@ class MovieFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        val view = inflater.inflate(R.layout.fragment_movie, container, false)
-        val pop_list:RecyclerView = view.findViewById(R.id.pop_list)
-        val new_list:RecyclerView = view.findViewById(R.id.new_list)
-        val my_list:RecyclerView = view.findViewById(R.id.my_list)
-        val pop_adapter = MyRecyclerViewAdapter(DummyContent.ITEMS, mListener)
-        val new_adapter = MyRecyclerViewAdapter(DummyContent.ITEMS, mListener)
-        val my_adapter = MyRecyclerViewAdapter(DummyContent.ITEMS, mListener)
-
         // Set the adapter
         val pop_linearLayoutManager = LinearLayoutManager(context)
         pop_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
@@ -56,13 +48,7 @@ class MovieFragment : Fragment() {
         new_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
         val my_linearLayoutManager = LinearLayoutManager(context)
         my_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        pop_list.layoutManager = pop_linearLayoutManager
-        pop_list.adapter = pop_adapter
-        new_list.layoutManager = new_linearLayoutManager
-        new_list.adapter = new_adapter
-        my_list.layoutManager = my_linearLayoutManager
-        my_list.adapter = my_adapter
-        return view
+        return inflater.inflate(R.layout.fragment_movie, container, false)
     }
 
     // TODO: Rename method, update argument and hook method into UI event

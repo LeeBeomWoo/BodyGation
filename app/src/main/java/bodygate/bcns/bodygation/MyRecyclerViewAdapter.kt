@@ -25,7 +25,7 @@ class MyRecyclerViewAdapter(private val mValues: List<DummyItem>, private val mL
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.mItem = mValues[position]
         holder.mIdView.text = mValues[position].id
-        holder.mContentView.text = mValues[position].content
+        holder.mContentView.text = mValues[position].details
 
         holder.mView.setOnClickListener {
             mListener?.OnMovieInteraction(holder.mItem!!)

@@ -8,6 +8,8 @@ import android.support.design.widget.CheckableImageButton
 import android.support.v4.app.Fragment
 import android.util.ArrayMap
 import android.util.Log
+import android.util.StateSet
+import android.util.StateSet.WILD_CARD
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,59 +27,200 @@ import kotlinx.android.synthetic.main.select_view.*
  * Use the [FollowFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class FollowFragment : Fragment(), View.OnClickListener {
+class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygation.CheckableImageButton.OnCheckedChangeListener {
+    override fun onCheckedChanged(button: bodygate.bcns.bodygation.CheckableImageButton?, check: Boolean) {
+        when (button!!.id) {
+            R.id.stretching_img -> consume {
+                Log.i(TAG, "stretching_img")
+                stretching_img.setChecked(check)
+                if(muscle_img.isChecked)
+                muscle_img.setChecked(!check)
+            }
+            R.id.muscle_img -> consume {
+                Log.i(TAG, "muscle_img")
+                muscle_img.setChecked(check)
+                if(stretching_img.isChecked)
+                stretching_img.setChecked(!check)
+            }
+            R.id.home_img -> consume {
+                Log.i(TAG, "home_img")
+                home_img.setChecked(check)
+                if(car_img.isChecked)
+                car_img.setChecked(!check)
+                if(work_img.isChecked)
+                work_img.setChecked(!check)
+            }
+            R.id.car_img -> consume {
+                Log.i(TAG, "car_img")
+                car_img.setChecked(check)
+                if(home_img.isChecked)
+                home_img.setChecked(!check)
+                if(work_img.isChecked)
+                work_img.setChecked(!check)
+            }
+            R.id.work_img -> consume {
+                Log.i(TAG, "work_img")
+                work_img.setChecked(check)
+                if(home_img.isChecked)
+                home_img.setChecked(!check)
+                if(car_img.isChecked)
+                car_img.setChecked(!check)
+            }
+            R.id.hip_img -> consume {
+                Log.i(TAG, "work_img")
+                hip_img.setChecked(check)
+                if(chest_img.isChecked)
+                chest_img.setChecked(!check)
+                if(shoulder_img.isChecked)
+                shoulder_img.setChecked(!check)
+                if(upback_body_img.isChecked)
+                upback_body_img.setChecked(!check)
+                if(upfront_abs_img.isChecked)
+                upfront_abs_img.setChecked(!check)
+                if(upleg_img.isChecked)
+                upleg_img.setChecked(!check)
+                if(upperarm_img.isChecked)
+                upperarm_img.setChecked(!check)
+                if(lowerleg_img.isChecked)
+                lowerleg_img.setChecked(!check)
+            }
+            R.id.chest_img -> consume {
+                Log.i(TAG, "chest_img")
+                if(hip_img.isChecked)
+                hip_img.setChecked(!check)
+                chest_img.setChecked(check)
+                if(shoulder_img.isChecked)
+                shoulder_img.setChecked(!check)
+                if(upback_body_img.isChecked)
+                upback_body_img.setChecked(!check)
+                if(upfront_abs_img.isChecked)
+                upfront_abs_img.setChecked(!check)
+                if(upleg_img.isChecked)
+                upleg_img.setChecked(!check)
+                if(upperarm_img.isChecked)
+                upperarm_img.setChecked(!check)
+                if(lowerleg_img.isChecked)
+                lowerleg_img.setChecked(!check)
+            }
+            R.id.shoulder_img -> consume {
+                Log.i(TAG, "shoulder_img")
+                if(hip_img.isChecked)
+                hip_img.setChecked(!check)
+                if(chest_img.isChecked)
+                chest_img.setChecked(!check)
+                shoulder_img.setChecked(check)
+                if(upback_body_img.isChecked)
+                upback_body_img.setChecked(!check)
+                if(upfront_abs_img.isChecked)
+                upfront_abs_img.setChecked(!check)
+                if(upleg_img.isChecked)
+                upleg_img.setChecked(!check)
+                if(upperarm_img.isChecked)
+                upperarm_img.setChecked(!check)
+                if(lowerleg_img.isChecked)
+                lowerleg_img.setChecked(!check)
+            }
+            R.id.upback_body_img -> consume {
+                Log.i(TAG, "upback_body_img")
+                if(hip_img.isChecked)
+                hip_img.setChecked(!check)
+                if(chest_img.isChecked)
+                chest_img.setChecked(!check)
+                if(shoulder_img.isChecked)
+                shoulder_img.setChecked(!check)
+                upback_body_img.setChecked(check)
+                if(upfront_abs_img.isChecked)
+                upfront_abs_img.setChecked(!check)
+                if(upleg_img.isChecked)
+                upleg_img.setChecked(!check)
+                if(upperarm_img.isChecked)
+                upperarm_img.setChecked(!check)
+                if(lowerleg_img.isChecked)
+                lowerleg_img.setChecked(!check)
+            }
+            R.id.upfront_abs_img -> consume {
+                Log.i(TAG, "upfront_abs_img")
+                if(hip_img.isChecked)
+                    hip_img.setChecked(!check)
+                if(chest_img.isChecked)
+                    chest_img.setChecked(!check)
+                if(shoulder_img.isChecked)
+                    shoulder_img.setChecked(!check)
+                if(upback_body_img.isChecked)
+                upback_body_img.setChecked(!check)
+                upfront_abs_img.setChecked(check)
+                if(upleg_img.isChecked)
+                    upleg_img.setChecked(!check)
+                if(upperarm_img.isChecked)
+                    upperarm_img.setChecked(!check)
+                if(lowerleg_img.isChecked)
+                    lowerleg_img.setChecked(!check)
+            }
+            R.id.upleg_img -> consume {
+                Log.i(TAG, "upleg_img")
+                if(hip_img.isChecked)
+                    hip_img.setChecked(!check)
+                if(chest_img.isChecked)
+                    chest_img.setChecked(!check)
+                if(shoulder_img.isChecked)
+                    shoulder_img.setChecked(!check)
+                if(upback_body_img.isChecked)
+                    upback_body_img.setChecked(!check)
+                if(upfront_abs_img.isChecked)
+                upfront_abs_img.setChecked(!check)
+                upleg_img.setChecked(check)
+                if(upperarm_img.isChecked)
+                    upperarm_img.setChecked(!check)
+                if(lowerleg_img.isChecked)
+                    lowerleg_img.setChecked(!check)
+            }
+            R.id.upperarm_img -> consume {
+                Log.i(TAG, "upperarm_img")
+                if(hip_img.isChecked)
+                    hip_img.setChecked(!check)
+                if(chest_img.isChecked)
+                    chest_img.setChecked(!check)
+                if(shoulder_img.isChecked)
+                    shoulder_img.setChecked(!check)
+                if(upback_body_img.isChecked)
+                    upback_body_img.setChecked(!check)
+                if(upfront_abs_img.isChecked)
+                    upfront_abs_img.setChecked(!check)
+                if(upleg_img.isChecked)
+                    upleg_img.setChecked(!check)
+                upperarm_img.setChecked(check)
+                if(lowerleg_img.isChecked)
+                    lowerleg_img.setChecked(!check)
+            }
+            R.id.lowerleg_img -> consume {
+                Log.i(TAG, "lowerleg_img")
+                if(hip_img.isChecked)
+                    hip_img.setChecked(!check)
+                if(chest_img.isChecked)
+                    chest_img.setChecked(!check)
+                if(shoulder_img.isChecked)
+                    shoulder_img.setChecked(!check)
+                if(upback_body_img.isChecked)
+                    upback_body_img.setChecked(!check)
+                if(upfront_abs_img.isChecked)
+                    upfront_abs_img.setChecked(!check)
+                if(upleg_img.isChecked)
+                    upleg_img.setChecked(!check)
+                if(upperarm_img.isChecked)
+                    upperarm_img.setChecked(!check)
+                lowerleg_img.setChecked(check)
+            }
+        }
+    }
+
     val TAG = "FollowFragment"
     @SuppressLint("RestrictedApi")
     override fun onClick(p0: View?) {
         when (p0!!.id){
             R.id.search_Btn -> consume {
                 Log.i(TAG, "search_Btn")
-                search()}
-            R.id.stretching_img -> consume {
-                Log.i(TAG, "stretching_img")
-                stretching_img.setImageState(intArrayOf(id), true)
-                if(stretching_img.isSelected){
-                    stretching_img.isSelected = false
-                } else{
-                    muscle_img.setImageState(intArrayOf(id), false)
-                    stretching_img.isSelected = true
-                }
+                onButtonPressed(search())
             }
-            R.id.muscle_img -> consume {
-                Log.i(TAG, "muscle_img")
-                if(muscle_img.isSelected){
-                    muscle_img.setImageState(intArrayOf(id), false)
-                } else{
-                    muscle_img.setImageState(intArrayOf(id), true)
-                    stretching_img.setImageState(intArrayOf(id), false)
-                } }
-            R.id.home_img -> consume {
-                Log.i(TAG, "home_img")
-                if(home_img.isSelected){
-                    home_img.isSelected = false
-                } else{
-                    home_img.isSelected = true
-                    work_img.isSelected = false
-                    car_img.isSelected = false
-                }}
-            R.id.car_img -> consume {
-                Log.i(TAG, "car_img")
-                if(car_img.isSelected){
-                    car_img.isSelected = false
-                } else{
-                    car_img.isSelected = true
-                    home_img.isSelected = false
-                    work_img.isSelected = false
-                }}
-            R.id.work_img -> consume {
-                Log.i(TAG, "work_img")
-                if(work_img.isSelected){
-                    work_img.isSelected = false
-                } else{
-                    work_img.isSelected = true
-                    home_img.isSelected = false
-                    car_img.isSelected = false
-                }}
         }
     }
     inline fun consume(f: () -> Unit): Boolean {
@@ -104,115 +247,99 @@ class FollowFragment : Fragment(), View.OnClickListener {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        search_Btn.isClickable = true
-        home_img.setImageState()
-        car_img.isClickable = true
-        work_img.isClickable = true
-        hip_img.isClickable = true
-        upback_body_img.isClickable = true
-        upfront_abs_img.isClickable = true
-        upleg_img.isClickable = true
-        upperarm_img.isClickable = true
-        lowerleg_img.isClickable = true
-        shoulder_img.isClickable = true
-        chest_img.isClickable = true
-        muscle_img.isClickable = true
-        stretching_img.isClickable = true
         search_Btn.setOnClickListener(this)
-        home_img.setOnClickListener(this)
-        car_img.setOnClickListener(this)
-        work_img.setOnClickListener(this)
-        hip_img.setOnClickListener(this)
-        upback_body_img.setOnClickListener(this)
-        upfront_abs_img.setOnClickListener(this)
-        upleg_img.setOnClickListener(this)
-        upperarm_img.setOnClickListener(this)
-        lowerleg_img.setOnClickListener(this)
-        shoulder_img.setOnClickListener(this)
-        chest_img.setOnClickListener(this)
-        muscle_img.setOnClickListener(this)
-        stretching_img.setOnClickListener(this)
+        home_img.setOnCheckedChangeListener(this)
+        car_img.setOnCheckedChangeListener(this)
+        work_img.setOnCheckedChangeListener(this)
+        hip_img.setOnCheckedChangeListener(this)
+        upback_body_img.setOnCheckedChangeListener(this)
+        upfront_abs_img.setOnCheckedChangeListener(this)
+        upleg_img.setOnCheckedChangeListener(this)
+        upperarm_img.setOnCheckedChangeListener(this)
+        lowerleg_img.setOnCheckedChangeListener(this)
+        shoulder_img.setOnCheckedChangeListener(this)
+        chest_img.setOnCheckedChangeListener(this)
+        muscle_img.setOnCheckedChangeListener(this)
+        stretching_img.setOnCheckedChangeListener(this)
     }
-    fun search(): ArrayList<ArrayMap<String, String>> {
-        val query:Array<String> = Array<String>(37) { "it = \$it" }
-        /*
-        if(stretching_img.isSelected){
-            query.set(0, "스트레칭 ")
-            query.set(1, "요가 ")
-            query.set(2, "만들기 ")
+    fun search(): ArrayList<String> {
+        val query:MutableList<String> = ArrayList()
+        if(home_img.isChecked){
+            query.add("집에서 ")
+            query.add("홈 ")
+            query.add("가정에서 ")
+            query.add("실내에서 ")
         }
-        if(muscle_img.isSelected){
-            query.set(0, "운동 ")
-            query.set(1, "강화 ")
-            query.set(2, "만들기 ")
+        if(car_img.isChecked){
+            query.add("차에서 하는 ")
+            query.add("차안에서 하는 ")
+            query.add("차량안에서 ")
         }
-        if(hip_img.isSelected){
-            query.set(3, "엉덩이 ")
-            query.set(4, "힙업 ")
-            query.set(5, "골반 ")
+        if(hip_img.isChecked){
+            query.add("엉덩이 ")
+            query.add("힙업 ")
+            query.add("골반 ")
         }
-        if(upperarm_img.isSelected){
-            query.set(7, "팔")
-            query.set(8, "이두근 ")
-            query.set(9, "삼두근 ")
-            query.set(7, "이두박근 ")
-            query.set(8, "알통 ")
-            query.set(9, "전완근 ")
-            query.set(10, "손목 ")
+        if(upperarm_img.isChecked){
+            query.add("팔")
+            query.add("이두근 ")
+            query.add("삼두근 ")
+            query.add("이두박근 ")
+            query.add("알통 ")
+            query.add("전완근 ")
+            query.add("손목 ")
         }
-        if(lowerleg_img.isSelected){
-            query.set(11, "종아리 ")
-            query.set(12, "하퇴근 ")
-            query.set(13, "발목 ")
+        if(lowerleg_img.isChecked){
+            query.add("종아리 ")
+            query.add("하퇴근 ")
+            query.add("발목 ")
         }
-        if(upleg_img.isSelected){
-            query.set(14, "허벅지강화 ")
-            query.set(15, "햄스트리밍 ")
-            query.set(16, "대퇴사두근 ")
+        if(upleg_img.isChecked){
+            query.add("허벅지강화 ")
+            query.add("햄스트리밍 ")
+            query.add("대퇴사두근 ")
         }
-        if(shoulder_img.isSelected){
-            query.set(17, "어깨 ")
-            query.set(18, "승모근 ")
-            query.set(19, "삼각근 ")
-            query.set(20, "전면삼각근 ")
-            query.set(21, "후면삼각근 ")
-            query.set(22, "측면삼각근 ")
+        if(shoulder_img.isChecked){
+            query.add("어깨 ")
+            query.add("승모근 ")
+            query.add("삼각근 ")
+            query.add("전면삼각근 ")
+            query.add("후면삼각근 ")
+            query.add("측면삼각근 ")
         }
-        if(chest_img.isSelected){
-            query.set(23, "가슴 ")
-            query.set(24, "대흉근 ")
-            query.set(25, "가슴키우기 ")
+        if(chest_img.isChecked){
+            query.add("가슴 ")
+            query.add("대흉근 ")
+            query.add("가슴키우기 ")
         }
-        if(upback_body_img.isSelected){
-            query.set(26, "허리 ")
-            query.set(27, "척추 ")
-            query.set(28, "척추기립근 ")
+        if(upback_body_img.isChecked){
+            query.add("허리 ")
+            query.add("척추 ")
+            query.add("척추기립근 ")
         }
-        if(upfront_abs_img.isSelected){
-            query.set(29, "복근 ")
-            query.set(30, "복부 ")
-            query.set(31, "왕자 ")
-            query.set(32, "식스팩 ")
+        if(upfront_abs_img.isChecked){
+            query.add("복근 ")
+            query.add("복부 ")
+            query.add("왕자 ")
+            query.add("식스팩 ")
         }
-        if(work_img.isSelected){
-            query.set(33, "직장에서")
-            query.set(34, "사무실에서")
+        if(work_img.isChecked){
+            query.add("직장에서 ")
+            query.add("사무실에서 ")
         }
-        if(home_img.isSelected){
-            query.set(33, "집에서")
-            query.set(34, "홈")
-            query.set(35, "가정에서")
-            query.set(36, "실내에서")
+        if(stretching_img.isChecked){
+            query.add( "스트레칭 ")
+            query.add("요가 ")
         }
-        if(car_img.isSelected){
-            query.set(33, "차에서 하는")
-            query.set(34, "차안에서 하는")
-            query.set(35, "차량안에서")
-        }*/
-        return Search.main(query)
+        if(muscle_img.isChecked){
+            query.add("운동 ")
+            query.add("강화 ")
+            query.add("만들기 ")
+        }
+        return query as ArrayList<String>
     }
     // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
+    fun onButtonPressed(uri: ArrayList<String>) {
         if (mListener != null) {
             mListener!!.OnFollowInteraction(uri)
         }
@@ -243,7 +370,7 @@ class FollowFragment : Fragment(), View.OnClickListener {
      */
     interface OnFollowInteraction {
         // TODO: Update argument type and name
-        fun OnFollowInteraction(uri: Uri)
+        fun OnFollowInteraction(uri: ArrayList<String>?)
     }
 
     companion object {
