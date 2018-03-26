@@ -14,6 +14,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.support.annotation.NonNull
 import android.support.design.widget.BottomNavigationView
+import android.support.v4.app.FragmentActivity
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
@@ -25,6 +26,7 @@ import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.dummy.SearchData
 import bodygate.bcns.bodygation.dummy.listContent
 import bodygate.bcns.bodygation.navigationitem.*
+import bodygate.bcns.bodygation.youtube.*
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -60,9 +62,14 @@ import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTube
+import com.google.api.services.youtube.YouTubeRequestInitializer
 import com.google.api.services.youtube.YouTubeScopes
+import com.google.api.services.youtube.model.ChannelListResponse
 import com.google.api.services.youtube.model.Thumbnail
 import com.squareup.picasso.Picasso
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.google_login.*
 import kotlinx.coroutines.experimental.CommonPool
@@ -70,12 +77,18 @@ import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
+import okhttp3.ResponseBody
 import org.apache.http.client.ClientProtocolException
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
 import org.json.JSONException
 import org.json.JSONObject
 import pub.devrel.easypermissions.EasyPermissions
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
@@ -87,7 +100,29 @@ import kotlin.collections.ArrayList
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction {
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction, Callback<YoutubeResponse> {
+    override fun onFailure(call: Call<YoutubeResponse>?, t: Throwable?) {
+         Log.i(TAG, t.toString())
+    }
+
+    override fun onResponse(call: Call<YoutubeResponse>?, response: Response<YoutubeResponse>?) {
+        val body = response!!.body()
+        if (body != null) {
+            Log.i(TAG, body.toString())
+            val items = body.items
+            Log.i(TAG, "size =" + items.size.toString() + "," + items.toString())
+            val title = items.last().snippet!!.title
+            val kind = items.last().snippet!!.publishedAt
+            val snippet = items.last().snippet!!.thumbnails
+            Log.i(TAG, title)
+            Log.i(TAG, kind)
+            Log.i(TAG, snippet.toString())
+        }
+    }
+
+    override fun describeContents(): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
@@ -119,78 +154,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var dataResult:kotlin.collections.ArrayList<SearchData>? = null
     /** Global instance of the HTTP transport.  */
     var HTTP_TRANSPORT:NetHttpTransport = NetHttpTransport()
-
     /** Global instance of the JSON factory.  */
     var JSON_FACTORY: JsonFactory? = JacksonFactory()
 
     override fun OnYoutubeResultInteraction(item: ArrayList<String>){
-        getYoutubeAdapter(item)
+
     }
 
-    fun  getYoutubeAdapter(item: ArrayList<String>)  = launch(CommonPool) { try {
-       val youtube = YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, object : HttpRequestInitializer {
-           @Throws(IOException::class)
-           override fun initialize(request: HttpRequest) {
-           }
-       }).setApplicationName("youtube-cmdline-search-sample").build()
-
-       // Get query term from user.
-       val queryTerm = item
-
-       val search = youtube.Search().list("id,snippet")
-       /*
-      * It is important to set your developer key from the Google Developer Console for
-      * non-authenticated requests (found under the API Access tab at this link:
-      * code.google.com/apis/). This is good practice and increased your quota.
-      */
-       val apiKey = getString(R.string.API_key)
-       search.setKey(apiKey)
-       search.setQ(queryTerm.toString())
-       /*
-      * We are only searching for videos (not playlists or channels). If we were searching for
-      * more, we would add them as a string like this: "video,playlist,channel".
-      */
-       search.setType("video")
-       /*
-      * This method reduces the info returned to only the fields we need and makes calls more
-      * efficient.
-      */
-       search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)")
-       search.setMaxResults(NUMBER_OF_VIDEOS_RETURNED)
-       val searchResponse = search.execute()
-
-       val searchResultList = searchResponse.getItems()
-       val iteratorSearchResults = searchResultList.iterator()
-       var i = 0
-       val result = MutableList(searchResultList.size) { listContent.DummyItem(String(), String(), String()) }
-       while (iteratorSearchResults.hasNext()) {
-
-           val singleVideo = iteratorSearchResults.next()
-           val rId = singleVideo.getId()
-
-           // Double checks the kind is video.
-           if (rId.getKind() == "youtube#video") {
-               val thumbnail = singleVideo.getSnippet().getThumbnails().get("default") as Thumbnail
-
-               Log.i(TAG +"Video Id" , rId.getVideoId())
-               Log.i(TAG+"Title", singleVideo.getSnippet().getTitle())
-               Log.i(TAG+"Thumbnail", thumbnail.url)
-               result.add(i, listContent.DummyItem(rId.getVideoId(), singleVideo.getSnippet().getTitle(), thumbnail.url))
-               i += 1
-           }
-
-       }
-        async(UI) {
-            adapter = YoutubeResultListViewAdapter(result, this@MainActivity) }
-   } catch (e: GoogleJsonResponseException) {
-       Log.i(TAG, ("There was a service error: " + e.getDetails().getCode() + " : "
-               + e.getDetails().getMessage()))
-   } catch (e: IOException) {
-       Log.i(TAG, ("There was an IO error: " + e.cause + " : " + e.message))
-   } catch (t: Throwable) {
-       Log.i(TAG, t.toString())
-   }
-   }
     override var bfp_dateSET: DataSet?
         get() = bfp_data
         set(value) {}
@@ -207,26 +177,42 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         set(value) {}
         get() = arrayOf()
 
-
-    override fun describeContents(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     override fun writeToParcel(p0: Parcel?, p1: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun OnGoalInteractionListener(uri: Uri) {
-        //TODO("not implemented") To change body of created functions use File | Settings | File Templates.
+    }
+
+    private var lastSearched = ""
+    var lastToken = ""
+    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean) {
+        var query = q
+        var searchType = "video"
+        if (query != null) {
+            if (query.startsWith("#")) {
+                searchType = "video";
+                query = query.substring(1);
+            } else if (query.startsWith("@")) {
+                searchType = "channel";
+                query = query.substring(1);
+            }
+        }
+        if (!more) {
+            lastSearched = query!!
+            lastToken = "";
+        }
+        Log.i(TAG, query)
+        Log.i(TAG, api_Key)
+         val youtubeResponseCall = APIService.youtubeApi.searchVideo(query, api_Key,  "snippet", "video", "KR", max_result )
+        Log.i(TAG, youtubeResponseCall.toString())
+        youtubeResponseCall.enqueue(this)
+
     }
 
     override fun OnFollowInteraction(uri: ArrayList<String>?) {
         Log.i(TAG, "OnFollowInteraction")
         Log.i(TAG, uri?.get(2))
         queryKey = uri
-        val searCh = getUtube()
-        searCh.execute(queryKey)
-        Log.i(TAG, searCh.get().toString())
         supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.root_layout, YouTubeResult.newInstance(uri!!), "rageComicList")
@@ -818,6 +804,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
    @SuppressLint("StaticFieldLeak")
    inner class getUtube(): AsyncTask<kotlin.collections.ArrayList<String>?, Void, JSONObject>() {
         override fun doInBackground(vararg qt: kotlin.collections.ArrayList<String>?): JSONObject {
+
             val httpGet = HttpGet(
                     "https://www.googleapis.com/youtube/v3/search?"
                             + "part=snippet&q=" + URLEncoder.encode(qt.toString())
@@ -825,13 +812,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             // part(snippet),  q(검색값) , key(서버키)
             val client = DefaultHttpClient()
             val stringBuilder = StringBuilder()
-
             try {
                 val response = client.execute(httpGet)
+                Log.i(TAG, response.toString())
                 val entity = response.getEntity()
+                Log.i(TAG, entity.toString())
                 val stream = entity.getContent()
+                Log.i(TAG, stream.toString())
                 while (stream.read() != -1) {
                     stringBuilder.append(stream.read())
+                    Log.i(TAG, stringBuilder.append(stream.read()).toString())
                 }
             } catch (e: ClientProtocolException) {
                 Log.i(TAG, e.toString())
@@ -852,9 +842,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
     private fun paringJsonData(jsonObject:JSONObject) {
-        dataResult?.clear();
-
-        var youtube = YouTube.Builder(HTTP_TRANSPORT, JSON_FACTORY, HttpRequestInitializer { }).setApplicationName(application.packageName).build()
         val contacts = jsonObject.getJSONArray("items");
         var vodid = ""
         val a  = contacts.length()

@@ -16,7 +16,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.youtube.Search
+import io.reactivex.Observable
 import kotlinx.android.synthetic.main.select_view.*
+import retrofit2.Call
+import retrofit2.Response
 
 
 /**
@@ -271,8 +274,8 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
             query.add("실내에서 ")
         }
         if(car_img.isChecked){
-            query.add("차에서 하는 ")
-            query.add("차안에서 하는 ")
+            query.add("차에서 ")
+            query.add("차안에서 ")
             query.add("차량안에서 ")
         }
         if(hip_img.isChecked){
@@ -341,7 +344,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(uri: ArrayList<String>) {
         if (mListener != null) {
-            mListener!!.OnFollowInteraction(uri)
+            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 40, true)
         }
     }
 
@@ -371,6 +374,8 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     interface OnFollowInteraction {
         // TODO: Update argument type and name
         fun OnFollowInteraction(uri: ArrayList<String>?)
+
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean)
     }
 
     companion object {
