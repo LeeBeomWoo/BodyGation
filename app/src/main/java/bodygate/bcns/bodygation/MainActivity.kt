@@ -78,6 +78,7 @@ import org.json.JSONObject
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.IOException
 import java.io.UnsupportedEncodingException
+import java.net.URLEncoder
 import java.text.DateFormat.getDateInstance
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -223,7 +224,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, "OnFollowInteraction")
         Log.i(TAG, uri?.get(2))
         queryKey = uri
-        getUtube(queryKey)
+        val searCh = getUtube()
+        searCh.execute(queryKey)
+        Log.i(TAG, searCh.get().toString())
         supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.root_layout, YouTubeResult.newInstance(uri!!), "rageComicList")
@@ -672,8 +675,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             chooseAccount();
         } else if (!isDeviceOnline()) {
         } else {
-            val task = MakeRequestTask(mCredential)
-            task.execute()
+            val task = MakeRequestTask()
+            task.execute(mCredential!!)
+            Log.i(TAG, task.get().toString())
         }
     }
 
@@ -811,36 +815,41 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
 
-    fun getUtube(qt:kotlin.collections.ArrayList<String>?): JSONObject {
-        val httpGet = HttpGet(
-                "https://www.googleapis.com/youtube/v3/search?"
-                        + "part=snippet&q=" + qt.toString()
-                        + "&key="+ getString(R.string.API_key)+"&maxResults=50");  //EditText에 입력된 값으로 겁색을 합니다.
-        // part(snippet),  q(검색값) , key(서버키)
-        val client = DefaultHttpClient()
-        val stringBuilder = StringBuilder()
+   @SuppressLint("StaticFieldLeak")
+   inner class getUtube(): AsyncTask<kotlin.collections.ArrayList<String>?, Void, JSONObject>() {
+        override fun doInBackground(vararg qt: kotlin.collections.ArrayList<String>?): JSONObject {
+            val httpGet = HttpGet(
+                    "https://www.googleapis.com/youtube/v3/search?"
+                            + "part=snippet&q=" + URLEncoder.encode(qt.toString())
+                            + "&key=" + getString(R.string.API_key) + "&maxResults=50");  //EditText에 입력된 값으로 겁색을 합니다.
+            // part(snippet),  q(검색값) , key(서버키)
+            val client = DefaultHttpClient()
+            val stringBuilder = StringBuilder()
 
-        try {
-            val response = client.execute(httpGet)
-            val entity = response.getEntity()
-            val stream = entity.getContent()
-            while (stream.read() !== -1) {
-                stringBuilder.append(stream.read() as Char)
+            try {
+                val response = client.execute(httpGet)
+                val entity = response.getEntity()
+                val stream = entity.getContent()
+                while (stream.read() != -1) {
+                    stringBuilder.append(stream.read())
+                }
+            } catch (e: ClientProtocolException) {
+                Log.i(TAG, e.toString())
+            } catch (e: IOException) {
+                Log.i(TAG, e.toString())
+            }
+            var jsonObject = JSONObject()
+            try {
+                jsonObject = JSONObject(stringBuilder.toString())
+                Log.i(TAG, jsonObject.toString())
+            } catch (e: JSONException) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                Log.i(TAG, e.toString())
             }
 
-        } catch (e: ClientProtocolException) {
-        } catch (e:IOException) {
+            return jsonObject;
         }
-
-        var jsonObject = JSONObject()
-        try {
-            jsonObject = JSONObject(stringBuilder.toString())
-        } catch (e: JSONException) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        return jsonObject;
     }
     private fun paringJsonData(jsonObject:JSONObject) {
         dataResult?.clear();
@@ -881,7 +890,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     }
 
-    class MakeRequestTask(mCredential: GoogleAccountCredential?): AsyncTask<Void, Void, MutableList<String>?>() {
+    class MakeRequestTask(): AsyncTask<GoogleAccountCredential, Void, MutableList<String>?>() {
+
         private var mService: com.google.api.services.youtube.YouTube? = null
         private val mLastError: Exception? = null
         fun MakeRequestTask(credential: GoogleAccountCredential):  com.google.api.services.youtube.YouTube? {
@@ -893,9 +903,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .build()
             return mService
         }
-        override fun doInBackground(vararg p0: Void): MutableList<String>? {
+        override fun doInBackground(vararg p0: GoogleAccountCredential): MutableList<String>? {
             val channelInfo = ArrayList<String>()
-            val result = mService!!.channels().list("snippet,contentDetails,statistics")
+            val result = MakeRequestTask(p0.last())!!.channels().list("snippet,contentDetails,statistics")
                     .setForUsername("GoogleDevelopers")
                     .execute();
             val channels = result.getItems();
