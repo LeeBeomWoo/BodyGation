@@ -2,32 +2,24 @@ package bodygate.bcns.bodygation.navigationitem
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
-import android.util.ArrayMap
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
-import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
-import bodygate.bcns.bodygation.dummy.listContent
 import bodygate.bcns.bodygation.youtube.Topics
-import com.google.api.client.http.HttpTransport
+import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import kotlinx.android.synthetic.main.fragment_follow.*
-import kotlinx.coroutines.experimental.Deferred
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 /**
  * Created by LeeBeomWoo on 2018-03-23.
  */
 
-class YouTubeResult : Fragment() {
+class YouTubeResult : YouTubePlayerSupportFragment() {
     // TODO: Rename and change types of parameters
     val TAG = "YouTubeResult_"
     private var mParam1: MutableList<String> = ArrayList<String>()
@@ -37,7 +29,6 @@ class YouTubeResult : Fragment() {
 
     /** Global instance of the HTTP transport.  */
     private val HTTP_TRANSPORT = NetHttpTransport()
-
     /** Global instance of the JSON factory.  */
     private val JSON_FACTORY = JacksonFactory()
     val topic = Topics()
@@ -47,10 +38,6 @@ class YouTubeResult : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i(TAG, "onCreate")
         super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            mParam1 = arguments!!.getStringArrayList(ARG_PARAM1)
-            Log.i(TAG+ ARG_PARAM1, mParam1[3])
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -63,7 +50,6 @@ class YouTubeResult : Fragment() {
         super.onActivityCreated(savedInstanceState)
         Log.i(TAG, "onActivityCreated")
         // Set the adapter
-
         val pop_linearLayoutManager = LinearLayoutManager(context)
         pop_linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL)
         result_list.setLayoutManager(pop_linearLayoutManager)
@@ -84,6 +70,10 @@ class YouTubeResult : Fragment() {
         mListener = null
     }
 
+    override fun onStart() {
+        super.onStart()
+
+    }
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -95,7 +85,7 @@ class YouTubeResult : Fragment() {
      */
     interface OnYoutubeResultInteraction {
         // TODO: Update argument type and name
-        fun OnYoutubeResultInteraction(item: ArrayList<String>)
+        fun OnYoutubeResultInteraction()
     }
 
     companion object {
@@ -112,10 +102,9 @@ class YouTubeResult : Fragment() {
          * @return A new instance of fragment HomeFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(param1 : ArrayList<String>): YouTubeResult {
+        fun newInstance(): YouTubeResult {
             val fragment = YouTubeResult()
             val args = Bundle()
-            args.putStringArrayList(ARG_PARAM1, param1)
             fragment.arguments = args
             return fragment
         }

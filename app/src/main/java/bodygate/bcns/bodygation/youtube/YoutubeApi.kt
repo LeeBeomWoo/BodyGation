@@ -15,10 +15,11 @@ import okhttp3.ResponseBody
 
 interface YoutubeApi {
     @GET("search")
-    fun searchVideo(@Query("q") query:String,
-    @Query("key") key:String,
-    @Query("part") part:String,
-                    @Query("type") type:String,
+    fun searchVideo(@Query("key") key:String,
+                    @Query("part") part:String,
+                    @Query("maxResults") maxResults:Int,
+                    @Query("q") query:String,
                     @Query("regionCode") regionCode:String,
-    @Query("maxResults") maxResults:Int):Call<YoutubeResponse>
+                    @Query("type") type:String
+    ):Call<YoutubeResponse>
 }

@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent.DummyItem
 import bodygate.bcns.bodygation.dummy.listContent
+import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerView
@@ -22,7 +23,7 @@ import com.google.android.youtube.player.YouTubePlayerView
  * specified [OnListFragmentInteractionListener].
  * TODO: Replace the implementation with code for your data type.
  */
-class YoutubeResultListViewAdapter(private val mValues: List<listContent.DummyItem>, private val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
+class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Items>, private val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
     val TAG = "YoutubeListViewAdapter_"
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         Log.i(TAG, "onCreateViewHolder")
@@ -33,13 +34,13 @@ class YoutubeResultListViewAdapter(private val mValues: List<listContent.DummyIt
 
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
         holder.mItem = mValues[position]
-        holder.mIdView.text = mValues[position].id
-        holder.mTitleView.text = mValues[position].title
+        holder.mIdView.text = mValues[position].kind
+        holder.mTitleView.text = mValues[position].snippet!!.title
         holder.mVideoView.initialize(context.getString(R.string.API_key), object : YouTubePlayer.OnInitializedListener {
             override fun onInitializationSuccess(provider: YouTubePlayer.Provider, youTubePlayer: YouTubePlayer, b: Boolean) {
                 Log.i(TAG, "onInitializationSuccess")
                 if (!b) {
-                    val videoId = getIntent(mValues[position].details).extras!!.getString(mValues[position].id)
+                    val videoId = mValues[position].snippet!!.thumbnails!!.default!!.url
                     youTubePlayer.cueVideo(videoId)
                 }
             }
@@ -60,7 +61,7 @@ class YoutubeResultListViewAdapter(private val mValues: List<listContent.DummyIt
         val mIdView: TextView
         val mTitleView: TextView
         val mVideoView: YouTubePlayerView
-        var mItem: listContent.DummyItem? = null
+        var mItem: YoutubeResponse.Items? = null
 
         init {
             mIdView = mView.findViewById<View>(R.id.id) as TextView

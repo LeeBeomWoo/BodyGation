@@ -4,6 +4,8 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+
+
     <TextView
         android:id="@+id/id"
         android:layout_width="wrap_content"
@@ -18,8 +20,9 @@
         android:layout_margin="@dimen/text_margin"
         android:textAppearance="?attr/textAppearanceListItem" />
 
-    <com.google.android.youtube.player.YouTubePlayerView
+    <view
         android:id="@+id/listplayer"
+        class="com.google.android.youtube.player.YouTubeThumbnailView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </LinearLayout>
