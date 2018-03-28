@@ -2,9 +2,7 @@ package bodygate.bcns.bodygation
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent.getIntent
 import android.graphics.Color
-import android.net.Uri
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,28 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent.DummyItem
-import bodygate.bcns.bodygation.dummy.listContent
 import bodygate.bcns.bodygation.youtube.YoutubeResponse
-import com.google.android.youtube.player.*
-import com.google.android.youtube.player.internal.c
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.PicassoProvider
-import java.net.URI
-import com.google.android.youtube.player.YouTubeThumbnailView
-import android.graphics.Color.parseColor
-import android.support.design.widget.CoordinatorLayout.Behavior.setTag
-import com.google.android.youtube.player.internal.e
+import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubeThumbnailLoader
-
-
-
-
-
-
-
-
+import com.google.android.youtube.player.YouTubeThumbnailView
 
 
 /**

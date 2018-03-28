@@ -17,10 +17,12 @@ android {
             keyAlias 'BodyGation'
             keyPassword 'dlqjadn1482**'
             storePassword 'dlqjadn1482**'
-            storeFile file('E:/personal/APK/BodyGation.jks')
+            //D:/BCNS/APK/BodyGation.jks
+            //E:/personal/APK/BodyGation.jks
+            storeFile file('D:/BCNS/APK/BodyGation.jks')
         }
     }
-    compileSdkVersion 'android-P'
+    compileSdkVersion 27
     defaultConfig {
         applicationId "bodygate.bcns.bodygation"
         minSdkVersion 23
@@ -40,7 +42,7 @@ android {
             signingConfig signingConfigs.config
         }
     }
-    buildToolsVersion '28.0.0 rc1'
+    buildToolsVersion '27.0.3'
     dexOptions {
     }
 }
