@@ -24,6 +24,13 @@ class YoutubeResponse {
         val kind: String? = null
         val etag: String? = null
         val snippet: Snippet? = null
+        val id: Id? = null
+        class Id{
+            val kind: String? = null
+            val videoId: String? = null
+            val channelId: String? = null
+            val playlistId: String? = null
+        }
 
         class Snippet {
             val publishedAt: String? = null
@@ -38,9 +45,9 @@ class YoutubeResponse {
 
             class Thumbnails {
                 @SerializedName("default")
-                val default: Default? = null
+                val medium: Medium? = null
 
-                class Default {
+                class Medium {
                     val url: String? = null
                     val width: Int = 0
                     val height: Int = 0

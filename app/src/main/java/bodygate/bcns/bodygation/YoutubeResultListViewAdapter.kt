@@ -3,19 +3,37 @@ package bodygate.bcns.bodygation
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent.getIntent
+import android.graphics.Color
+import android.net.Uri
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent.DummyItem
 import bodygate.bcns.bodygation.dummy.listContent
 import bodygate.bcns.bodygation.youtube.YoutubeResponse
-import com.google.android.youtube.player.YouTubeInitializationResult
-import com.google.android.youtube.player.YouTubePlayer
-import com.google.android.youtube.player.YouTubePlayerView
+import com.google.android.youtube.player.*
+import com.google.android.youtube.player.internal.c
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.PicassoProvider
+import java.net.URI
+import com.google.android.youtube.player.YouTubeThumbnailView
+import android.graphics.Color.parseColor
+import android.support.design.widget.CoordinatorLayout.Behavior.setTag
+import com.google.android.youtube.player.internal.e
+import com.google.android.youtube.player.YouTubeThumbnailLoader
+
+
+
+
+
+
+
+
 
 
 /**
@@ -24,6 +42,13 @@ import com.google.android.youtube.player.YouTubePlayerView
  * TODO: Replace the implementation with code for your data type.
  */
 class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Items>, private val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
+
+    private val UNINITIALIZED = 1
+    private val INITIALIZING = 2
+    private val INITIALIZED = 3
+    private val blackColor = Color.parseColor("#FF000000")
+    private val transparentColor = Color.parseColor("#00000000")
+
     val TAG = "YoutubeListViewAdapter_"
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         Log.i(TAG, "onCreateViewHolder")
@@ -34,23 +59,22 @@ class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Ite
 
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
         holder.mItem = mValues[position]
-        holder.mIdView.text = mValues[position].kind
-        holder.mTitleView.text = mValues[position].snippet!!.title
-        holder.mVideoView.initialize(context.getString(R.string.API_key), object : YouTubePlayer.OnInitializedListener {
-            override fun onInitializationSuccess(provider: YouTubePlayer.Provider, youTubePlayer: YouTubePlayer, b: Boolean) {
-                Log.i(TAG, "onInitializationSuccess")
-                if (!b) {
-                    val videoId = mValues[position].snippet!!.thumbnails!!.default!!.url
-                    youTubePlayer.cueVideo(videoId)
-                }
-            }
-            override fun onInitializationFailure(provider: YouTubePlayer.Provider, youTubeInitializationResult: YouTubeInitializationResult) {
-                Log.i(TAG, "onInitializationFailure")
-                Toast.makeText(this@YoutubeResultListViewAdapter.context, context.getString(R.string.failed), Toast.LENGTH_LONG).show()
-            }
-        });
-        holder.mView.setOnClickListener {
+        holder.tvTitle.text = mValues[position].snippet!!.title
+        holder.ivYtLogo.setVisibility(View.VISIBLE)
+        holder.ytThubnailView.setTag(R.id.videoid, mValues[position].id!!.videoId)
+        holder.ivYtLogo.setBackgroundColor(blackColor)
+        val state = holder.ytThubnailView.getTag(R.id.initialize) as Int
+        if (state == UNINITIALIZED) {
+            holder.initialize()
+        } else if (state == INITIALIZED) {
+            val loader = holder.ytThubnailView.getTag(R.id.thumbnailloader) as YouTubeThumbnailLoader
+            loader.setVideo(mValues[position].id!!.videoId)
         }
+        Log.i(TAG, "categoryId :" + mValues[position].snippet!!.categoryId + "        "
+        + "channelId :" + mValues[position].snippet!!.channelId + "        "
+                + "channelTitle :" + mValues[position].snippet!!.channelTitle + "        "
+                + "title :" + mValues[position].snippet!!.title + "        "
+                + "description :" + mValues[position].snippet!!.description)
     }
 
     override fun getItemCount(): Int {
@@ -58,15 +82,52 @@ class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Ite
     }
 
     inner class ViewHolder(val mView: View) : RecyclerView.ViewHolder(mView) {
-        val mIdView: TextView
-        val mTitleView: TextView
-        val mVideoView: YouTubePlayerView
+        val ytThubnailView: YouTubeThumbnailView
+        val ivYtLogo: ImageView
+        val tvTitle: TextView
         var mItem: YoutubeResponse.Items? = null
 
         init {
-            mIdView = mView.findViewById<View>(R.id.id) as TextView
-            mTitleView = mView.findViewById<View>(R.id.content) as TextView
-            mVideoView = mView.findViewById<View>(R.id.listplayer) as YouTubePlayerView
+            ytThubnailView = itemView.findViewById<View>(R.id.yt_thumbnail) as YouTubeThumbnailView
+            ivYtLogo = itemView.findViewById<View>(R.id.iv_yt_logo) as ImageView
+            tvTitle = itemView.findViewById<View>(R.id.tv_title) as TextView
+
+            initialize()
+        }
+        fun initialize(){
+            ivYtLogo.setBackgroundColor(blackColor);
+            ytThubnailView.setTag(R.id.initialize, INITIALIZING);
+            ytThubnailView.setTag(R.id.thumbnailloader, null);
+            ytThubnailView.setTag(R.id.videoid, "");
+
+            ytThubnailView.initialize(context.getString(R.string.API_key), object : YouTubeThumbnailView.OnInitializedListener{
+                override fun onInitializationSuccess(p0: YouTubeThumbnailView?, p1: YouTubeThumbnailLoader?) {
+                    ytThubnailView.setTag(R.id.initialize, INITIALIZED);
+                    ytThubnailView.setTag(R.id.thumbnailloader, p1);
+                    p1!!.setOnThumbnailLoadedListener(object : YouTubeThumbnailLoader.OnThumbnailLoadedListener {
+                        override fun onThumbnailLoaded(p0: YouTubeThumbnailView?, p1: String?) {
+                            val currentVideoId = ytThubnailView.getTag (R.id.videoid);
+                            if (currentVideoId.equals(p1)) {
+                                ivYtLogo.setBackgroundColor(transparentColor);
+                            } else {
+                                ivYtLogo.setBackgroundColor(blackColor);
+                            }
+                        }
+
+                        override fun onThumbnailError(p0: YouTubeThumbnailView?, p1: YouTubeThumbnailLoader.ErrorReason?) {
+                            ivYtLogo.setBackgroundColor(blackColor);
+                        }
+                    })
+                    val videoId = ytThubnailView.getTag(R.id.videoid) as String
+                    if (!videoId.isEmpty()) {
+                        p1.setVideo(videoId)
+                    }
+                }
+
+                override fun onInitializationFailure(p0: YouTubeThumbnailView?, p1: YouTubeInitializationResult?) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+            })
         }
     }
 }

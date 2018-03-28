@@ -2,6 +2,7 @@ package bodygate.bcns.bodygation.navigationitem
 
 import android.content.Context
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,7 +20,7 @@ import kotlinx.android.synthetic.main.fragment_follow.*
  * Created by LeeBeomWoo on 2018-03-23.
  */
 
-class YouTubeResult : YouTubePlayerSupportFragment() {
+class YouTubeResult : Fragment() {
     // TODO: Rename and change types of parameters
     val TAG = "YouTubeResult_"
     private var mParam1: MutableList<String> = ArrayList<String>()
@@ -51,7 +52,7 @@ class YouTubeResult : YouTubePlayerSupportFragment() {
         Log.i(TAG, "onActivityCreated")
         // Set the adapter
         val pop_linearLayoutManager = LinearLayoutManager(context)
-        pop_linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL)
+        pop_linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL)
         result_list.setLayoutManager(pop_linearLayoutManager)
     }
     // TODO: Rename method, update argument and hook method into UI event

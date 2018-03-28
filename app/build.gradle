@@ -17,7 +17,7 @@ android {
             keyAlias 'BodyGation'
             keyPassword 'dlqjadn1482**'
             storePassword 'dlqjadn1482**'
-            storeFile file('D:/BCNS/APK/BodyGation.jks')
+            storeFile file('E:/personal/APK/BodyGation.jks')
         }
     }
     compileSdkVersion 'android-P'
@@ -27,7 +27,7 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -48,7 +48,6 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.22.2'
     implementation 'com.android.support:support-vector-drawable:27.1.0'
@@ -64,36 +63,36 @@ dependencies {
     implementation 'com.android.support:mediarouter-v7:27.1.0'
     implementation 'com.google.firebase:firebase-core:12.0.0'
     implementation 'com.google.firebase:firebase-crash:12.0.0'
+    implementation 'com.squareup.picasso:picasso:2.71828'
     // Retrofit
-    compile 'com.squareup.retrofit2:retrofit:2.3.0'
-
-// JSON Parsing
-    compile 'com.google.code.gson:gson:2.8.2'
-    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.5'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.8.5'
-    compile 'com.fasterxml.jackson.core:jackson-annotations:2.8.5'
-    compile 'com.jjoe64:graphview:4.2.1'
-    compile 'com.google.firebase:firebase-auth:12.0.0'
-    compile 'com.google.android.gms:play-services-fitness:12.0.0'
-    compile 'com.google.android.gms:play-services-auth:12.0.0'
-    compile 'com.google.android.gms:play-services-plus:12.0.0'
-    compile 'pub.devrel:easypermissions:0.3.0'
-    compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.2'
-    compile "com.squareup.retrofit2:adapter-rxjava2:2.3.0"
-    compile "io.reactivex.rxjava2:rxandroid:2.0.1"
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile('com.google.api-client:google-api-client-android:1.23.0') {
+    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+    // JSON Parsing
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.5'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.8.5'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.8.5'
+    implementation 'com.jjoe64:graphview:4.2.1'
+    implementation 'com.google.firebase:firebase-auth:12.0.0'
+    implementation 'com.google.android.gms:play-services-fitness:12.0.0'
+    implementation 'com.google.android.gms:play-services-auth:12.0.0'
+    implementation 'com.google.android.gms:play-services-plus:12.0.0'
+    implementation 'pub.devrel:easypermissions:0.3.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.2'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
+    implementation('com.google.api-client:google-api-client-android:1.23.0') {
         exclude group: 'org.apache.httpcomponents'
     }
-    compile('com.google.apis:google-api-services-youtube:v3-rev193-1.23.0') {
-        exclude group: 'org.apache.httpcomponents'    }
+    implementation('com.google.apis:google-api-services-youtube:v3-rev193-1.23.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:2.8.47'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
-    provided 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
 }
 
 

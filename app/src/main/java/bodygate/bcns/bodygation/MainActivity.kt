@@ -6,6 +6,7 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.AsyncTask
@@ -15,6 +16,9 @@ import android.os.Parcelable
 import android.support.annotation.NonNull
 import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.RecyclerView.Adapter
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -45,6 +49,7 @@ import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
+import com.google.android.youtube.player.*
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.javanet.NetHttpTransport
@@ -85,6 +90,13 @@ import kotlin.collections.ArrayList
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
 
+    var playerFragment: YouTubePlayerSupportFragment? = null
+    var Player:YouTubePlayer? = null
+    var thumbnailView:YouTubeThumbnailView? = null
+    var thumbnailLoader:YouTubeThumbnailLoader? = null
+    var VideoList: RecyclerView? = null
+   var thumbnailViews: List<Drawable>? = null
+    var VideoId: List<String>? = null
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
     private var mCallApiButton: Button? =null
@@ -111,28 +123,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val NUMBER_OF_VIDEOS_RETURNED: Long = 30
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
-    var dataResult:List<YoutubeResponse.Items>? = null
     /** Global instance of the HTTP transport.  */
     var HTTP_TRANSPORT:NetHttpTransport = NetHttpTransport()
     /** Global instance of the JSON factory.  */
 
-
     fun getData(response: Response<YoutubeResponse>) {
-        Log.i(TAG , "onResponse")
         val body = response.body()
         if (body != null) {
-            Log.i(TAG, body.toString())
             val items = body.items
-            dataResult = items
-            Log.i(TAG, "size =" + items.size.toString() + "," + items.toString())
-            val title = items.last().snippet!!.title
-            val kind = items.last().snippet!!.publishedAt
-            val snippet = items.last().snippet!!.thumbnails
             adapter = YoutubeResultListViewAdapter(items, this)
             result_list.setAdapter(adapter)
-            Log.i(TAG, title)
-            Log.i(TAG, kind)
-            Log.i(TAG, snippet.toString())
         }
     }
 
@@ -169,16 +169,21 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private var lastSearched = ""
     var lastToken = ""
     override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean) {
-
         val searchType = "video"
         if (!more) {
             lastSearched = q
             lastToken = "";
         }
-        val encodedQuery = URLEncoder.encode(q, "UTF-8").replace("%20".toRegex(), "\\+")
-        Log.i(TAG, encodedQuery)
+        val a = q.replace("[", "");
+        val b = a.replace("]", "")
+        //  val b = "leg exercise"
+
+        Log.i(TAG + "Query", b)
+        val encodedQuery = URLEncoder.encode(b, "UTF-8").replace("%20".toRegex(), "\\+")
+        Log.i(TAG + "Query", encodedQuery)
         Log.i(TAG, api_Key)
-         val youtubeResponseCall = APIService.youtubeApi.searchVideo(api_Key, "snippet", max_result, encodedQuery, "KR", searchType)
+        val youtubeResponseCall = APIService.youtubeApi.searchVideo(api_Key, "snippet", max_result, encodedQuery, "KR", searchType)
+        // val youtubeResponseCall = APIService.youtubeApi.searchVideo(api_Key, "snippet", max_result, encodedQuery)
         Log.i(TAG, youtubeResponseCall.toString())
         Log.i(TAG, "getDatas")
         youtubeResponseCall.enqueue(callback2(
@@ -520,28 +525,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
      *
      * @param completedTask from google onActivityResult
      */
-    private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
-        try {
-            val account = completedTask.result
-
-            // Signed in successfully, show authenticated UI.
-            getProfileInformation(account)
-
-            //show toast
-            Toast.makeText(this, "Google Sign In Successful.", Toast.LENGTH_SHORT).show();
-
-        } catch (e: ApiException) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            Log.e(TAG, "signInResult:failed code=" + e.getStatusCode());
-
-            //show toast
-            Toast.makeText(this, "Failed to do Sign In : " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
-
-            //update Ui for this
-            getProfileInformation(null)
-        }
-    }
 
     /**
      * method to fetch user profile information from GoogleSignInAccount
@@ -573,7 +556,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             user_details_label.setText("ID : " + personId + "\nDisplay Name : " + personName + "\nFull Name : " + personGivenName + " " + personFamilyName + "\nEmail : " + personEmail);
 
             //show the user profile pic
-            Picasso.with(this).load(personPhoto).fit().placeholder(R.mipmap.ic_launcher_round).into(user_profile_image_view);
+            Picasso.get().load(personPhoto).fit().placeholder(R.mipmap.ic_launcher_round).into(user_profile_image_view);
 
             //change the text of Custom Sign in button to sign out
             custom_sign_in_button.setText(getResources().getString(R.string.sign_out));
