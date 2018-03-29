@@ -1,27 +1,13 @@
 package bodygate.bcns.bodygation
 
-import android.support.v7.app.AppCompatActivity
-import android.os.Bundle
-import android.content.Intent
-import android.R.attr.orientation
 import android.app.Activity
 import android.content.Context
-import android.content.pm.ActivityInfo
-import android.hardware.Camera.CameraInfo
-import android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT
-import android.view.Surface.ROTATION_270
-import android.view.Surface.ROTATION_180
-import android.view.Surface.ROTATION_90
-import android.view.Surface.ROTATION_0
-import android.support.v4.view.ViewCompat.getRotation
-import android.hardware.Camera.getCameraInfo
-import android.hardware.camera2.CameraDevice
+import android.content.Intent
+import android.hardware.Camera
+import android.os.Bundle
 import android.provider.Settings
+import android.support.v7.app.AppCompatActivity
 import android.view.Surface
-import android.os.Build
-import android.hardware.Camera;
-
-
 
 
 class ItemActivity : AppCompatActivity() {
@@ -48,7 +34,7 @@ class ItemActivity : AppCompatActivity() {
             follow.setArguments(getIntent().extras)
             supportFragmentManager.beginTransaction().replace(R.id.fragment_container, follow, "your_fragment").commit()
         } else {
-            val follow = supportFragmentManager.findFragmentByTag("your_fragment_21") as Item_follow_fragment_21
+            val follow = supportFragmentManager.findFragmentByTag("your_fragment_21") as PlayFragment
 
         }
         if (android.provider.Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) != 1){
