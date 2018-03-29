@@ -269,7 +269,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     fun search(): ArrayList<String> {
         val query:MutableList<String> = ArrayList()
         if(home_img.isChecked){
-            query.add("\"집\"")
+            query.add("집")
            // query.add("홈")
            // query.add("가정")
            // query.add("실내")
@@ -308,8 +308,8 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
             query.add("\"대퇴근\"")
         }
         if(shoulder_img.isChecked){
-            query.add("\"어깨\"")
-            query.add("\"승모근\"")
+            query.add("어깨")
+            query.add("승모근")
            // query.add("삼각근")
            // query.add("전면삼각근")
            // query.add("후면삼각근")
@@ -332,11 +332,11 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
             query.add("\"배\"")
         }
         if(stretching_img.isChecked){
-            query.add( "\"스트레칭\"")
+            query.add( "스트레칭")
            // query.add("요가")
         }
         if(muscle_img.isChecked){
-            query.add("\"운동\"")
+            query.add("운동")
            //query.add("강화")
            // query.add("만들기")
         }

@@ -13,7 +13,9 @@ import bodygate.bcns.bodygation.youtube.Topics
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
+import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.fragment_follow.*
+import javax.security.auth.Subject
 
 
 /**
@@ -87,8 +89,12 @@ class YouTubeResult : Fragment() {
     interface OnYoutubeResultInteraction {
         // TODO: Update argument type and name
         fun OnYoutubeResultInteraction()
+        fun moveBack(q:Fragment)
     }
 
+    fun onBackPressed() {
+        mListener!!.moveBack(this)
+    }
     companion object {
         // TODO: Rename parameter arguments, choose names that match
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER

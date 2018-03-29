@@ -2,7 +2,9 @@ package bodygate.bcns.bodygation
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
+import android.support.v4.content.ContextCompat.startActivity
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -51,6 +53,18 @@ class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Ite
             val loader = holder.ytThubnailView.getTag(R.id.thumbnailloader) as YouTubeThumbnailLoader
             loader.setVideo(mValues[position].id!!.videoId)
         }
+        holder.ivYtLogo.setOnClickListener(object : View.OnClickListener{
+            override fun onClick(v: View?) {
+                moveActivity(mValues[position].id!!.videoId!!)
+            }
+
+        })
+        holder.ytThubnailView.setOnClickListener(object : View.OnClickListener{
+            override fun onClick(v: View?) {
+                moveActivity(mValues[position].id!!.videoId!!)
+            }
+
+        })
         Log.i(TAG, "categoryId :" + mValues[position].snippet!!.categoryId + "        "
         + "channelId :" + mValues[position].snippet!!.channelId + "        "
                 + "channelTitle :" + mValues[position].snippet!!.channelTitle + "        "
@@ -61,7 +75,13 @@ class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Ite
     override fun getItemCount(): Int {
             return mValues.size
     }
-
+    fun moveActivity(p:String){
+        val intent = Intent(context, ItemActivity::class.java)
+// To pass any data to next activity
+        intent.putExtra("url", p)
+// start your next activity
+        context.startActivity(intent)
+    }
     inner class ViewHolder(val mView: View) : RecyclerView.ViewHolder(mView) {
         val ytThubnailView: YouTubeThumbnailView
         val ivYtLogo: ImageView

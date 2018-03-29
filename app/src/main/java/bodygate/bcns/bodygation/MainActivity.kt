@@ -15,10 +15,9 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.support.annotation.NonNull
 import android.support.design.widget.BottomNavigationView
+import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.RecyclerView.Adapter
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -26,7 +25,8 @@ import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
-import bodygate.bcns.bodygation.youtube.*
+import bodygate.bcns.bodygation.youtube.YoutubeApi
+import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -34,7 +34,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.Scopes
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
@@ -47,16 +46,17 @@ import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
-import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
-import com.google.android.youtube.player.*
+import com.google.android.youtube.player.YouTubePlayer
+import com.google.android.youtube.player.YouTubePlayerSupportFragment
+import com.google.android.youtube.player.YouTubeThumbnailLoader
+import com.google.android.youtube.player.YouTubeThumbnailView
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTubeScopes
-import com.google.gson.JsonParser
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_follow.*
@@ -65,20 +65,11 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.suspendCancellableCoroutine
-import org.apache.http.client.ClientProtocolException
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.DefaultHttpClient
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.Call
 import retrofit2.Callback
-import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
-import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.text.DateFormat.getDateInstance
 import java.util.*
@@ -90,22 +81,12 @@ import kotlin.collections.ArrayList
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
 
-    var playerFragment: YouTubePlayerSupportFragment? = null
-    var Player:YouTubePlayer? = null
-    var thumbnailView:YouTubeThumbnailView? = null
-    var thumbnailLoader:YouTubeThumbnailLoader? = null
-    var VideoList: RecyclerView? = null
-   var thumbnailViews: List<Drawable>? = null
-    var VideoId: List<String>? = null
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
-    private var mCallApiButton: Button? =null
-    var mProgress: ProgressDialog? =null
     val REQUEST_ACCOUNT_PICKER = 1000
     val REQUEST_AUTHORIZATION = 1001
     val REQUEST_GOOGLE_PLAY_SERVICES = 1002
     val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
-    private val PROPERTIES_FILENAME = "youtube.properties"
     private var authInProgress = false
     lateinit var mFitnessClient: GoogleApiClient
     private val REQUEST_OAUTH = 1001
@@ -115,27 +96,33 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
-    val forMeFragment: ForMeFragment = ForMeFragment()
     var weight_data: DataSet? = null
     var bfp_data: DataSet? = null
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var adapter: YoutubeResultListViewAdapter? = null
-    val NUMBER_OF_VIDEOS_RETURNED: Long = 30
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
-    /** Global instance of the HTTP transport.  */
-    var HTTP_TRANSPORT:NetHttpTransport = NetHttpTransport()
-    /** Global instance of the JSON factory.  */
+    val context:Context = this
 
     fun getData(response: Response<YoutubeResponse>) {
         val body = response.body()
+        Log.i(TAG, response.raw().request().url().toString())
         if (body != null) {
             val items = body.items
             adapter = YoutubeResultListViewAdapter(items, this)
             result_list.setAdapter(adapter)
         }
     }
-
+    override fun moveBack(q:Fragment) {
+        when(q){
+            YouTubeResult.newInstance() -> {
+                supportFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
+                        .commit()
+            }
+        }
+    }
     override fun describeContents(): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -169,6 +156,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private var lastSearched = ""
     var lastToken = ""
     override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean) {
+
         val searchType = "video"
         if (!more) {
             lastSearched = q
@@ -176,19 +164,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
         val a = q.replace("[", "");
         val b = a.replace("]", "")
-        //  val b = "leg exercise"
-
-        Log.i(TAG + "Query", b)
-        val encodedQuery = URLEncoder.encode(b, "UTF-8").replace("%20".toRegex(), "\\+")
-        Log.i(TAG + "Query", encodedQuery)
-        Log.i(TAG, api_Key)
-        val youtubeResponseCall = APIService.youtubeApi.searchVideo(api_Key, "snippet", max_result, encodedQuery, "KR", searchType)
+        // val b = "leg exercise"
+        val apiService = YoutubeApi.create()
+        val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR", searchType, api_Key)
         // val youtubeResponseCall = APIService.youtubeApi.searchVideo(api_Key, "snippet", max_result, encodedQuery)
         Log.i(TAG, youtubeResponseCall.toString())
         Log.i(TAG, "getDatas")
         youtubeResponseCall.enqueue(callback2(
                 { r -> getData(r) },
-                { t ->Log.i(TAG, t.message) }))
+                { t -> Log.i(TAG, t.message) }))
     }
     fun <YoutubeResponse> callback2(success: ((Response<YoutubeResponse>) -> Unit)?, failure: ((t: Throwable) -> Unit)? = null): Callback<YoutubeResponse> {
         return object : Callback<YoutubeResponse> {
