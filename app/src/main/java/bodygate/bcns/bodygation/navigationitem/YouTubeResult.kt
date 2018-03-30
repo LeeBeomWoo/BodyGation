@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -56,6 +57,18 @@ class YouTubeResult : Fragment() {
         val pop_linearLayoutManager = LinearLayoutManager(context)
         pop_linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL)
         result_list.setLayoutManager(pop_linearLayoutManager)
+        result_list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val visibleItemCount = pop_linearLayoutManager.getChildCount()
+                val totalItemCount = pop_linearLayoutManager.getItemCount()
+                val pastVisibleItems = pop_linearLayoutManager.findFirstVisibleItemPosition()
+                if (pastVisibleItems + visibleItemCount >= totalItemCount) {
+                    //End of list
+                    mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, mListener!!.getpage(), 1)
+                }
+            }
+        })
     }
     // TODO: Rename method, update argument and hook method into UI event
 
@@ -87,16 +100,13 @@ class YouTubeResult : Fragment() {
      * See the Android Training lesson [Communicating with Other Fragments](http://developer.android.com/training/basics/fragments/communicating.html) for more information.
      */
     interface OnYoutubeResultInteraction {
-        // TODO: Update argument type and name
         fun OnYoutubeResultInteraction()
         fun moveBack(q:Fragment)
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int)
+        fun getpage():String
     }
 
-    fun onBackPressed() {
-        mListener!!.moveBack(this)
-    }
     companion object {
-        // TODO: Rename parameter arguments, choose names that match
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
         private val ARG_PARAM1 = "param1"
 

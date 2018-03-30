@@ -13,8 +13,10 @@ class YoutubeResponse {
     val etag: String? = null
     val nextPageToken: String? = null
     val pageInfo: PageInfo? = null
-    val items: List<Items> = ArrayList()
-
+    val items: MutableList<Items> = ArrayList()
+    fun addItems(item:Items){
+        items.add(item)
+    }
     class PageInfo {
         val totalResults: Int = 0
         val resultsPerPage: Int = 0

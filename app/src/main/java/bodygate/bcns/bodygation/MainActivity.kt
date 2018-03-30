@@ -60,6 +60,7 @@ import com.google.api.services.youtube.YouTubeScopes
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_follow.*
+import kotlinx.android.synthetic.main.fragment_movie.*
 import kotlinx.android.synthetic.main.google_login.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
@@ -80,6 +81,12 @@ import kotlin.collections.ArrayList
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
+    override var walk_dateSET: DataSet?
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        set(value) {}
+    override var calole_dateSET: DataSet?
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        set(value) {}
 
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
@@ -93,25 +100,67 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val ID: String? = null
     val PW: String? = null
     val TAG: String = "MainActivity_"
+    var preData:MutableList<YoutubeResponse.Items> = ArrayList()
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
     var weight_data: DataSet? = null
     var bfp_data: DataSet? = null
+    var walk_data: DataSet? = null
+    var calore_data: DataSet? = null
+    var page = ""
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
-    var adapter: YoutubeResultListViewAdapter? = null
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
     val context:Context = this
 
-    fun getData(response: Response<YoutubeResponse>) {
+    fun getData(response: Response<YoutubeResponse>, section:Int) {
         val body = response.body()
         Log.i(TAG, response.raw().request().url().toString())
         if (body != null) {
             val items = body.items
-            adapter = YoutubeResultListViewAdapter(items, this)
-            result_list.setAdapter(adapter)
-        }
+            preData.addAll(items)
+                when (section) {
+                    0 -> {//선택형
+                        if(preData.size >0 ) {
+                            val radapter = YoutubeResultListViewAdapter(preData, this)
+                            result_list.setAdapter(radapter)
+                        }
+                    }
+                    1 -> {//새로 올라온 영상
+                      /*  if(preData.size >0 ) {
+                            val nadapter = YoutubeResultListViewAdapter(preData, this)
+                            new_list.setAdapter(nadapter)
+                        }*/
+                    }
+                    2 -> {//인기많은 영상
+                        if(preData.size >0 ) {
+                            val padapter = YoutubeResultListViewAdapter(preData, this)
+                            pop_list.setAdapter(padapter)
+                        }
+                    }
+                    3 -> {//내가 본 영상
+                        if(preData.size >0 ) {
+                            val madapter = YoutubeResultListViewAdapter(preData, this)
+                            my_list.setAdapter(madapter)
+                        }
+                    }
+                }
+            }
+    }
+    fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, more:Boolean) {
+        val body = response.body()
+        Log.i(TAG, response.raw().request().url().toString())
+        if (body != null) {
+            val items = body.items
+            preData.addAll(items)
+                if(body.nextPageToken != null) {
+                    page = body.nextPageToken
+                    getDatas("snippet", q, api_Key, max_result, more, page, section)
+                }else{
+                    getDatas("snippet", q, api_Key, max_result, more, null, section)
+                }
+            }
     }
     override fun moveBack(q:Fragment) {
         when(q){
@@ -155,8 +204,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     private var lastSearched = ""
     var lastToken = ""
-    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean) {
-
+    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int) {
         val searchType = "video"
         if (!more) {
             lastSearched = q
@@ -166,13 +214,38 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val b = a.replace("]", "")
         // val b = "leg exercise"
         val apiService = YoutubeApi.create()
-        val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR", searchType, api_Key)
-        // val youtubeResponseCall = APIService.youtubeApi.searchVideo(api_Key, "snippet", max_result, encodedQuery)
-        Log.i(TAG, youtubeResponseCall.toString())
+        var order = ""
+        when(section){
+            0->{//선택형
+                order = "relevance"
+            }
+            1 -> {//새로 올라온 영상
+                order = "date"
+            }
+            2 ->{//인기많은 영상
+                order = "rating"
+            }
+            3->{//내가 본 영상
+                order = "relevance"
+            }
+        }
         Log.i(TAG, "getDatas")
-        youtubeResponseCall.enqueue(callback2(
-                { r -> getData(r) },
-                { t -> Log.i(TAG, t.message) }))
+        if(page==null){
+            val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR", searchType, order, api_Key)
+            youtubeResponseCall.enqueue(callback2(
+                    { r -> getData(r, section) },
+                    { t -> Log.i(TAG, t.message) }))
+            Log.i(TAG, youtubeResponseCall.toString())
+            Log.i(TAG, "getDatas")
+
+        }else{
+            val youtubeResponseCall = apiService.nextVideo("snippet", max_result, b, "KR",  searchType, page, order, api_Key)
+            youtubeResponseCall.enqueue(callback2(
+                    { r -> addData(r, section, b, api_Key,  max_result, more) },
+                    { t -> Log.i(TAG, t.message) }))
+            Log.i(TAG, youtubeResponseCall.toString())
+            Log.i(TAG, "getDatas")
+        }
     }
     fun <YoutubeResponse> callback2(success: ((Response<YoutubeResponse>) -> Unit)?, failure: ((t: Throwable) -> Unit)? = null): Callback<YoutubeResponse> {
         return object : Callback<YoutubeResponse> {
@@ -194,10 +267,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     override fun OnMovieInteraction(item: DummyContent.DummyItem) {
-        //  TODO("not implemented") To change body of created functions use File | Settings | File Templates.
     }
 
-
+    override fun getpage(): String {
+        return nextpage()
+    }
+    fun nextpage():String{
+        return page
+    }
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
         //해당 페이지로 이동
@@ -304,6 +381,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addDataType(DataType.TYPE_WEIGHT)
                 .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE)
                 .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED)
+                .addDataType(DataType.TYPE_STEP_COUNT_CADENCE)
                 .build()
         if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
             GoogleSignIn.requestPermissions(
@@ -408,37 +487,29 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if (dataReadResult.getDataSets().size > 0) {
             Log.i(TAG, "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
             for (dataSet in dataReadResult.getDataSets()) {
-                if (dataSet.dataType == DataType.TYPE_WEIGHT) {
-                    Log.i(TAG, "Data Type:" + "TYPE_WEIGHT")
-                    weight_dumpDataSet(dataSet)
-                } else if (dataSet.dataType == DataType.TYPE_BODY_FAT_PERCENTAGE) {
-                    Log.i(TAG, "Data Type:" + "TYPE_BODY_FAT_PERCENTAGE")
-                    bfp_dumpDataSet(dataSet)
-                }
+                weight_dumpDataSet(dataSet)
             }
         }
         // [END parse_read_data_result]
     }
 
-    override fun bfp_dumpDataSet(dataSet: DataSet) {
-        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-        val dateFormat = getDateInstance()
-        bfp_data = dataSet
-        for (dp: DataPoint in dataSet.getDataPoints()) {
-            Log.i(TAG, "Data point:" + dp.toString())
-            Log.i(TAG, "Type: " + dp.getDataType().getName());
-            Log.i(TAG, "Start: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG, "End: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG, "TimeStemp: " + dateFormat.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
-            Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_PERCENTAGE) + "type: " + dp.getValue(Field.FIELD_PERCENTAGE).javaClass)
-        }
-        Log.i(TAG, "list point:" + bfp_list.toString())
-    }
-
     override fun weight_dumpDataSet(dataSet: DataSet) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
         val dateFormat = getDateInstance()
-        weight_data = dataSet
+        when(dataSet.dataType){
+            DataType.TYPE_WEIGHT->{
+                weight_data = dataSet
+            }
+            DataType.TYPE_BODY_FAT_PERCENTAGE->{
+                bfp_data = dataSet
+            }
+            DataType.TYPE_CALORIES_EXPENDED->{
+                calore_data = dataSet
+            }
+            DataType.TYPE_STEP_COUNT_CADENCE->{
+                walk_data = dataSet
+            }
+        }
         for (dp: DataPoint in dataSet.getDataPoints()) {
             Log.i(TAG, "Data point:" + dp.toString())
             Log.i(TAG, "Type: " + dp.getDataType().getName());
@@ -483,6 +554,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .readData(DataReadRequest.Builder()
                         .read(DataType.TYPE_WEIGHT)
                         .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
+                        .read(DataType.TYPE_CALORIES_EXPENDED)
+                        .read(DataType.TYPE_STEP_COUNT_CADENCE)
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                         .build());
         val readDataResult = Tasks.await(response);

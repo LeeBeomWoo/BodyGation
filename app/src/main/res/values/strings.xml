@@ -179,4 +179,7 @@
     <string name="place">운동장소</string>
     <string name="search">검색</string>
     <string name="failed">유튜브 계정연결에 실패했습니다</string>
+    <string name="permission_request">카메라사용에 대한 허가를 요청합니다.</string>
+    <string name="walk">걸음수</string>
+    <string name="calore">칼로리</string>
 </resources>

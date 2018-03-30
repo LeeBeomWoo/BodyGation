@@ -4,13 +4,20 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.hardware.Camera
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v7.app.AppCompatActivity
 import android.view.Surface
+import cn.gavinliu.android.lib.scale.config.ScaleConfig
 
 
-class ItemActivity : AppCompatActivity() {
+@Suppress("DEPRECATED_IDENTITY_EQUALS")
+class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionListener {
+    override fun onFragmentInteraction(uri: Uri) {
+
+    }
+
     var url = ""
     val REQUEST_CAMERA = 1
     private val TAG = "ItemActivity"
@@ -25,18 +32,19 @@ class ItemActivity : AppCompatActivity() {
     fun setAutoOrientationEnabled(context: Context, enabled: Boolean) {
         Settings.System.putInt(context.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, if (enabled) 1 else 0)
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ScaleConfig.create(this,
+                1080, // Design Width
+                1920, // Design Height
+                (3).toFloat(),    // Design Density
+                (3).toFloat(),    // Design FontScale
+                ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_item)
         val intent = intent
         url = intent.getStringExtra("url")
-        if (savedInstanceState == null) {
-            follow.setArguments(getIntent().extras)
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, follow, "your_fragment").commit()
-        } else {
-            val follow = supportFragmentManager.findFragmentByTag("your_fragment_21") as PlayFragment
-
-        }
+        supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url), "your_fragment").commit()
         if (android.provider.Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) != 1){
            setAutoOrientationEnabled(this, true);
         }

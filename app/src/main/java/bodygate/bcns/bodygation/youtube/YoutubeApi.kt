@@ -14,13 +14,23 @@ import retrofit2.http.Headers
 
 
 interface YoutubeApi {
-   // @Headers("Content-Type: application/json;charset=utf-8")
     @GET("search")
     fun searchVideo(@Query("part") part:String,
                     @Query("maxResults") maxResults:Int,
                     @Query("q") query:String,
                     @Query("regionCode") regionCode:String,
                     @Query("type") type:String,
+                    @Query("order") order:String,
+                    @Query("key") key:String
+    ):Call<YoutubeResponse>
+    @GET("search")
+    fun nextVideo(@Query("part") part:String,
+                    @Query("maxResults") maxResults:Int,
+                    @Query("q") query:String,
+                    @Query("regionCode") regionCode:String,
+                    @Query("type") type:String,
+                    @Query("pageToken") pageToken:String,
+                  @Query("order") order:String,
                     @Query("key") key:String
     ):Call<YoutubeResponse>
     companion object Factory {

@@ -22,14 +22,15 @@ import com.google.android.youtube.player.YouTubeThumbnailView
  * specified [OnListFragmentInteractionListener].
  * TODO: Replace the implementation with code for your data type.
  */
-class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Items>, private val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
+class YoutubeResultListViewAdapter(var mValues: MutableList<YoutubeResponse.Items>, val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
 
     private val UNINITIALIZED = 1
     private val INITIALIZING = 2
     private val INITIALIZED = 3
     private val blackColor = Color.parseColor("#FF000000")
     private val transparentColor = Color.parseColor("#00000000")
-
+    var dataitem = YoutubeResponse.Items()
+    var datalist:MutableList<YoutubeResponse.Items> = ArrayList()
     val TAG = "YoutubeListViewAdapter_"
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         Log.i(TAG, "onCreateViewHolder")
@@ -38,9 +39,14 @@ class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Ite
         return ViewHolder(view)
     }
 
+    fun setLkItems(bdItems1: List<YoutubeResponse.Items>) {
+        mValues.addAll(bdItems1)
+        this.notifyItemInserted(mValues.size - 1)
+    }
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
         holder.mItem = mValues[position]
         holder.tvTitle.text = mValues[position].snippet!!.title
+        holder.tvDetaile.text = mValues[position].snippet!!.description
         holder.ivYtLogo.setVisibility(View.VISIBLE)
         holder.ytThubnailView.setTag(R.id.videoid, mValues[position].id!!.videoId)
         holder.ivYtLogo.setBackgroundColor(blackColor)
@@ -69,7 +75,6 @@ class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Ite
                 + "title :" + mValues[position].snippet!!.title + "        "
                 + "description :" + mValues[position].snippet!!.description)
     }
-
     override fun getItemCount(): Int {
             return mValues.size
     }
@@ -80,16 +85,18 @@ class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Ite
 // start your next activity
         context.startActivity(intent)
     }
-    inner class ViewHolder(val mView: View) : RecyclerView.ViewHolder(mView) {
+    inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
         val ytThubnailView: YouTubeThumbnailView
         val ivYtLogo: ImageView
         val tvTitle: TextView
+        val tvDetaile: TextView
         var mItem: YoutubeResponse.Items? = null
 
         init {
             ytThubnailView = itemView.findViewById<View>(R.id.yt_thumbnail) as YouTubeThumbnailView
             ivYtLogo = itemView.findViewById<View>(R.id.iv_yt_logo) as ImageView
             tvTitle = itemView.findViewById<View>(R.id.tv_title) as TextView
+            tvDetaile= itemView.findViewById<View>(R.id.tv_detail) as TextView
 
             initialize()
         }
@@ -122,9 +129,7 @@ class YoutubeResultListViewAdapter(private val mValues: List<YoutubeResponse.Ite
                         p1.setVideo(videoId)
                     }
                 }
-
                 override fun onInitializationFailure(p0: YouTubeThumbnailView?, p1: YouTubeInitializationResult?) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
                 }
             })
         }

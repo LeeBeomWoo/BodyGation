@@ -270,82 +270,69 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         val query:MutableList<String> = ArrayList()
         if(home_img.isChecked){
             query.add("집")
-           // query.add("홈")
-           // query.add("가정")
-           // query.add("실내")
+            query.add("홈")
         }
         if(car_img.isChecked){
-            query.add("\"차\"")
-           // query.add("차안")
-           // query.add("차량안")
+            query.add("차")
+            query.add("자동차")
         }
         if(work_img.isChecked){
-           // query.add("직장")
-            query.add("\"사무실\"")
+            query.add("직장")
+            query.add("사무실")
         }
         if(hip_img.isChecked){
-            query.add("\"엉덩이\"")
-           // query.add("힙업")
-            query.add("\"골반\"")
+            query.add("엉덩이")
+            query.add("힙업")
+            query.add("골반")
         }
         if(upperarm_img.isChecked){
-            query.add("\"팔\"")
-           // query.add("이두근")
-           // query.add("삼두근")
-           // query.add("이두박근")
-           // query.add("알통")
-          //  query.add("전완근")
-            query.add("\"손목\"")
+            query.add("팔")
+            query.add("상완근")
+           query.add("전완근")
+            query.add("손목")
         }
         if(lowerleg_img.isChecked){
-            query.add("\"종아리\"")
-           // query.add("하퇴근")
-            query.add("\"발목\"")
+            query.add("종아리")
+            query.add("하퇴근")
+            query.add("발목")
         }
         if(upleg_img.isChecked){
-            query.add("\"허벅지\"")
-           // query.add("햄스트리밍")
-            query.add("\"대퇴근\"")
+            query.add("허벅지")
+            query.add("대퇴근")
         }
         if(shoulder_img.isChecked){
             query.add("어깨")
             query.add("승모근")
-           // query.add("삼각근")
-           // query.add("전면삼각근")
-           // query.add("후면삼각근")
-           // query.add("측면삼각근")
+            query.add("삼각근")
         }
         if(chest_img.isChecked){
-            query.add("\"가슴\"")
-            query.add("\"대흉근\"")
-           // query.add("가슴키우기")
+            query.add("가슴")
+            query.add("대흉근")
         }
         if(upback_body_img.isChecked){
-            query.add("\"허리\"")
-           // query.add("척추")
-            query.add("\"척추기립근\"")
+            query.add("허리")
+            query.add("척추")
+            query.add("기립근")
         }
         if(upfront_abs_img.isChecked){
-            query.add("\"복근\"")
-           // query.add("복부")
-           // query.add("왕자")
-            query.add("\"배\"")
+            query.add("복근")
+            query.add("왕자")
+            query.add("배")
         }
         if(stretching_img.isChecked){
             query.add( "스트레칭")
-           // query.add("요가")
+            query.add("요가")
         }
         if(muscle_img.isChecked){
-            query.add("운동")
-           //query.add("강화")
-           // query.add("만들기")
+           query.add("강화")
+            query.add("만들기")
         }
         return query as ArrayList<String>
     }
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(uri: ArrayList<String>) {
         if (mListener != null) {
-            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 40, true)
+            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 40, true, "", 0)
             mListener!!.OnFollowInteraction()
         }
     }
@@ -376,8 +363,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     interface OnFollowInteraction {
         // TODO: Update argument type and name
         fun OnFollowInteraction()
-
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean)
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, page: String?, section:Int)
     }
 
     companion object {

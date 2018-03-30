@@ -11,155 +11,114 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-    <LinearLayout
-        android:id="@+id/weight_layout"
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graph"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="10dp"
-        android:paddingTop="3dp">
+        android:layout_height="200dp"
+        android:background="@color/nocolor" />
 
-        <com.jjoe64.graphview.GraphView
-            android:id="@+id/weight_graph"
-            android:layout_width="match_parent"
-            android:layout_height="250dp" />
-
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/bmi_layout"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="10dp"
-        android:paddingTop="3dp">
-
-        <com.jjoe64.graphview.GraphView
-            android:id="@+id/bfp_graph"
-            android:layout_width="match_parent"
-            android:layout_height="250dp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/bodyfat_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="10dp"
-        android:paddingTop="3dp">
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/musclemass_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="10dp"
-        android:paddingTop="3dp">
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/bmr_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingBottom="10dp"
-        android:paddingTop="3dp">
+        android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/bmr_lbl"
-            android:layout_width="wrap_content"
+            android:id="@+id/weight_lbl"
+            android:layout_width="85dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
-
-        <EditText
-            android:id="@+id/bmr_txtB"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:text="Name" />
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/weight"
+            android:textAlignment="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/bmr_fit_lbl"
-            android:layout_width="160dp"
+            android:id="@+id/walk_lbl"
+            android:layout_width="85dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/visceralfat_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingBottom="10dp"
-        android:paddingTop="3dp">
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/walk"
+            android:textAlignment="center"
+            app:layout_constraintEnd_toStartOf="@+id/kal_lbl"
+            app:layout_constraintStart_toEndOf="@+id/weight_lbl"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/visceralfat_lbl"
-            android:layout_width="wrap_content"
+            android:id="@+id/kal_lbl"
+            android:layout_width="85dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
-
-        <EditText
-            android:id="@+id/visceralfat_txtB"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:text="Name" />
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/calore"
+            android:textAlignment="center"
+            app:layout_constraintEnd_toStartOf="@+id/bfp_lbl"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/visceralfat_fit_lbl"
-            android:layout_width="160dp"
+            android:id="@+id/bfp_lbl"
+            android:layout_width="85dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/bodyfat"
+            android:textAlignment="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    </LinearLayout>
+        <bodygate.bcns.bodygation.CheckableImageButton
+            android:id="@+id/weight_Btn"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="5dp"
+            android:background="@color/nocolor"
+            android:scaleType="fitCenter"
+            android:src="@drawable/main_weight_selector"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/weight_lbl" />
 
-    <LinearLayout
-        android:id="@+id/subcutaneousfat_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingBottom="10dp"
-        android:paddingTop="3dp">
+        <bodygate.bcns.bodygation.CheckableImageButton
+            android:id="@+id/walk_Btn"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="5dp"
+            android:background="@color/nocolor"
+            android:scaleType="fitCenter"
+            android:src="@drawable/main_walk_selector"
+            app:layout_constraintEnd_toStartOf="@+id/kal_Btn"
+            app:layout_constraintStart_toEndOf="@+id/weight_Btn"
+            app:layout_constraintTop_toBottomOf="@+id/walk_lbl" />
 
-        <TextView
-            android:id="@+id/subcutaneousfat_lbl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
+        <bodygate.bcns.bodygation.CheckableImageButton
+            android:id="@+id/kal_Btn"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="5dp"
+            android:background="@color/nocolor"
+            android:scaleType="fitCenter"
+            android:src="@drawable/main_calore_selector"
+            app:layout_constraintEnd_toStartOf="@+id/bfp_Btn"
+            app:layout_constraintTop_toBottomOf="@+id/kal_lbl" />
 
-        <EditText
-            android:id="@+id/subcutaneousfat_txtB"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:text="Name" />
+        <bodygate.bcns.bodygation.CheckableImageButton
+            android:id="@+id/bfp_Btn"
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="5dp"
+            android:background="@color/nocolor"
+            android:scaleType="fitCenter"
+            android:src="@drawable/main_fat_selector"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bfp_lbl" />
 
-        <TextView
-            android:id="@+id/subcutaneousfat_fit_lbl"
-            android:layout_width="160dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="TextView" />
-
-    </LinearLayout>
+    </android.support.constraint.ConstraintLayout>
 
 </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

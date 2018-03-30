@@ -3,10 +3,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/backline"
     android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="15dp"
+        android:textAlignment="center"
+        android:textColor="@color/bodynavigationbar"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp">
+        android:layout_height="200dp"
+        android:layout_marginBottom="5dp">
 
         <com.google.android.youtube.player.YouTubeThumbnailView
             android:id="@+id/yt_thumbnail"
@@ -25,19 +42,13 @@
     </RelativeLayout>
 
     <TextView
-        android:id="@+id/tv_title"
+        android:id="@+id/tv_detail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FF000000"
-        android:textSize="16sp"
-        android:text="Title"/>
-
-    <View
-        android:id="@+id/seperator"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
-        android:background="#FF642108"/>
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:textColor="@color/bodynavigationbar"
+        android:textSize="16sp" />
 
 </LinearLayout>
