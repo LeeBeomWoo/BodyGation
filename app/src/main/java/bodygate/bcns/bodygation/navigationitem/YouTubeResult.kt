@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.youtube.Topics
+import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
@@ -102,7 +103,7 @@ class YouTubeResult : Fragment() {
     interface OnYoutubeResultInteraction {
         fun OnYoutubeResultInteraction()
         fun moveBack(q:Fragment)
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int)
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int): MutableList<YoutubeResponse.Items>
         fun getpage():String
     }
 

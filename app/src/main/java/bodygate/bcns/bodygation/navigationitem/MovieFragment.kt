@@ -9,9 +9,12 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import bodygate.bcns.bodygation.MainActivity
 import bodygate.bcns.bodygation.MyRecyclerViewAdapter
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import bodygate.bcns.bodygation.dummy.DummyContent
+import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import kotlinx.android.synthetic.main.fragment_movie.*
 import kotlinx.android.synthetic.main.fragment_movie.view.*
 
@@ -29,7 +32,9 @@ class MovieFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var mParam1: String? = null
     private var mParam2: String? = null
-
+    var ndata: MutableList<YoutubeResponse.Items> = ArrayList()
+    var pdata: MutableList<YoutubeResponse.Items> = ArrayList()
+    var mdata: MutableList<YoutubeResponse.Items> = ArrayList()
     private var mListener: OnMovieInteraction? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,18 +53,29 @@ class MovieFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)//새로운 영상
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, "",2)//인기있는 영상
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, "",3)//내가 봐온 영상
-        val pop_linearLayoutManager = LinearLayoutManager(context)
-        pop_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        pop_list.setLayoutManager(pop_linearLayoutManager)
         val new_linearLayoutManager = LinearLayoutManager(context)
         new_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
         pop_list.setLayoutManager(new_linearLayoutManager)
         val my_linearLayoutManager = LinearLayoutManager(context)
         my_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
         pop_list.setLayoutManager(my_linearLayoutManager)
+        if(ndata ==  null){
+            ndata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)
+            val pop_linearLayoutManager = LinearLayoutManager(context)
+            pop_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
+            pop_list.setLayoutManager(pop_linearLayoutManager)
+            pop_list.setAdapter(YoutubeResultListViewAdapter(pdata, this.activity))
+        }
+        if(pdata ==  null){
+            pdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 2)
+        }
+        if(mdata ==  null){
+            mdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 3)
+        }
+        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)//새로운 영상
+        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, "",2)//인기있는 영상
+        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, "",3)//내가 봐온 영상
+
     }
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(item: DummyContent.DummyItem) {
@@ -94,7 +110,7 @@ class MovieFragment : Fragment() {
     interface OnMovieInteraction {
         // TODO: Update argument type and name
         fun OnMovieInteraction(item: DummyContent.DummyItem)
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page:String?, section:Int)
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page:String?, section:Int): MutableList<YoutubeResponse.Items>
     }
 
     companion object {
