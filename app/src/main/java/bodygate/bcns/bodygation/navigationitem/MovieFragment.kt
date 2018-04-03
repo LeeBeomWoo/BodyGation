@@ -64,7 +64,7 @@ class MovieFragment : Fragment() {
             val pop_linearLayoutManager = LinearLayoutManager(context)
             pop_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
             pop_list.setLayoutManager(pop_linearLayoutManager)
-            pop_list.setAdapter(YoutubeResultListViewAdapter(pdata, this.activity))
+           // pop_list.setAdapter(YoutubeResultListViewAdapter(pdata, this))
         }
         if(pdata ==  null){
             pdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 2)
