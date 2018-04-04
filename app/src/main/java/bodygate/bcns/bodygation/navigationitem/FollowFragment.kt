@@ -363,7 +363,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     interface OnFollowInteraction {
         // TODO: Update argument type and name
         fun OnFollowInteraction()
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, page: String?, section:Int): MutableList<YoutubeResponse.Items>
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, page: String?, section:Int)
     }
 
     companion object {

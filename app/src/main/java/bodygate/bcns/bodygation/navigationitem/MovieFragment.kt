@@ -50,27 +50,21 @@ class MovieFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        if(mListener!!.ndata ==  null){
-            mListener!!.ndata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)
-            val new_linearLayoutManager = LinearLayoutManager(context)
+            mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)
+            val new_linearLayoutManager = LinearLayoutManager(mListener!!.context)
             new_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
             new_list.setLayoutManager(new_linearLayoutManager)
-            new_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, context!!))
-        }
-        if(mListener!!.pdata ==  null){
-            mListener!!.pdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 2)
-            val pop_linearLayoutManager = LinearLayoutManager(context)
+            new_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, mListener!!.context))
+            mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 2)
+            val pop_linearLayoutManager = LinearLayoutManager(mListener!!.context)
             pop_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
             pop_list.setLayoutManager(pop_linearLayoutManager)
-            pop_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, context!!))
-        }
-        if(mListener!!.mdata ==  null){
-            mListener!!.mdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 3)
-            val my_linearLayoutManager = LinearLayoutManager(context)
+            pop_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, mListener!!.context))
+            mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 3)
+            val my_linearLayoutManager = LinearLayoutManager(mListener!!.context)
             my_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
             my_list.setLayoutManager(my_linearLayoutManager)
-            my_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, context!!))
-        }
+            my_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, mListener!!.context))
     }
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(item: DummyContent.DummyItem) {
@@ -105,10 +99,11 @@ class MovieFragment : Fragment() {
     interface OnMovieInteraction {
         // TODO: Update argument type and name
         fun OnMovieInteraction(item: DummyContent.DummyItem)
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page:String?, section:Int): MutableList<YoutubeResponse.Items>
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page:String?, section:Int)
         var ndata: MutableList<YoutubeResponse.Items>
         var pdata: MutableList<YoutubeResponse.Items>
         var mdata: MutableList<YoutubeResponse.Items>
+        val context:Context
     }
 
     companion object {

@@ -11,10 +11,7 @@ import android.content.IntentSender
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.Uri
-import android.os.AsyncTask
-import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
+import android.os.*
 import android.provider.Contacts
 import android.support.annotation.NonNull
 import android.support.annotation.Nullable
@@ -22,6 +19,7 @@ import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.ActivityCompat.startActivityForResult
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.View
@@ -88,18 +86,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 
-@Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
-    override var ndata: MutableList<YoutubeResponse.Items>
-        get() = nMaindata
-        set(value) {}
-    override var pdata: MutableList<YoutubeResponse.Items>
-        get() = pMaindata
-        set(value) {}
-    override var mdata: MutableList<YoutubeResponse.Items>
-        get() = mMaindata
-        set(value) {}
 
     private val RC_RECOVERABLE = 9002
     private val REQUEST_RESOLVE_ERROR = 1001
@@ -119,7 +107,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val ID: String? = null
     val PW: String? = null
     val TAG: String = "MainActivity_"
-    var preData:MutableList<YoutubeResponse.Items> = ArrayList()
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
@@ -127,6 +114,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var bfp_data: DataSet? = null
     var walk_data: DataSet? = null
     var calore_data: DataSet? = null
+    var fitdataList:MutableList<DataSet> = ArrayList()
+    var preData:MutableList<YoutubeResponse.Items> = ArrayList()
     var nMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
     var pMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
     var mMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
@@ -135,7 +124,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
-    val context:Context = this
+    override val context:Context = this
     override fun moveBack(q:Fragment) {
         when(q){
             YouTubeResult.newInstance() -> {
@@ -153,17 +142,30 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnYoutubeResultInteraction(){
 
     }
+    override var data: MutableList<YoutubeResponse.Items>
+        get() = preData
+        set(value) {}
+    override var ndata: MutableList<YoutubeResponse.Items>
+        get() = nMaindata
+        set(value) {}
+    override var pdata: MutableList<YoutubeResponse.Items>
+        get() = pMaindata
+        set(value) {}
+    override var mdata: MutableList<YoutubeResponse.Items>
+        get() = mMaindata
+        set(value) {}
+
     override var walk_dateSET: DataSet?
-        get() =walk_data
+        get() = fitdataList.get(3)
         set(value) {}
     override var calole_dateSET: DataSet?
-        get() = calore_data
+        get() = fitdataList.get(2)
         set(value) {}
     override var bfp_dateSET: DataSet?
-        get() = bfp_data
+        get() = fitdataList.get(1)
         set(value) {}
     override var weight_dateSET: DataSet?
-        get() = weight_data
+        get() = fitdataList.get(0)
         set(value) {}
     override var bfp_list: Array<com.jjoe64.graphview.series.DataPoint>?
         set(value) {}
@@ -184,13 +186,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnGoalInteractionListener(uri: Uri) {
     }
 
-    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int): MutableList<YoutubeResponse.Items>{
+    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int){
         val a = q.replace("[", "");
         val b = a.replace("]", "")
         Log.i(TAG, "getDatas")
-        val task = GetYouTubeTask(section, b, ProgressDialog(this))
-        task.execute(b)
-        return task.get()
+        val youpb = ProgressDialog(context)
+        youpb.show()
+        youpb.setTitle("유튜브 데이터를 받아노는 중입니다.")
+        val greenJob = launch(UI) {
+            async(CommonPool) { access(section,  api_Key, 40, b) }.await()
+            run{
+                youpb.dismiss()
+            }
+        }
+        greenJob.start()
     }
     override fun OnFollowInteraction() {
         Log.i(TAG, "OnFollowInteraction")
@@ -237,12 +246,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_infome -> {
-                val pb = ProgressDialog(this)
-                val tak = GetFitnessTask(pb, this)
-                weight_data = tak.execute().get()[0]
-                bfp_data = tak.execute().get()[1]
-                calore_data = tak.execute().get()[2]
-                walk_data = tak.execute().get()[3]
                 supportFragmentManager
                         .beginTransaction()
                         .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
@@ -356,9 +359,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onStart()
         // Connect to the Fitness API
         Log.i(TAG, "Connecting...")
-        val account = GoogleSignIn.getLastSignedInAccount(this)
         //update the UI if user has already sign in with the google for this app
-        mFitnessClient!!.connect()
+        if (!mFitnessClient!!.isConnected()) {
+            mFitnessClient!!.connect()
+        }
         //getProfileInformation(account)
     }
 
@@ -443,12 +447,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onConnected(p0: Bundle?) {
         Log.i(TAG, "onConnected")
         //Google Fit Client에 연결되었습니다.
-        val pb = ProgressDialog(this)
-        val tak = GetFitnessTask(pb, this)
-        weight_data = tak.execute().get()[0]
-        bfp_data = tak.execute().get()[1]
-        calore_data = tak.execute().get()[2]
-        walk_data = tak.execute().get()[3]
+        val fitpb = ProgressDialog(context)
+        fitpb.show()
+        fitpb.setTitle("구글 핏 데이터를 가져오는 중입니다.")
+        val greenJob = launch(CommonPool) {
+            async(CommonPool) { getFitData() }.await()
+            run{fitpb.dismiss()}
+        }
+        greenJob.start()
     }
 
     override fun onDataPoint(dataPoint: DataPoint) {
@@ -741,7 +747,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val jsonFactory = JacksonFactory.getDefaultInstance()
             mService = com.google.api.services.youtube.YouTube.Builder(
                     transport, jsonFactory, credential)
-                    .setApplicationName("YouTube Data API Android Quickstart")
+                    .setApplicationName("BodyGation")
                     .build()
             return mService
         }
@@ -774,99 +780,91 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
 
     }
-    private class GetYouTubeTask(section:Int, q:String, pb:ProgressDialog):AsyncTask<String, Void, MutableList<YoutubeResponse.Items>>(){
-        var mq=""
-        var msection = 0
-        val TAG = "GetYouTubeTask"
-        var mPb:ProgressDialog? = null
-        val preData:MutableList<YoutubeResponse.Items> = ArrayList()
-        init{
-            mq=q
-            msection = section
-            mPb = pb
-        }
-        override fun doInBackground(vararg params: String?): MutableList<YoutubeResponse.Items> {
-            return access(msection, "AIzaSyDYApmvsPUrZkd1vr8yeN4ZvxkmE75HDa4", 40)
-        }
-        fun access(section:Int, api_Key: String, max_result: Int):MutableList<YoutubeResponse.Items>{
-            val searchType = "video"
-
-            val apiService = YoutubeApi.create()
-            var order = ""
-            when(section){
-                0->{//선택형
-                    order = "relevance"
-                }
-                1 -> {//새로 올라온 영상
-                    order = "date"
-                }
-                2 ->{//인기많은 영상
-                    order = "rating"
-                }
-                3->{//내가 본 영상
-                    order = "relevance"
-                }
+   fun access(section:Int, api_Key: String, max_result: Int, mq:String){
+        val searchType = "video"
+        val apiService = YoutubeApi.create()
+        var order = ""
+        when(section){
+            0->{//선택형
+                order = "relevance"
             }
-            Log.i(TAG, "getDatas")
-            val youtubeResponseCall = apiService.searchVideo("snippet", 40, mq, "KR", searchType, order, api_Key)
-            val body = youtubeResponseCall.execute()
-            if(body.body()!!.nextPageToken == null) {
-                getData(body)
-            }else{
-                val page = body.body()!!.nextPageToken
-                addData(body, api_Key, 40, page, order)
+            1 -> {//새로 올라온 영상
+                order = "date"
             }
-            return preData
-        }
-        fun getData(response: Response<YoutubeResponse>){
-            val body = response.body()
-            Log.i(TAG, response.raw().request().url().toString())
-            if (body != null) {
-                val items = body.items
-                preData.addAll(items)
-                }
+            2 ->{//인기많은 영상
+                order = "rating"
             }
-
-        fun addData(response: Response<YoutubeResponse>,  api_Key: String, max_result: Int, mpage: String?, order:String) {
-            val searchType = "video"
-            val apiService = YoutubeApi.create()
-            Log.i(TAG, mq)
-            if(mpage == null){
-                getData(response)
-            }else{
-                val youtubeResponseCall = apiService.nextVideo("snippet", 40, mq, "KR", searchType, mpage, order, api_Key)
-                val body = youtubeResponseCall.execute()
-                val items = body.body()
-                if (items != null) {
-                    preData.addAll(items.items)
-                    val page = items.nextPageToken
-                    addData(response, api_Key, max_result, page, order)
-                }
+            3->{//내가 본 영상
+                order = "relevance"
             }
         }
-
-        override fun onPreExecute() {
-            super.onPreExecute()
-            mPb!!.show()
-            mPb!!.setTitle("목록을 가져오는 중입니다 잠시만 기다려 주세요")
-        }
-
-        override fun onPostExecute(result: MutableList<YoutubeResponse.Items>?) {
-            super.onPostExecute(result)
-                mPb!!.dismiss()
+        Log.i(TAG, "getDatas")
+        val youtubeResponseCall = apiService.searchVideo("snippet", 40, mq, "KR", searchType, order, api_Key)
+        val body = youtubeResponseCall.execute()
+        if(body.body()!!.nextPageToken == null) {
+            getData(body, section)
+        }else{
+            val page = body.body()!!.nextPageToken
+            addData(body, api_Key, 40, page, order, mq, searchType, section)
         }
     }
-    private class GetFitnessTask( pb:ProgressDialog, context: Context):AsyncTask<Void, Void, List<DataSet>>() {
-        var mPb:ProgressDialog? = null
-        val TAG = "GetFitnessTask"
-        @SuppressLint("StaticFieldLeak")
-        var mContext:Context
-        init{
-            mPb = pb
-            mContext = context
+    fun getData(response: Response<YoutubeResponse>, section: Int){
+        val body = response.body()
+        Log.i(TAG, response.raw().request().url().toString())
+        if (body != null) {
+            val items = body.items
+            when(section) {
+                0 -> {//선택형
+                    preData.addAll(items)
+                }
+                1 -> {//새로 올라온 영상
+                    nMaindata.addAll(items)
+                }
+                2 -> {//인기많은 영상
+                    pMaindata.addAll(items)
+                }
+                3 -> {//내가 본 영상
+                    mMaindata.addAll(items)
+                }
+            }
         }
+    }
+
+    fun addData(response: Response<YoutubeResponse>,  api_Key: String, max_result: Int, mpage: String?, order:String, mq:String, searchType:String, section:Int) {
+        val apiService = YoutubeApi.create()
+        Log.i(TAG, mq)
+        if(mpage == null){
+            getData(response, section)
+        }else{
+            val youtubeResponseCall = apiService.nextVideo("snippet", 40, mq, "KR", searchType, mpage, order, api_Key)
+            val body = youtubeResponseCall.execute()
+            val items = body.body()
+            if (items != null) {
+                when(section) {
+                    0 -> {//선택형
+                        preData.addAll(items.items)
+                    }
+                    1 -> {//새로 올라온 영상
+                        nMaindata.addAll(items.items)
+                    }
+                    2 -> {//인기많은 영상
+                        pMaindata.addAll(items.items)
+                    }
+                    3 -> {//내가 본 영상
+                        mMaindata.addAll(items.items)
+                    }
+                }
+                val page = items.nextPageToken
+                if(page == null){
+                    getData(body, section)
+                }else{
+                    addData(response, api_Key, max_result, page, order, mq, searchType, section)
+                }
+            }
+        }
+    }
         @SuppressLint("RestrictedApi")
-        override fun doInBackground(vararg p0: Void?): List<DataSet>? {
+        fun getFitData(){
             val cal = Calendar.getInstance()
             val now = Date()
             val endTime = now.time
@@ -874,8 +872,43 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val startTime = cal.timeInMillis
             Log.i(TAG, "Range Start: " + startTime.toString())
             Log.i(TAG, "Range End: " + endTime.toString())
-            val task = GoogleSignIn.getLastSignedInAccount(mContext)
-            val response = Fitness.getHistoryClient(mContext, task!!)
+            val task = GoogleSignIn.getLastSignedInAccount(context)
+            /*
+            val caloreRequest = DataReadRequest.Builder()
+                    .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
+                    .read(DataType.TYPE_CALORIES_EXPENDED)
+                    .bucketByActivityType(1, TimeUnit.SECONDS)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build()
+            val weightRequest = DataReadRequest.Builder()
+                    .read(DataType.TYPE_WEIGHT)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build()
+            val stepRequest = DataReadRequest.Builder()
+                    .aggregate(DataType.TYPE_STEP_COUNT_CADENCE, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                    .bucketByActivityType(1, TimeUnit.SECONDS)
+                    .read(DataType.TYPE_STEP_COUNT_CADENCE)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build()
+            val bfpRequest = DataReadRequest.Builder()
+                    .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build()
+            val bmrRequest = DataReadRequest.Builder()
+                    .read(DataType.TYPE_BASAL_METABOLIC_RATE)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build()
+            val weight_response = Fitness.getHistoryClient(context, task!!)
+                    .readData(weightRequest)
+            val calore_response = Fitness.getHistoryClient(context, task!!)
+                    .readData(caloreRequest)
+            val step_response = Fitness.getHistoryClient(context, task!!)
+                    .readData(stepRequest)
+            val bfp_response = Fitness.getHistoryClient(context, task!!)
+                    .readData(bfpRequest)
+            val bmr_response = Fitness.getHistoryClient(context, task!!)
+                    .readData(bmrRequest)*/
+            val response = Fitness.getHistoryClient(context, task!!)
                     .readData(DataReadRequest.Builder()
                             .read(DataType.TYPE_WEIGHT)
                             .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
@@ -884,7 +917,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             .read(DataType.TYPE_BASAL_METABOLIC_RATE)
                             .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                             .build())
-            val readDataResult = Tasks.await(response);
+            val readDataResult = response.result
             val result: MutableList<DataSet> = ArrayList()
             if (readDataResult.getBuckets().size > 0) {
                 Log.e("History", "Number of buckets: " + readDataResult.getBuckets().size);
@@ -928,18 +961,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
             }
-            return result
+            fitdataList = result
         }
-        override fun onCancelled() {}
-        override fun onPreExecute() {
-            super.onPreExecute()
-            mPb!!.show()
-            mPb!!.setTitle("구글핏 데이터를 받아오는 중입니다.")
-        }
-        override fun onPostExecute(result: List<DataSet>?) {
-            mPb!!.dismiss()
-        }
-    }
 }
 
 
