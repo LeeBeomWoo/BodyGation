@@ -91,6 +91,15 @@ import kotlin.collections.ArrayList
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
+    override var ndata: MutableList<YoutubeResponse.Items>
+        get() = nMaindata
+        set(value) {}
+    override var pdata: MutableList<YoutubeResponse.Items>
+        get() = pMaindata
+        set(value) {}
+    override var mdata: MutableList<YoutubeResponse.Items>
+        get() = mMaindata
+        set(value) {}
 
     private val RC_RECOVERABLE = 9002
     private val REQUEST_RESOLVE_ERROR = 1001
@@ -118,6 +127,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var bfp_data: DataSet? = null
     var walk_data: DataSet? = null
     var calore_data: DataSet? = null
+    var nMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
+    var pMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
+    var mMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
     private var mAccount: Account? = null
     var page = ""
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
@@ -225,6 +237,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_infome -> {
+                val pb = ProgressDialog(this)
+                val tak = GetFitnessTask(pb, this)
+                weight_data = tak.execute().get()[0]
+                bfp_data = tak.execute().get()[1]
+                calore_data = tak.execute().get()[2]
+                walk_data = tak.execute().get()[3]
                 supportFragmentManager
                         .beginTransaction()
                         .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
@@ -315,8 +333,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     REQUEST_OAUTH_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions);
-        } else {
-            registerFitnessDataListener();
         }
         getResultsFromApi()
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
@@ -423,61 +439,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
     }
-    override fun printData(dataReadResult: DataReadResponse) {
-        // [START parse_read_data_result]
-        // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
-        // as buckets containing DataSets, instead of just DataSets.
-        if (dataReadResult.getBuckets().size > 0) {
-            Log.e("History", "Number of buckets: " + dataReadResult.getBuckets().size);
-            for (bucket: Bucket in dataReadResult.getBuckets()) {
-                val dataSets = bucket.getDataSets()
-                for (dataSet:DataSet in dataSets) {
-                    weight_dumpDataSet(dataSet)
-            }
-            }
-        }
-//Used for non-aggregated data
-        else if (dataReadResult.getDataSets().size > 0) {
-            Log.e("History", "Number of returned DataSets: " + dataReadResult.getDataSets().size);
-            for (dataSet:DataSet in dataReadResult.getDataSets()) {
-                weight_dumpDataSet(dataSet)
-            }
-        }
-        // [END parse_read_data_result]
-    }
-
-    override fun weight_dumpDataSet(dataSet: DataSet) {
-        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-        val dateFormat = getDateInstance()
-        when(dataSet.dataType){
-            DataType.TYPE_WEIGHT->{
-                weight_data = dataSet
-            }
-            DataType.TYPE_BODY_FAT_PERCENTAGE->{
-                bfp_data = dataSet
-            }
-            DataType.TYPE_CALORIES_EXPENDED->{
-                calore_data = dataSet
-            }
-            DataType.TYPE_STEP_COUNT_CADENCE->{
-                walk_data = dataSet
-            }
-        }
-        for (dp: DataPoint in dataSet.getDataPoints()) {
-            Log.i(TAG + "Data point", dp.toString())
-            Log.i(TAG + "Type", dp.getDataType().getName());
-            Log.i(TAG+ "Start" , dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG + "End",  dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG + "TimeStemp", dateFormat.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) )
-            Log.i(TAG + " Value", dp.getValue(Field.FIELD_WEIGHT).toString())
-        }
-        Log.i(TAG, "list point:" + weight_list.toString())
-    }
 
     override fun onConnected(p0: Bundle?) {
         Log.i(TAG, "onConnected")
         //Google Fit Client에 연결되었습니다.
-        registerFitnessDataListener()
+        val pb = ProgressDialog(this)
+        val tak = GetFitnessTask(pb, this)
+        weight_data = tak.execute().get()[0]
+        bfp_data = tak.execute().get()[1]
+        calore_data = tak.execute().get()[2]
+        walk_data = tak.execute().get()[3]
     }
 
     override fun onDataPoint(dataPoint: DataPoint) {
@@ -491,38 +462,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onConnectionSuspended(cause: Int) {
         Log.i(TAG, "onConnectionSuspended")
         // The connection has been interrupted. Wait until onConnected() is called.
-    }
-
-    @SuppressLint("RestrictedApi")
-    override fun registerFitnessDataListener() = launch(CommonPool) {
-        val cal = Calendar.getInstance()
-        val now = Date()
-        val endTime = now.time
-        cal.set(2000, 1, 1)
-        val startTime = cal.timeInMillis
-        Log.i(TAG, "Range Start: " + startTime.toString())
-        Log.i(TAG, "Range End: " + endTime.toString())
-        val task = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
-        val response = Fitness.getHistoryClient(this@MainActivity, task!!)
-                .readData(DataReadRequest.Builder()
-                        .read(DataType.TYPE_WEIGHT)
-                        .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
-                        .read(DataType.TYPE_CALORIES_EXPENDED)
-                        .read(DataType.TYPE_STEP_COUNT_CADENCE)
-                        .read(DataType.TYPE_BASAL_METABOLIC_RATE)
-                        .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                        .build())
-        val readDataResult = Tasks.await(response);
-        val edataSet = readDataResult.getDataSet(DataType.TYPE_WEIGHT);
-        val fdataSet = readDataResult.getDataSet(DataType.TYPE_BODY_FAT_PERCENTAGE);
-        val cdataSet = readDataResult.getDataSet(DataType.TYPE_CALORIES_EXPENDED);
-        val sdataSet = readDataResult.getDataSet(DataType.TYPE_STEP_COUNT_CADENCE);
-        val bdataSet = readDataResult.getDataSet(DataType.TYPE_BASAL_METABOLIC_RATE);
-        Log.i(TAG + "edataSet", edataSet.dataPoints.size.toString())
-        Log.i(TAG + "fdataSet", fdataSet.dataPoints.size.toString())
-        Log.i(TAG + "cdataSet", cdataSet.dataPoints.size.toString())
-        Log.i(TAG + "sdataSet", sdataSet.dataPoints.size.toString())
-        async(UI) { printData(readDataResult)}
     }
 
     override fun onConnectionFailed(result: ConnectionResult) {
@@ -909,6 +848,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         override fun onPreExecute() {
             super.onPreExecute()
             mPb!!.show()
+            mPb!!.setTitle("목록을 가져오는 중입니다 잠시만 기다려 주세요")
         }
 
         override fun onPostExecute(result: MutableList<YoutubeResponse.Items>?) {
@@ -916,53 +856,89 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 mPb!!.dismiss()
         }
     }
-    private class GetFitnessTask(account: Account, context: Context):AsyncTask<Void, Void, List<Person>>() {
-        internal var mAccount:Account
+    private class GetFitnessTask( pb:ProgressDialog, context: Context):AsyncTask<Void, Void, List<DataSet>>() {
+        var mPb:ProgressDialog? = null
+        val TAG = "GetFitnessTask"
         @SuppressLint("StaticFieldLeak")
-        internal var mContext:Context
-        private val mActivityRef: WeakReference<MainActivity>? = null
-        /** Global instance of the HTTP transport. */
-        val HTTP_TRANSPORT: HttpTransport = AndroidHttp.newCompatibleTransport();
-        /** Global instance of the JSON factory. */
-        val JSON_FACTORY: JsonFactory = JacksonFactory.getDefaultInstance();
+        var mContext:Context
         init{
-            mAccount = account
+            mPb = pb
             mContext = context
         }
-        override fun doInBackground(vararg params:Void):List<Person> {
-            var result:MutableList<Person> = ArrayList()
-            try
-            {
-                val credential = GoogleAccountCredential.usingOAuth2(
-                        mContext,
-                        Collections.singleton(
-                                "https://www.googleapis.com/auth/contacts.readonly")
-                )
-                credential.setSelectedAccount(mAccount)
-                val service = People.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                        .setApplicationName("BodyGation")
-                        .build()
-                val connectionsResponse = service
-                        .people()
-                        .connections()
-                        .list("people/me")
-                        .execute()
-                result = connectionsResponse.getConnections()
-            }
-            catch (userRecoverableException: UserRecoverableAuthIOException) {
-                // Explain to the user again why you need these OAuth permissions
-                // And prompt the resolution to the user again:
-                if (mActivityRef!!.get() != null) {
-                    mActivityRef.get()!!.onRecoverableAuthException(userRecoverableException);
+        @SuppressLint("RestrictedApi")
+        override fun doInBackground(vararg p0: Void?): List<DataSet>? {
+            val cal = Calendar.getInstance()
+            val now = Date()
+            val endTime = now.time
+            cal.set(2000, 1, 1)
+            val startTime = cal.timeInMillis
+            Log.i(TAG, "Range Start: " + startTime.toString())
+            Log.i(TAG, "Range End: " + endTime.toString())
+            val task = GoogleSignIn.getLastSignedInAccount(mContext)
+            val response = Fitness.getHistoryClient(mContext, task!!)
+                    .readData(DataReadRequest.Builder()
+                            .read(DataType.TYPE_WEIGHT)
+                            .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
+                            .read(DataType.TYPE_CALORIES_EXPENDED)
+                            .read(DataType.TYPE_STEP_COUNT_CADENCE)
+                            .read(DataType.TYPE_BASAL_METABOLIC_RATE)
+                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                            .build())
+            val readDataResult = Tasks.await(response);
+            val result: MutableList<DataSet> = ArrayList()
+            if (readDataResult.getBuckets().size > 0) {
+                Log.e("History", "Number of buckets: " + readDataResult.getBuckets().size);
+                for (bucket: Bucket in readDataResult.getBuckets()) {
+                    val dataSets = bucket.getDataSets()
+                    for (dataSet:DataSet in dataSets) {
+                        when(dataSet.dataType){
+                            DataType.TYPE_WEIGHT->{
+                                result.add(0, dataSet)
+                            }
+                            DataType.TYPE_BODY_FAT_PERCENTAGE->{
+                                result.add(1, dataSet)
+                            }
+                            DataType.TYPE_CALORIES_EXPENDED->{
+                                result.add(2, dataSet)
+                            }
+                            DataType.TYPE_STEP_COUNT_CADENCE->{
+                                result.add(3, dataSet)
+                            }
+                        }
+                    }
                 }
             }
-            catch (e:IOException) {
-                // Other non-recoverable exceptions.
+//Used for non-aggregated data
+            else if (readDataResult.getDataSets().size > 0) {
+                Log.e("History", "Number of returned DataSets: " + readDataResult.getDataSets().size);
+                for (dataSet: DataSet in readDataResult.getDataSets()) {
+                    when (dataSet.dataType) {
+                        DataType.TYPE_WEIGHT -> {
+                            result.add(0, dataSet)
+                        }
+                        DataType.TYPE_BODY_FAT_PERCENTAGE -> {
+                            result.add(1, dataSet)
+                        }
+                        DataType.TYPE_CALORIES_EXPENDED -> {
+                            result.add(2, dataSet)
+                        }
+                        DataType.TYPE_STEP_COUNT_CADENCE -> {
+                            result.add(3, dataSet)
+                        }
+                    }
+                }
             }
             return result
         }
         override fun onCancelled() {}
-        override fun onPostExecute(connections:List<Person>) {}
+        override fun onPreExecute() {
+            super.onPreExecute()
+            mPb!!.show()
+            mPb!!.setTitle("구글핏 데이터를 받아오는 중입니다.")
+        }
+        override fun onPostExecute(result: List<DataSet>?) {
+            mPb!!.dismiss()
+        }
     }
 }
 

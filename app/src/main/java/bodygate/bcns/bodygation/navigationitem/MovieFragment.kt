@@ -32,9 +32,6 @@ class MovieFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var mParam1: String? = null
     private var mParam2: String? = null
-    var ndata: MutableList<YoutubeResponse.Items> = ArrayList()
-    var pdata: MutableList<YoutubeResponse.Items> = ArrayList()
-    var mdata: MutableList<YoutubeResponse.Items> = ArrayList()
     private var mListener: OnMovieInteraction? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,29 +50,27 @@ class MovieFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val new_linearLayoutManager = LinearLayoutManager(context)
-        new_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        pop_list.setLayoutManager(new_linearLayoutManager)
-        val my_linearLayoutManager = LinearLayoutManager(context)
-        my_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        pop_list.setLayoutManager(my_linearLayoutManager)
-        if(ndata ==  null){
-            ndata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)
+        if(mListener!!.ndata ==  null){
+            mListener!!.ndata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)
+            val new_linearLayoutManager = LinearLayoutManager(context)
+            new_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
+            new_list.setLayoutManager(new_linearLayoutManager)
+            new_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, context!!))
+        }
+        if(mListener!!.pdata ==  null){
+            mListener!!.pdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 2)
             val pop_linearLayoutManager = LinearLayoutManager(context)
             pop_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
             pop_list.setLayoutManager(pop_linearLayoutManager)
-           // pop_list.setAdapter(YoutubeResultListViewAdapter(pdata, this))
+            pop_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, context!!))
         }
-        if(pdata ==  null){
-            pdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 2)
+        if(mListener!!.mdata ==  null){
+            mListener!!.mdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 3)
+            val my_linearLayoutManager = LinearLayoutManager(context)
+            my_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
+            my_list.setLayoutManager(my_linearLayoutManager)
+            my_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.pdata, context!!))
         }
-        if(mdata ==  null){
-            mdata = mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 3)
-        }
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)//새로운 영상
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, "",2)//인기있는 영상
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, "",3)//내가 봐온 영상
-
     }
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(item: DummyContent.DummyItem) {
@@ -111,6 +106,9 @@ class MovieFragment : Fragment() {
         // TODO: Update argument type and name
         fun OnMovieInteraction(item: DummyContent.DummyItem)
         fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page:String?, section:Int): MutableList<YoutubeResponse.Items>
+        var ndata: MutableList<YoutubeResponse.Items>
+        var pdata: MutableList<YoutubeResponse.Items>
+        var mdata: MutableList<YoutubeResponse.Items>
     }
 
     companion object {

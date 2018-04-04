@@ -131,6 +131,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         when(p){
             0->{//체중
                 graph.title = getString(R.string.weight)
+                if(mListener!!.weight_dateSET == null){
+
+                }
                 graph.addSeries(lineGraph(mListener!!.weight_dateSET))
                 val labelhorizon = StaticLabelsFormatter(graph)
                 labelhorizon.setHorizontalLabels(e_dAte)
@@ -140,6 +143,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 graph.viewport.isScalable = true
             }
             1->{//걷기
+                if(mListener!!.walk_dateSET == null){
+
+                }
                 graph.title = getString(R.string.walk)
                 graph.addSeries(lineGraph(mListener!!.walk_dateSET))
                 val labelhorizon = StaticLabelsFormatter(graph)
@@ -150,6 +156,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 graph.viewport.isScalable = true
             }
             2->{//칼로리
+                if(mListener!!.calole_dateSET == null){
+
+                }
                 graph.title = getString(R.string.calore)
                 graph.addSeries(lineGraph(mListener!!.calole_dateSET))
                 val labelhorizon = StaticLabelsFormatter(graph)
@@ -160,6 +169,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 graph.viewport.isScalable = true
             }
             3->{//체지방비율
+                if(mListener!!.bfp_dateSET == null){
+
+                }
                 graph.title = getString(R.string.bodyfat)
                 graph.addSeries(lineGraph(mListener!!.bfp_dateSET))
                 val labelhorizon = StaticLabelsFormatter(graph)
@@ -323,10 +335,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         // TODO: Update argument type and name
         fun OnForMeInteraction()
 
-        fun printData(dataReadResult: DataReadResponse)
-
-        fun weight_dumpDataSet(dataSet: DataSet)
-        fun registerFitnessDataListener()= launch(CommonPool){}
         var weight_dateSET: DataSet?
         var bfp_dateSET: DataSet?
         var walk_dateSET: DataSet?
