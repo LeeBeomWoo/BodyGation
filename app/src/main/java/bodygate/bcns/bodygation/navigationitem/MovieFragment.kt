@@ -11,7 +11,9 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.MyRecyclerViewAdapter
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import bodygate.bcns.bodygation.dummy.DummyContent
+import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import kotlinx.android.synthetic.main.fragment_movie.*
 import kotlinx.android.synthetic.main.fragment_movie.view.*
 
@@ -56,10 +58,10 @@ class MovieFragment : Fragment() {
         pop_list.setLayoutManager(pop_linearLayoutManager)
         val new_linearLayoutManager = LinearLayoutManager(context)
         new_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        pop_list.setLayoutManager(new_linearLayoutManager)
+        new_list.setLayoutManager(new_linearLayoutManager)
         val my_linearLayoutManager = LinearLayoutManager(context)
         my_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
-        pop_list.setLayoutManager(my_linearLayoutManager)
+        my_list.setLayoutManager(my_linearLayoutManager)
     }
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(item: DummyContent.DummyItem) {

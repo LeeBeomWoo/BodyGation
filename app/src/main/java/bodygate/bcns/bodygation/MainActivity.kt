@@ -85,7 +85,6 @@ import kotlin.collections.ArrayList
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
 
-
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
     val REQUEST_ACCOUNT_PICKER = 1000
@@ -99,6 +98,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val PW: String? = null
     val TAG: String = "MainActivity_"
     var preData:MutableList<YoutubeResponse.Items> = ArrayList()
+    var popData:MutableList<YoutubeResponse.Items> = ArrayList()
+    var newData:MutableList<YoutubeResponse.Items> = ArrayList()
+    var myData:MutableList<YoutubeResponse.Items> = ArrayList()
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
@@ -107,6 +109,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var walk_data: DataSet? = null
     var calore_data: DataSet? = null
     var page = ""
+    var mPro: ProgressDialog? = null
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
@@ -125,29 +128,32 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, response.raw().request().url().toString())
         if (body != null) {
             val items = body.items
-            preData.addAll(items)
                 when (section) {
                     0 -> {//선택형
+                        preData.addAll(items)
                         if(preData.size >0 ) {
                             val radapter = YoutubeResultListViewAdapter(preData, this)
                             result_list.setAdapter(radapter)
                         }
                     }
                     1 -> {//새로 올라온 영상
-                      /*  if(preData.size >0 ) {
-                            val nadapter = YoutubeResultListViewAdapter(preData, this)
+                        newData.addAll(items)
+                        if(newData.size >0 ) {
+                            val nadapter = YoutubeResultListViewAdapter(newData, this)
                             new_list.setAdapter(nadapter)
-                        }*/
+                        }
                     }
                     2 -> {//인기많은 영상
-                        if(preData.size >0 ) {
-                            val padapter = YoutubeResultListViewAdapter(preData, this)
+                        popData.addAll(items)
+                        if(popData.size >0 ) {
+                            val padapter = YoutubeResultListViewAdapter(popData, this)
                             pop_list.setAdapter(padapter)
                         }
                     }
                     3 -> {//내가 본 영상
-                        if(preData.size >0 ) {
-                            val madapter = YoutubeResultListViewAdapter(preData, this)
+                        myData.addAll(items)
+                        if(myData.size >0 ) {
+                            val madapter = YoutubeResultListViewAdapter(myData, this)
                             my_list.setAdapter(madapter)
                         }
                     }
@@ -160,9 +166,26 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, response.raw().request().url().toString())
         if (body != null) {
             val items = body.items
-            preData.addAll(items)
+            if(mPro == null){
+                mPro = ProgressDialog.show(this, "데이터 받는 중", "유튜브 데이터를 받아오는 중입니다.")
+            }
+            when (section) {
+                0 -> {//선택형
+                    preData.addAll(items)
+                }
+                1 -> {//새로 올라온 영상
+                    newData.addAll(items)
+                }
+                2 -> {//인기많은 영상
+                    popData.addAll(items)
+                }
+                3 -> {//내가 본 영상
+                    myData.addAll(items)
+                }
+            }
                 if(body.nextPageToken != null) {
                     page = body.nextPageToken
+
                     val youtubeResponseCall = apiService.nextVideo("snippet", max_result, q, "KR",  searchType, page, order, api_Key)
                     youtubeResponseCall.enqueue(callback2(
                             { r -> addData(r, section, q, api_Key,  max_result, searchType, order) },
@@ -171,6 +194,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     Log.i(TAG, "addData")
                 }else{
                     getData(response, section)
+                    mPro!!.dismiss()
+                    mPro = null
                     Log.i(TAG, "getData")
                 }
             }
