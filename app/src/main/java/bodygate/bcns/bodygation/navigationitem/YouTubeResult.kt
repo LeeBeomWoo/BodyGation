@@ -12,7 +12,6 @@ import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import bodygate.bcns.bodygation.youtube.Topics
-import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory

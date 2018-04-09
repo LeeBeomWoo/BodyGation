@@ -242,8 +242,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(e_dAte.size > 1) {
                         e_dAte.forEach {
                             Log.i(TAG, "dAte value:" + e_dAte[e])
+                            Log.i(TAG, "dAte point:" + e_dAte[e])
                             Log.i(TAG, "value point:" + evalue[e].toString())
-                            Log.i(TAG, "Count:" + e.toString())
+                            Log.i(TAG, "a point:" + e.toString())
                             elist.add(DataPoint(e.toDouble(), evalue[e]))
                             e +=1
                         }
@@ -253,8 +254,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(o_dAte.size > 1) {
                         o_dAte.forEach {
                             Log.i(TAG, "dAte value:" + o_dAte[o])
+                            Log.i(TAG, "dAte point:" + o_dAte[o])
                             Log.i(TAG, "value point:" + ovalue[o].toString())
-                            Log.i(TAG, "Count:" + o.toString())
+                            Log.i(TAG, "a point:" + o.toString())
                             olist.add(DataPoint(o.toDouble(), ovalue[o]))
                             o += 1
                         }
@@ -264,8 +266,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(a_dAte.size > 1) {
                         a_dAte.forEach {
                             Log.i(TAG, "dAte value:" + a_dAte[a])
+                            Log.i(TAG, "dAte point:" + a_dAte[a])
                             Log.i(TAG, "value point:" + avalue[a].toString())
-                            Log.i(TAG, "Count:" + a.toString())
+                            Log.i(TAG, "a point:" + a.toString())
                             alist.add(DataPoint(a.toDouble(), avalue[a]))
                             a +=1
                         }
@@ -275,8 +278,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(t_dAte.size > 1) {
                         t_dAte.forEach {
                             Log.i(TAG, "dAte value:" + t_dAte[t])
+                            Log.i(TAG, "dAte point:" + t_dAte[t])
                             Log.i(TAG, "value point:" + tvalue[t].toString())
-                            Log.i(TAG, "Count:" + t.toString())
+                            Log.i(TAG, "a point:" + t.toString())
                             tlist.add(DataPoint(t.toDouble(), tvalue[t]))
                             t +=1
                         }
@@ -341,8 +345,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         var calole_dateSET: DataSet?
         var weight_list:Array<DataPoint>?
         var bfp_list:Array<DataPoint>?
-        var walk_list:Array<DataPoint>?
-        var calole_list:Array<DataPoint>?
     }
 
     companion object {

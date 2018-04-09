@@ -1,9 +1,7 @@
 package bodygate.bcns.bodygation
 
-import android.accounts.Account
 import android.accounts.AccountManager
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
@@ -11,15 +9,14 @@ import android.content.IntentSender
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.Uri
-import android.os.*
-import android.provider.Contacts
+import android.os.AsyncTask
+import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.annotation.NonNull
-import android.support.annotation.Nullable
 import android.support.design.widget.BottomNavigationView
-import android.support.v4.app.ActivityCompat.startActivityForResult
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.View
@@ -37,32 +34,28 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.Scopes
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.FitnessStatusCodes
-import com.google.android.gms.fitness.data.*
+import com.google.android.gms.fitness.data.DataPoint
+import com.google.android.gms.fitness.data.DataSet
+import com.google.android.gms.fitness.data.DataType
+import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
-import com.google.android.gms.fitness.result.DataReadResult
-import com.google.android.gms.tasks.*
+import com.google.android.gms.tasks.Tasks
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.google.android.youtube.player.YouTubeThumbnailLoader
 import com.google.android.youtube.player.YouTubeThumbnailView
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
-import com.google.api.client.http.HttpTransport
 import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
-import com.google.api.services.people.v1.People
-import com.google.api.services.people.v1.model.Person
 import com.google.api.services.youtube.YouTubeScopes
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
@@ -78,7 +71,6 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
-import java.lang.ref.WeakReference
 import java.net.URLEncoder
 import java.text.DateFormat.getDateInstance
 import java.util.*
@@ -86,15 +78,16 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 
+@Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
+    override var walk_dateSET: DataSet?
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        set(value) {}
+    override var calole_dateSET: DataSet?
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        set(value) {}
 
-    private val RC_RECOVERABLE = 9002
-    private val REQUEST_RESOLVE_ERROR = 1001
-    // Unique tag for the error dialog fragment
-    private val DIALOG_ERROR = "dialog_error"
-    // Bool to track whether the app is already resolving an error
-    private val mResolvingError = false
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
     val REQUEST_ACCOUNT_PICKER = 1000
@@ -102,11 +95,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val REQUEST_GOOGLE_PLAY_SERVICES = 1002
     val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
     private var authInProgress = false
-    var mFitnessClient: GoogleApiClient? = null
+    lateinit var mFitnessClient: GoogleApiClient
     private val REQUEST_OAUTH = 1001
     val ID: String? = null
     val PW: String? = null
     val TAG: String = "MainActivity_"
+    var preData:MutableList<YoutubeResponse.Items> = ArrayList()
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
@@ -114,17 +108,60 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var bfp_data: DataSet? = null
     var walk_data: DataSet? = null
     var calore_data: DataSet? = null
-    var fitdataList:MutableList<DataSet> = ArrayList()
-    var preData:MutableList<YoutubeResponse.Items> = ArrayList()
-    var nMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
-    var pMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
-    var mMaindata: MutableList<YoutubeResponse.Items> = ArrayList()
-    private var mAccount: Account? = null
     var page = ""
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
-    override val context:Context = this
+    val context:Context = this
+
+    fun getData(response: Response<YoutubeResponse>, section:Int) {
+        val body = response.body()
+        Log.i(TAG, response.raw().request().url().toString())
+        if (body != null) {
+            val items = body.items
+            preData.addAll(items)
+                when (section) {
+                    0 -> {//선택형
+                        if(preData.size >0 ) {
+                            val radapter = YoutubeResultListViewAdapter(preData, this)
+                            result_list.setAdapter(radapter)
+                        }
+                    }
+                    1 -> {//새로 올라온 영상
+                      /*  if(preData.size >0 ) {
+                            val nadapter = YoutubeResultListViewAdapter(preData, this)
+                            new_list.setAdapter(nadapter)
+                        }*/
+                    }
+                    2 -> {//인기많은 영상
+                        if(preData.size >0 ) {
+                            val padapter = YoutubeResultListViewAdapter(preData, this)
+                            pop_list.setAdapter(padapter)
+                        }
+                    }
+                    3 -> {//내가 본 영상
+                        if(preData.size >0 ) {
+                            val madapter = YoutubeResultListViewAdapter(preData, this)
+                            my_list.setAdapter(madapter)
+                        }
+                    }
+                }
+            }
+    }
+    fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, more:Boolean) {
+        val body = response.body()
+        Log.i(TAG, response.raw().request().url().toString())
+        if (body != null) {
+            val items = body.items
+            preData.addAll(items)
+                if(body.nextPageToken != null) {
+                    page = body.nextPageToken
+                    getDatas("snippet", q, api_Key, max_result, more, page, section)
+                }else{
+                    getDatas("snippet", q, api_Key, max_result, more, null, section)
+                }
+            }
+    }
     override fun moveBack(q:Fragment) {
         when(q){
             YouTubeResult.newInstance() -> {
@@ -142,64 +179,81 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnYoutubeResultInteraction(){
 
     }
-    override var data: MutableList<YoutubeResponse.Items>
-        get() = preData
-        set(value) {}
-    override var ndata: MutableList<YoutubeResponse.Items>
-        get() = nMaindata
-        set(value) {}
-    override var pdata: MutableList<YoutubeResponse.Items>
-        get() = pMaindata
-        set(value) {}
-    override var mdata: MutableList<YoutubeResponse.Items>
-        get() = mMaindata
+
+    override var bfp_dateSET: DataSet?
+        get() = bfp_data
         set(value) {}
 
-    override var walk_dateSET: DataSet?
-        get() = fitdataList.get(3)
-        set(value) {}
-    override var calole_dateSET: DataSet?
-        get() = fitdataList.get(2)
-        set(value) {}
-    override var bfp_dateSET: DataSet?
-        get() = fitdataList.get(1)
-        set(value) {}
-    override var weight_dateSET: DataSet?
-        get() = fitdataList.get(0)
-        set(value) {}
     override var bfp_list: Array<com.jjoe64.graphview.series.DataPoint>?
         set(value) {}
         get() = arrayOf()
+
+    override var weight_dateSET: DataSet?
+        get() = weight_data
+        set(value) {}
+
     override var weight_list: Array<com.jjoe64.graphview.series.DataPoint>?
         set(value) {}
         get() = arrayOf()
 
-    override var walk_list: Array<com.jjoe64.graphview.series.DataPoint>?
-        set(value) {}
-        get() = arrayOf()
-    override var calole_list: Array<com.jjoe64.graphview.series.DataPoint>?
-        set(value) {}
-        get() = arrayOf()
     override fun writeToParcel(p0: Parcel?, p1: Int) {
     }
 
     override fun OnGoalInteractionListener(uri: Uri) {
     }
 
-    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int){
+    private var lastSearched = ""
+    var lastToken = ""
+    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int) {
+        val searchType = "video"
+        if (!more) {
+            lastSearched = q
+            lastToken = "";
+        }
         val a = q.replace("[", "");
         val b = a.replace("]", "")
-        Log.i(TAG, "getDatas")
-        val youpb = ProgressDialog(context)
-        youpb.show()
-        youpb.setTitle("유튜브 데이터를 받아노는 중입니다.")
-        val greenJob = launch(UI) {
-            async(CommonPool) { access(section,  api_Key, 40, b) }.await()
-            run{
-                youpb.dismiss()
+        // val b = "leg exercise"
+        val apiService = YoutubeApi.create()
+        var order = ""
+        when(section){
+            0->{//선택형
+                order = "relevance"
+            }
+            1 -> {//새로 올라온 영상
+                order = "date"
+            }
+            2 ->{//인기많은 영상
+                order = "rating"
+            }
+            3->{//내가 본 영상
+                order = "relevance"
             }
         }
-        greenJob.start()
+        Log.i(TAG, "getDatas")
+        if(page==null){
+            val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR", searchType, order, api_Key)
+            youtubeResponseCall.enqueue(callback2(
+                    { r -> getData(r, section) },
+                    { t -> Log.i(TAG, t.message) }))
+            Log.i(TAG, youtubeResponseCall.toString())
+            Log.i(TAG, "getDatas")
+
+        }else{
+            val youtubeResponseCall = apiService.nextVideo("snippet", max_result, b, "KR",  searchType, page, order, api_Key)
+            youtubeResponseCall.enqueue(callback2(
+                    { r -> addData(r, section, b, api_Key,  max_result, more) },
+                    { t -> Log.i(TAG, t.message) }))
+            Log.i(TAG, youtubeResponseCall.toString())
+            Log.i(TAG, "getDatas")
+        }
+    }
+    fun <YoutubeResponse> callback2(success: ((Response<YoutubeResponse>) -> Unit)?, failure: ((t: Throwable) -> Unit)? = null): Callback<YoutubeResponse> {
+        return object : Callback<YoutubeResponse> {
+            override fun onResponse(call: Call<YoutubeResponse>, response: Response<YoutubeResponse>) { success?.invoke(response)
+                Log.i(TAG , "Response")}
+            override fun onFailure(call: Call<YoutubeResponse>, t: Throwable) { failure?.invoke(t)
+                Log.i(TAG , "Failure") }
+        }
     }
     override fun OnFollowInteraction() {
         Log.i(TAG, "OnFollowInteraction")
@@ -336,6 +390,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     REQUEST_OAUTH_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions);
+        } else {
+            registerFitnessDataListener();
         }
         getResultsFromApi()
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
@@ -349,9 +405,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addScope(Scope(Scopes.FITNESS_BODY_READ))
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
-                .enableAutoManage(this, this)
                 .build()
-        mFitnessClient!!.connect()
+        mFitnessClient.connect()
     }
 
     @SuppressLint("RestrictedApi")
@@ -359,102 +414,117 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onStart()
         // Connect to the Fitness API
         Log.i(TAG, "Connecting...")
+        val account = GoogleSignIn.getLastSignedInAccount(this)
         //update the UI if user has already sign in with the google for this app
-        if (!mFitnessClient!!.isConnected()) {
-            mFitnessClient!!.connect()
-        }
+        mFitnessClient.connect()
         //getProfileInformation(account)
     }
 
     override fun onStop() {
         super.onStop()
-        if (mFitnessClient!!.isConnected()) {
-            mFitnessClient!!.disconnect()
+        if (mFitnessClient.isConnected()) {
+            mFitnessClient.disconnect()
         }
     }
-    private fun handleSignInResult(@NonNull completedTask:Task<GoogleSignInAccount>) {
-        Log.d(TAG, "handleSignInResult:" + completedTask.isSuccessful())
-        try
-        {
-            val account = completedTask.getResult(ApiException::class.java)
-            updateUI(account)
-            // Store the account from the result
-            mAccount = account.getAccount()
-            // Asynchronously access the People API for the account
-            getResultsFromApi()
-        }
-        catch (e: ApiException) {
-            Log.w(TAG, "handleSignInResult:error", e)
-            // Clear the local account
-            mAccount = null
-            // Signed out, show unauthenticated UI.
-            updateUI(null)
-        }
-    }
-    @SuppressLint("ShowToast", "RestrictedApi")
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        if (requestCode == RC_SIGN_IN)
-        {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            handleSignInResult(task)
-        }
-        if (requestCode == RC_RECOVERABLE)
-        {
-            if (resultCode == RESULT_OK)
-            {
-                getResultsFromApi()
+        when (requestCode) {
+            REQUEST_GOOGLE_PLAY_SERVICES -> consume {
+                if (resultCode != RESULT_OK) {
+                    mOutputText!!.setText(
+                            "This app requires Google Play Services. Please install " +
+                                    "Google Play Services on your device and relaunch this app.");
+                } else {
+                    getResultsFromApi();
+                }
             }
-            else
-            {
-                Toast.makeText(this, "계정 연결에 실패하였습니다.", Toast.LENGTH_SHORT).show()
+            REQUEST_ACCOUNT_PICKER -> consume {
+                if (resultCode == RESULT_OK && data != null &&
+                        data.getExtras() != null) {
+                    val accountName =
+                            data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                    if (accountName != null) {
+                        val settings =
+                                getPreferences(Context.MODE_PRIVATE);
+                        val editor = settings.edit();
+                        editor.putString(PREF_ACCOUNT_NAME, accountName);
+                        editor.apply();
+                        mCredential!!.setSelectedAccountName(accountName);
+                        getResultsFromApi();
+                    }
+                }
             }
-        }
-    }
-    @SuppressLint("RestrictedApi")
-    private fun signIn() {
-        val signInIntent = mGoogleSignInClient!!.getSignInIntent()
-        startActivityForResult(signInIntent, RC_SIGN_IN)
-    }
-    @SuppressLint("RestrictedApi")
-    private fun signOut() {
-        // Signing out clears the current authentication state and resets the default user,
-        // this should be used to "switch users" without fully un-linking the user's google
-        // account from your application.
-        mGoogleSignInClient!!.signOut().addOnCompleteListener(this, object:OnCompleteListener<Void> {
-           override fun onComplete(@NonNull task:Task<Void>) {
-                updateUI(null)
+            REQUEST_AUTHORIZATION -> consume {
+                if (resultCode == RESULT_OK) {
+                    getResultsFromApi();
+                }
             }
-        })
-    }
-
-    private fun updateUI(@Nullable account: GoogleSignInAccount?) {
-        if (account != null) {
-            user_details_label.setText(account.displayName)
-
-            default_google_sign_in_button.setVisibility(View.GONE)
-            custom_sign_in_button.setVisibility(View.VISIBLE)
-        } else {
-            user_details_label.setText(null)
-
-            default_google_sign_in_button.setVisibility(View.VISIBLE)
-            custom_sign_in_button.setVisibility(View.GONE)
+            REQUEST_OAUTH -> consume {
+                authInProgress = false;
+                if (resultCode == RESULT_OK) {
+                    // Make sure the app is not already connected or attempting to connect
+                    if (!mFitnessClient.isConnecting() && !mFitnessClient.isConnected()) {
+                        mFitnessClient.connect();
+                    }
+                }
+            }
         }
     }
+
+    inline fun consume(f: () -> Unit): Boolean {
+        f()
+        return true
+    }
+
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
+    }
+
+    override fun printData(dataReadResult: DataReadResponse) {
+        // [START parse_read_data_result]
+        // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
+        // as buckets containing DataSets, instead of just DataSets.
+        if (dataReadResult.getDataSets().size > 0) {
+            Log.i(TAG, "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
+            for (dataSet in dataReadResult.getDataSets()) {
+                weight_dumpDataSet(dataSet)
+            }
+        }
+        // [END parse_read_data_result]
+    }
+
+    override fun weight_dumpDataSet(dataSet: DataSet) {
+        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
+        val dateFormat = getDateInstance()
+        when(dataSet.dataType){
+            DataType.TYPE_WEIGHT->{
+                weight_data = dataSet
+            }
+            DataType.TYPE_BODY_FAT_PERCENTAGE->{
+                bfp_data = dataSet
+            }
+            DataType.TYPE_CALORIES_EXPENDED->{
+                calore_data = dataSet
+            }
+            DataType.TYPE_STEP_COUNT_CADENCE->{
+                walk_data = dataSet
+            }
+        }
+        for (dp: DataPoint in dataSet.getDataPoints()) {
+            Log.i(TAG, "Data point:" + dp.toString())
+            Log.i(TAG, "Type: " + dp.getDataType().getName());
+            Log.i(TAG, "Start: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+            Log.i(TAG, "End: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+            Log.i(TAG, "TimeStemp: " + dateFormat.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
+            Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_WEIGHT) + "type: " + dp.getValue(Field.FIELD_WEIGHT).javaClass)
+        }
+        Log.i(TAG, "list point:" + weight_list.toString())
     }
 
     override fun onConnected(p0: Bundle?) {
         Log.i(TAG, "onConnected")
         //Google Fit Client에 연결되었습니다.
-        val fitpb = ProgressDialog(context)
-        fitpb.show()
-        fitpb.setTitle("구글 핏 데이터를 가져오는 중입니다.")
-        val greenJob = launch(CommonPool) {
-            async(CommonPool) { getFitData() }.await()
-            run{fitpb.dismiss()}
-        }
-        greenJob.start()
+        registerFitnessDataListener()
     }
 
     override fun onDataPoint(dataPoint: DataPoint) {
@@ -468,6 +538,30 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onConnectionSuspended(cause: Int) {
         Log.i(TAG, "onConnectionSuspended")
         // The connection has been interrupted. Wait until onConnected() is called.
+    }
+
+    @SuppressLint("RestrictedApi")
+    override fun registerFitnessDataListener() = launch(CommonPool) {
+        val cal = Calendar.getInstance()
+        val now = Date()
+        val endTime = now.time
+        cal.set(2000, 1, 1)
+        val startTime = cal.timeInMillis
+        Log.i(TAG, "Range Start: " + startTime.toString())
+        Log.i(TAG, "Range End: " + endTime.toString())
+        val task = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
+        val response = Fitness.getHistoryClient(this@MainActivity, task!!)
+                .readData(DataReadRequest.Builder()
+                        .read(DataType.TYPE_WEIGHT)
+                        .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
+                        .read(DataType.TYPE_CALORIES_EXPENDED)
+                        .read(DataType.TYPE_STEP_COUNT_CADENCE)
+                        .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                        .build());
+        val readDataResult = Tasks.await(response);
+        val dataSet = readDataResult.getDataSet(DataType.TYPE_WEIGHT);
+        Log.i(TAG + "dataSet", dataSet.toString())
+        async(UI) { printData(readDataResult) }
     }
 
     override fun onConnectionFailed(result: ConnectionResult) {
@@ -589,8 +683,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             chooseAccount();
         } else if (!isDeviceOnline()) {
         } else {
-            val pb = ProgressDialog(this@MainActivity)
-            val task = MakeRequestTask(pb)
+            val task = MakeRequestTask()
             task.execute(mCredential!!)
             Log.i(TAG, task.get().toString())
         }
@@ -725,29 +818,21 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         dialog.show();
     }
 
-    protected fun onRecoverableAuthException(recoverableException: UserRecoverableAuthIOException) {
-        Log.w(TAG, "onRecoverableAuthException", recoverableException)
-        startActivityForResult(recoverableException.intent, RC_RECOVERABLE)
-    }
     /**
      * An asynchronous task that handles the YouTube Data API call.
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
 
-    class MakeRequestTask(pd:ProgressDialog): AsyncTask<GoogleAccountCredential, Void, MutableList<String>?>() {
+    class MakeRequestTask(): AsyncTask<GoogleAccountCredential, Void, MutableList<String>?>() {
 
         private var mService: com.google.api.services.youtube.YouTube? = null
-        var pd:ProgressDialog
         private val mLastError: Exception? = null
-        init{
-            this.pd = pd
-        }
         fun MakeRequestTask(credential: GoogleAccountCredential):  com.google.api.services.youtube.YouTube? {
             val transport = AndroidHttp.newCompatibleTransport()
             val jsonFactory = JacksonFactory.getDefaultInstance()
             mService = com.google.api.services.youtube.YouTube.Builder(
                     transport, jsonFactory, credential)
-                    .setApplicationName("BodyGation")
+                    .setApplicationName("YouTube Data API Android Quickstart")
                     .build()
             return mService
         }
@@ -767,202 +852,87 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
         override fun onPreExecute() {
             super.onPreExecute()
-            pd.setMessage("Uploading . . .")
-            pd.show()
-            pd.setCancelable(false)
             // ...
         }
 
         override fun onPostExecute(result: MutableList<String>?) {
             super.onPostExecute(result)
             // ...
-            pd.dismiss()
         }
 
-    }
-   fun access(section:Int, api_Key: String, max_result: Int, mq:String){
-        val searchType = "video"
-        val apiService = YoutubeApi.create()
-        var order = ""
-        when(section){
-            0->{//선택형
-                order = "relevance"
-            }
-            1 -> {//새로 올라온 영상
-                order = "date"
-            }
-            2 ->{//인기많은 영상
-                order = "rating"
-            }
-            3->{//내가 본 영상
-                order = "relevance"
-            }
-        }
-        Log.i(TAG, "getDatas")
-        val youtubeResponseCall = apiService.searchVideo("snippet", 40, mq, "KR", searchType, order, api_Key)
-        val body = youtubeResponseCall.execute()
-        if(body.body()!!.nextPageToken == null) {
-            getData(body, section)
-        }else{
-            val page = body.body()!!.nextPageToken
-            addData(body, api_Key, 40, page, order, mq, searchType, section)
-        }
-    }
-    fun getData(response: Response<YoutubeResponse>, section: Int){
-        val body = response.body()
-        Log.i(TAG, response.raw().request().url().toString())
-        if (body != null) {
-            val items = body.items
-            when(section) {
-                0 -> {//선택형
-                    preData.addAll(items)
-                }
-                1 -> {//새로 올라온 영상
-                    nMaindata.addAll(items)
-                }
-                2 -> {//인기많은 영상
-                    pMaindata.addAll(items)
-                }
-                3 -> {//내가 본 영상
-                    mMaindata.addAll(items)
-                }
+    } /**
+    @SuppressLint("StaticFieldLeak")
+    inner class MakeRequestTask(mCredential: GoogleAccountCredential?) : AsyncTask<Void, Void, MutableList<String>?>() {
+        override fun doInBackground(vararg p0: Void?): MutableList<String>? {
+            Log.i(TAG, "MakeRequestTask")
+            val transport = AndroidHttp.newCompatibleTransport ();
+            val jsonFactory = JacksonFactory.getDefaultInstance ();
+            mService = com.google.api.services.youtube.YouTube.Builder(
+                    transport, jsonFactory, mCredential)
+                    .setApplicationName("YouTube Data API Android Quickstart")
+                    .build()
+            try {
+                return getDataFromApi();
+            } catch (e: Exception) {
+                mLastError = e;
+                cancel(true);
+                return null;
             }
         }
-    }
 
-    fun addData(response: Response<YoutubeResponse>,  api_Key: String, max_result: Int, mpage: String?, order:String, mq:String, searchType:String, section:Int) {
-        val apiService = YoutubeApi.create()
-        Log.i(TAG, mq)
-        if(mpage == null){
-            getData(response, section)
-        }else{
-            val youtubeResponseCall = apiService.nextVideo("snippet", 40, mq, "KR", searchType, mpage, order, api_Key)
-            val body = youtubeResponseCall.execute()
-            val items = body.body()
-            if (items != null) {
-                when(section) {
-                    0 -> {//선택형
-                        preData.addAll(items.items)
-                    }
-                    1 -> {//새로 올라온 영상
-                        nMaindata.addAll(items.items)
-                    }
-                    2 -> {//인기많은 영상
-                        pMaindata.addAll(items.items)
-                    }
-                    3 -> {//내가 본 영상
-                        mMaindata.addAll(items.items)
-                    }
+        var  mService:com.google.api.services.youtube.YouTube? = null;
+        var mLastError:Exception? = null;
+
+            /**
+             * Fetch information about the "GoogleDevelopers" YouTube channel.
+             * @return List of Strings containing information about the channel.
+             * @throws IOException
+             */
+            private fun getDataFromApi(): MutableList<String> {
+                Log.i(TAG, "getDataFromApi")
+                // Get a list of up to 10 files.
+
+            }
+
+            override fun onPreExecute() {
+                super.onPreExecute()
+               // mOutputText.setText("");
+                mProgress!!.show();
+            }
+
+            override fun onPostExecute(result: MutableList<String>?) {
+                super.onPostExecute(result)
+                mProgress!!.hide();
+                if (result == null || result.size == 0) {
+                      mOutputText!!.setText("No results returned.");
+                } else {
+                    result.add(0, "Data retrieved using the YouTube Data API:");
+                    mOutputText!!.setText(TextUtils.join("\n", result));
                 }
-                val page = items.nextPageToken
-                if(page == null){
-                    getData(body, section)
-                }else{
-                    addData(response, api_Key, max_result, page, order, mq, searchType, section)
+            }
+
+
+            override fun onCancelled() {
+                super.onCancelled()
+                mProgress!!.hide();
+                if (mLastError != null) {
+                    if (mLastError is GooglePlayServicesAvailabilityIOException) {
+                        showGooglePlayServicesAvailabilityErrorDialog(
+                                (mLastError as GooglePlayServicesAvailabilityIOException)
+                                        .getConnectionStatusCode());
+                    } else if (mLastError is UserRecoverableAuthIOException) {
+                        startActivityForResult(
+                                (mLastError as UserRecoverableAuthIOException).getIntent(),
+                                REQUEST_AUTHORIZATION);
+                    } else {
+                        //mOutputText.setText("The following error occurred:\n"+ mLastError.message)
+                    }
+                } else {
+                   // mOutputText.setText("Request cancelled.");
                 }
             }
         }
-    }
-        @SuppressLint("RestrictedApi")
-        fun getFitData(){
-            val cal = Calendar.getInstance()
-            val now = Date()
-            val endTime = now.time
-            cal.set(2000, 1, 1)
-            val startTime = cal.timeInMillis
-            Log.i(TAG, "Range Start: " + startTime.toString())
-            Log.i(TAG, "Range End: " + endTime.toString())
-            val task = GoogleSignIn.getLastSignedInAccount(context)
-            /*
-            val caloreRequest = DataReadRequest.Builder()
-                    .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
-                    .read(DataType.TYPE_CALORIES_EXPENDED)
-                    .bucketByActivityType(1, TimeUnit.SECONDS)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build()
-            val weightRequest = DataReadRequest.Builder()
-                    .read(DataType.TYPE_WEIGHT)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build()
-            val stepRequest = DataReadRequest.Builder()
-                    .aggregate(DataType.TYPE_STEP_COUNT_CADENCE, DataType.AGGREGATE_STEP_COUNT_DELTA)
-                    .bucketByActivityType(1, TimeUnit.SECONDS)
-                    .read(DataType.TYPE_STEP_COUNT_CADENCE)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build()
-            val bfpRequest = DataReadRequest.Builder()
-                    .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build()
-            val bmrRequest = DataReadRequest.Builder()
-                    .read(DataType.TYPE_BASAL_METABOLIC_RATE)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build()
-            val weight_response = Fitness.getHistoryClient(context, task!!)
-                    .readData(weightRequest)
-            val calore_response = Fitness.getHistoryClient(context, task!!)
-                    .readData(caloreRequest)
-            val step_response = Fitness.getHistoryClient(context, task!!)
-                    .readData(stepRequest)
-            val bfp_response = Fitness.getHistoryClient(context, task!!)
-                    .readData(bfpRequest)
-            val bmr_response = Fitness.getHistoryClient(context, task!!)
-                    .readData(bmrRequest)*/
-            val response = Fitness.getHistoryClient(context, task!!)
-                    .readData(DataReadRequest.Builder()
-                            .read(DataType.TYPE_WEIGHT)
-                            .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
-                            .read(DataType.TYPE_CALORIES_EXPENDED)
-                            .read(DataType.TYPE_STEP_COUNT_CADENCE)
-                            .read(DataType.TYPE_BASAL_METABOLIC_RATE)
-                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                            .build())
-            val readDataResult = response.result
-            val result: MutableList<DataSet> = ArrayList()
-            if (readDataResult.getBuckets().size > 0) {
-                Log.e("History", "Number of buckets: " + readDataResult.getBuckets().size);
-                for (bucket: Bucket in readDataResult.getBuckets()) {
-                    val dataSets = bucket.getDataSets()
-                    for (dataSet:DataSet in dataSets) {
-                        when(dataSet.dataType){
-                            DataType.TYPE_WEIGHT->{
-                                result.add(0, dataSet)
-                            }
-                            DataType.TYPE_BODY_FAT_PERCENTAGE->{
-                                result.add(1, dataSet)
-                            }
-                            DataType.TYPE_CALORIES_EXPENDED->{
-                                result.add(2, dataSet)
-                            }
-                            DataType.TYPE_STEP_COUNT_CADENCE->{
-                                result.add(3, dataSet)
-                            }
-                        }
-                    }
-                }
-            }
-//Used for non-aggregated data
-            else if (readDataResult.getDataSets().size > 0) {
-                Log.e("History", "Number of returned DataSets: " + readDataResult.getDataSets().size);
-                for (dataSet: DataSet in readDataResult.getDataSets()) {
-                    when (dataSet.dataType) {
-                        DataType.TYPE_WEIGHT -> {
-                            result.add(0, dataSet)
-                        }
-                        DataType.TYPE_BODY_FAT_PERCENTAGE -> {
-                            result.add(1, dataSet)
-                        }
-                        DataType.TYPE_CALORIES_EXPENDED -> {
-                            result.add(2, dataSet)
-                        }
-                        DataType.TYPE_STEP_COUNT_CADENCE -> {
-                            result.add(3, dataSet)
-                        }
-                    }
-                }
-            }
-            fitdataList = result
-        }
+*/
 }
 
 
