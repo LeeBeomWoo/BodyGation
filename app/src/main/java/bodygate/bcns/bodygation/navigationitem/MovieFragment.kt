@@ -48,9 +48,9 @@ class MovieFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  "", 1)//새로운 영상
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, "",2)//인기있는 영상
-        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, "",3)//내가 봐온 영상
+        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true,  1)//새로운 영상
+        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, 2)//인기있는 영상
+        mListener!!.getDatas("snippet", "가슴 어깨 허리 복근 등 허벅지 종아리 팔 목 엉덩이", getString(R.string.API_key), 40, true, 3)//내가 봐온 영상
         val pop_linearLayoutManager = LinearLayoutManager(context)
         pop_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
         pop_list.setLayoutManager(pop_linearLayoutManager)
@@ -94,7 +94,7 @@ class MovieFragment : Fragment() {
     interface OnMovieInteraction {
         // TODO: Update argument type and name
         fun OnMovieInteraction(item: DummyContent.DummyItem)
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page:String?, section:Int)
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
     }
 
     companion object {

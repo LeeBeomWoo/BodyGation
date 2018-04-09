@@ -18,6 +18,7 @@ import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
+import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -53,6 +54,8 @@ import com.google.android.youtube.player.YouTubeThumbnailLoader
 import com.google.android.youtube.player.YouTubeThumbnailView
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
@@ -81,15 +84,7 @@ import kotlin.collections.ArrayList
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
-    override var data: MutableList<YoutubeResponse.Items>
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-        set(value) {}
-    override var walk_dateSET: DataSet?
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-        set(value) {}
-    override var calole_dateSET: DataSet?
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-        set(value) {}
+
 
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
@@ -116,7 +111,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
     override val context:Context = this
-
+    override var data: MutableList<YoutubeResponse.Items>
+        get() = preData
+        set(value) {}
+    override var walk_dateSET: DataSet?
+        get() = walk_data
+        set(value) {}
+    override var calole_dateSET: DataSet?
+        get() = calore_data
+        set(value) {}
     fun getData(response: Response<YoutubeResponse>, section:Int) {
         val body = response.body()
         Log.i(TAG, response.raw().request().url().toString())
@@ -151,7 +154,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
     }
-    fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, more:Boolean) {
+    fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
+        val apiService = YoutubeApi.create()
         val body = response.body()
         Log.i(TAG, response.raw().request().url().toString())
         if (body != null) {
@@ -159,9 +163,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             preData.addAll(items)
                 if(body.nextPageToken != null) {
                     page = body.nextPageToken
-                    getDatas("snippet", q, api_Key, max_result, more, page, section)
+                    val youtubeResponseCall = apiService.nextVideo("snippet", max_result, q, "KR",  searchType, page, order, api_Key)
+                    youtubeResponseCall.enqueue(callback2(
+                            { r -> addData(r, section, q, api_Key,  max_result, searchType, order) },
+                            { t -> Log.i(TAG, t.message) }))
+                    Log.i(TAG, youtubeResponseCall.toString())
+                    Log.i(TAG, "addData")
                 }else{
-                    getDatas("snippet", q, api_Key, max_result, more, null, section)
+                    getData(response, section)
+                    Log.i(TAG, "getData")
                 }
             }
     }
@@ -207,15 +217,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     private var lastSearched = ""
     var lastToken = ""
-    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean,  page: String?, section:Int) {
+    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int) {
         val searchType = "video"
-        if (!more) {
-            lastSearched = q
-            lastToken = "";
-        }
         val a = q.replace("[", "");
         val b = a.replace("]", "")
-        // val b = "leg exercise"
         val apiService = YoutubeApi.create()
         var order = ""
         when(section){
@@ -233,22 +238,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
         Log.i(TAG, "getDatas")
-        if(page==null){
-            val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR", searchType, order, api_Key)
+            val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR",  searchType, order, api_Key)
             youtubeResponseCall.enqueue(callback2(
-                    { r -> getData(r, section) },
+                    { r -> addData(r, section, b, api_Key,  max_result, searchType, order) },
                     { t -> Log.i(TAG, t.message) }))
-            Log.i(TAG, youtubeResponseCall.toString())
-            Log.i(TAG, "getDatas")
-
-        }else{
-            val youtubeResponseCall = apiService.nextVideo("snippet", max_result, b, "KR",  searchType, page, order, api_Key)
-            youtubeResponseCall.enqueue(callback2(
-                    { r -> addData(r, section, b, api_Key,  max_result, more) },
-                    { t -> Log.i(TAG, t.message) }))
-            Log.i(TAG, youtubeResponseCall.toString())
-            Log.i(TAG, "getDatas")
-        }
+            Log.i(TAG, youtubeResponseCall.request().url().toString())
     }
     fun <YoutubeResponse> callback2(success: ((Response<YoutubeResponse>) -> Unit)?, failure: ((t: Throwable) -> Unit)? = null): Callback<YoutubeResponse> {
         return object : Callback<YoutubeResponse> {
@@ -686,8 +680,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             chooseAccount();
         } else if (!isDeviceOnline()) {
         } else {
-            val task = MakeRequestTask()
-            task.execute(mCredential!!)
+            val task = MakeRequestTask(mCredential!!)
+            task.execute()
             Log.i(TAG, task.get().toString())
         }
     }
@@ -825,45 +819,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
      * An asynchronous task that handles the YouTube Data API call.
      * Placing the API calls in their own task ensures the UI stays responsive.
      */
-
-    class MakeRequestTask(): AsyncTask<GoogleAccountCredential, Void, MutableList<String>?>() {
-
-        private var mService: com.google.api.services.youtube.YouTube? = null
-        private val mLastError: Exception? = null
-        fun MakeRequestTask(credential: GoogleAccountCredential):  com.google.api.services.youtube.YouTube? {
-            val transport = AndroidHttp.newCompatibleTransport()
-            val jsonFactory = JacksonFactory.getDefaultInstance()
-            mService = com.google.api.services.youtube.YouTube.Builder(
-                    transport, jsonFactory, credential)
-                    .setApplicationName("YouTube Data API Android Quickstart")
-                    .build()
-            return mService
-        }
-        override fun doInBackground(vararg p0: GoogleAccountCredential): MutableList<String>? {
-            val channelInfo = ArrayList<String>()
-            val result = MakeRequestTask(p0.last())!!.channels().list("snippet,contentDetails,statistics")
-                    .setForUsername("GoogleDevelopers")
-                    .execute();
-            val channels = result.getItems();
-            if (channels != null) {
-                val channel = channels.get(0);
-                channelInfo.add("This channel's ID is " + channel.getId() + ". " +
-                        "Its title is '" + channel.getSnippet().getTitle() + ", " +
-                        "and it has " + channel.getStatistics().getViewCount() + " views.");
-            }
-            return channelInfo
-        }
-        override fun onPreExecute() {
-            super.onPreExecute()
-            // ...
-        }
-
-        override fun onPostExecute(result: MutableList<String>?) {
-            super.onPostExecute(result)
-            // ...
-        }
-
-    } /**
     @SuppressLint("StaticFieldLeak")
     inner class MakeRequestTask(mCredential: GoogleAccountCredential?) : AsyncTask<Void, Void, MutableList<String>?>() {
         override fun doInBackground(vararg p0: Void?): MutableList<String>? {
@@ -875,7 +830,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .setApplicationName("YouTube Data API Android Quickstart")
                     .build()
             try {
-                return getDataFromApi();
+                return getDataFromApi(mService);
             } catch (e: Exception) {
                 mLastError = e;
                 cancel(true);
@@ -891,21 +846,32 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
              * @return List of Strings containing information about the channel.
              * @throws IOException
              */
-            private fun getDataFromApi(): MutableList<String> {
+            private fun getDataFromApi(mService: com.google.api.services.youtube.YouTube?): MutableList<String> {
                 Log.i(TAG, "getDataFromApi")
                 // Get a list of up to 10 files.
-
+                val channelInfo = ArrayList<String>()
+                val result = mService!!.channels().list("snippet,contentDetails,statistics")
+                        .setForUsername("GoogleDevelopers")
+                        .execute();
+                val channels = result.getItems();
+                if (channels != null) {
+                    val channel = channels.get(0);
+                    channelInfo.add("This channel's ID is " + channel.getId() + ". " +
+                            "Its title is '" + channel.getSnippet().getTitle() + ", " +
+                            "and it has " + channel.getStatistics().getViewCount() + " views.");
+                }
+                return channelInfo
             }
 
             override fun onPreExecute() {
                 super.onPreExecute()
                // mOutputText.setText("");
-                mProgress!!.show();
+               // mProgress!!.show();
             }
 
             override fun onPostExecute(result: MutableList<String>?) {
                 super.onPostExecute(result)
-                mProgress!!.hide();
+               // mProgress!!.hide();
                 if (result == null || result.size == 0) {
                       mOutputText!!.setText("No results returned.");
                 } else {
@@ -917,7 +883,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
             override fun onCancelled() {
                 super.onCancelled()
-                mProgress!!.hide();
+                //mProgress!!.hide();
                 if (mLastError != null) {
                     if (mLastError is GooglePlayServicesAvailabilityIOException) {
                         showGooglePlayServicesAvailabilityErrorDialog(
@@ -935,7 +901,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
         }
-*/
+
 }
 
 

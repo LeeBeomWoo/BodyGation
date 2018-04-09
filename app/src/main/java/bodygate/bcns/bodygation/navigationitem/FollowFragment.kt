@@ -332,7 +332,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(uri: ArrayList<String>) {
         if (mListener != null) {
-            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 40, true, "", 0)
+            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 40, true, 0)
             mListener!!.OnFollowInteraction()
         }
     }
@@ -363,7 +363,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     interface OnFollowInteraction {
         // TODO: Update argument type and name
         fun OnFollowInteraction()
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, page: String?, section:Int)
+        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
     }
 
     companion object {
