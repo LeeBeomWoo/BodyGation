@@ -81,6 +81,9 @@ import kotlin.collections.ArrayList
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
+    override var data: MutableList<YoutubeResponse.Items>
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        set(value) {}
     override var walk_dateSET: DataSet?
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
         set(value) {}
@@ -112,7 +115,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
-    val context:Context = this
+    override val context:Context = this
 
     fun getData(response: Response<YoutubeResponse>, section:Int) {
         val body = response.body()
@@ -480,7 +483,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onSaveInstanceState(outState)
     }
 
-    override fun printData(dataReadResult: DataReadResponse) {
+    fun printData(dataReadResult: DataReadResponse) {
         // [START parse_read_data_result]
         // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
         // as buckets containing DataSets, instead of just DataSets.
@@ -493,7 +496,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // [END parse_read_data_result]
     }
 
-    override fun weight_dumpDataSet(dataSet: DataSet) {
+    fun weight_dumpDataSet(dataSet: DataSet) {
         Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
         val dateFormat = getDateInstance()
         when(dataSet.dataType){
@@ -541,7 +544,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     @SuppressLint("RestrictedApi")
-    override fun registerFitnessDataListener() = launch(CommonPool) {
+    fun registerFitnessDataListener() = launch(CommonPool) {
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time

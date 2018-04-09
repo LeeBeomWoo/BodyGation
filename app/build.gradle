@@ -14,7 +14,7 @@ android {
     }
     signingConfigs {
         config {
-            keyAlias 'BodyGation'
+            keyAlias 'bodygation.'
             keyPassword 'dlqjadn1482**'
             storePassword 'dlqjadn1482**'
             //D:/BCNS/APK/BodyGation.jks
