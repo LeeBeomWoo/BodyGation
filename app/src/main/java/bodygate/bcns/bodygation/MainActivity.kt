@@ -109,7 +109,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var walk_data: DataSet? = null
     var calore_data: DataSet? = null
     var page = ""
-    var mPro: ProgressDialog? = null
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
@@ -125,7 +124,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         set(value) {}
     fun getData(response: Response<YoutubeResponse>, section:Int) {
         val body = response.body()
-        Log.i(TAG, response.raw().request().url().toString())
+        Log.i(TAG, "getData")
         if (body != null) {
             val items = body.items
                 when (section) {
@@ -161,14 +160,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
     }
     fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
+        Log.i(TAG, "addData")
         val apiService = YoutubeApi.create()
         val body = response.body()
-        Log.i(TAG, response.raw().request().url().toString())
+        Log.i(TAG + "request", response.raw().request().url().toString())
+        Log.i(TAG + "response", response.body().toString())
         if (body != null) {
             val items = body.items
-            if(mPro == null){
-                mPro = ProgressDialog.show(this, "데이터 받는 중", "유튜브 데이터를 받아오는 중입니다.")
-            }
             when (section) {
                 0 -> {//선택형
                     preData.addAll(items)
@@ -186,17 +184,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 if(body.nextPageToken != null) {
                     page = body.nextPageToken
 
-                    val youtubeResponseCall = apiService.nextVideo("snippet", max_result, q, "KR",  searchType, page, order, api_Key)
+                    val youtubeResponseCall = apiService.nextVideo("snippet", max_result, q, "KR",  searchType, page, order, api_Key,"2d")
                     youtubeResponseCall.enqueue(callback2(
                             { r -> addData(r, section, q, api_Key,  max_result, searchType, order) },
                             { t -> Log.i(TAG, t.message) }))
                     Log.i(TAG, youtubeResponseCall.toString())
-                    Log.i(TAG, "addData")
                 }else{
                     getData(response, section)
-                    mPro!!.dismiss()
-                    mPro = null
-                    Log.i(TAG, "getData")
                 }
             }
     }
@@ -240,9 +234,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnGoalInteractionListener(uri: Uri) {
     }
 
-    private var lastSearched = ""
-    var lastToken = ""
     override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int) {
+        Log.i(TAG, "getDatas")
         val searchType = "video"
         val a = q.replace("[", "");
         val b = a.replace("]", "")
@@ -262,8 +255,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 order = "relevance"
             }
         }
-        Log.i(TAG, "getDatas")
-            val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR",  searchType, order, api_Key)
+            val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR",  searchType, order, api_Key, "2d")
             youtubeResponseCall.enqueue(callback2(
                     { r -> addData(r, section, b, api_Key,  max_result, searchType, order) },
                     { t -> Log.i(TAG, t.message) }))

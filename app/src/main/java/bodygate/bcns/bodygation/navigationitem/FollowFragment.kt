@@ -332,7 +332,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     // TODO: Rename method, update argument and hook method into UI event
     fun onButtonPressed(uri: ArrayList<String>) {
         if (mListener != null) {
-            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 40, true, 0)
+            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 5, true, 0)
             mListener!!.OnFollowInteraction()
         }
     }
