@@ -3,6 +3,7 @@ package bodygate.bcns.bodygation.navigationitem
 import android.app.ProgressDialog
 import android.content.Context
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -18,9 +19,13 @@ import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import kotlinx.android.synthetic.main.fragment_movie.*
 import kotlinx.android.synthetic.main.fragment_movie.view.*
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
+import org.jetbrains.anko.progressDialog
+import kotlin.coroutines.experimental.CoroutineContext
 
 
 /**
@@ -38,6 +43,10 @@ class MovieFragment : Fragment() {
     private var mParam2: String? = null
     private var mListener: OnMovieInteraction? = null
     val TAG = "MovieFragment"
+    // dispatches execution onto the Android main UI thread
+    private val uiContext: CoroutineContext = UI
+    // represents a common pool of shared threads as the coroutine dispatcher
+    private val bgContext: CoroutineContext = CommonPool
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +64,9 @@ class MovieFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        get_Data()
+            for (i: Int in 1..3) {
+                get_Data(i)
+            }
         val pop_linearLayoutManager = LinearLayoutManager(context)
         pop_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
         pop_list.setLayoutManager(pop_linearLayoutManager)
@@ -72,24 +83,8 @@ class MovieFragment : Fragment() {
             mListener!!.OnMovieInteraction(item)
         }
     }
-    fun get_Data() = launch(UI) {
-        val mPb = ProgressDialog.show(mListener!!.context, "데이터 가져오기", "유튜브 데이터를 가져오는 중입니다.")
-       val t1 = async {
-           Log.i(TAG, "get_Data" +"t1")
-            mListener!!.getDatas("snippet, id", "가슴 어깨 허리 복근 등 허벅지 종아리 목 엉덩이 팔", getString(R.string.API_key), 5, true,  1)//새로운 영상
-            }
-        val t2 = async {
-            Log.i(TAG, "get_Data" +"t2")
-            mListener!!.getDatas("snippet, id", "가슴 어깨 허리 복근 등 허벅지 종아리 목 엉덩이 팔", getString(R.string.API_key), 5, true,  2)//인기있는 영상
-        }
-        val t3 = async {
-            Log.i(TAG, "get_Data" +"t3")
-            mListener!!.getDatas("snippet, id", "가슴 어깨 허리 복근 등 허벅지 종아리 목 엉덩이 팔", getString(R.string.API_key), 5, true,  3)//내가 봐온 영상
-        }
-        t1.await()
-        t2.await()
-        t3.await()
-        mPb.dismiss()
+    fun get_Data(i:Int)= runBlocking{
+             mListener!!.getDatas("snippet, id", "가슴 어깨 허리 복근 등 허벅지 종아리 목 엉덩이 팔", getString(R.string.API_key), 5, true, i)
     }
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -117,8 +112,10 @@ class MovieFragment : Fragment() {
     interface OnMovieInteraction {
         // TODO: Update argument type and name
         fun OnMovieInteraction(item: DummyContent.DummyItem)
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
+        suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
         val context:Context
+        fun stopProgress()
+        fun startProgress()
     }
 
     companion object {
@@ -144,4 +141,3 @@ class MovieFragment : Fragment() {
         }
     }
 }// Required empty public constructor
-

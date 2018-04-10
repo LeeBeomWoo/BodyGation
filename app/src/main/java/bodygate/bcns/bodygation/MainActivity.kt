@@ -22,6 +22,7 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent
@@ -69,6 +70,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
+import org.jetbrains.anko.progressDialog
 import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.Call
 import retrofit2.Callback
@@ -112,6 +114,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
+    var mPb:ProgressDialog? = null
     override val context:Context = this
     override var data: MutableList<YoutubeResponse.Items>
         get() = preData
@@ -122,6 +125,21 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var calole_dateSET: DataSet?
         get() = calore_data
         set(value) {}
+    override fun stopProgress() {
+        if(mPb!!.isShowing) {
+            Log.i(TAG, "stopProgress")
+            mPb!!.dismiss()
+        }
+    }
+    override fun startProgress() {
+        if(!mPb!!.isShowing) {
+            Log.i(TAG, "startProgress")
+            mPb!!.setTitle("데이터 받기")
+            mPb!!.setMessage("유튜브 데이터를 받아오는 중입니다")
+            mPb!!.show()
+        }
+    }
+
     fun getData(response: Response<YoutubeResponse>, section:Int) {
         val body = response.body()
         Log.i(TAG, "getData")
@@ -129,6 +147,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val items = body.items
                 when (section) {
                     0 -> {//선택형
+                        Log.i("getData", "선택형")
                         preData.addAll(items)
                         if(preData.size >0 ) {
                             val radapter = YoutubeResultListViewAdapter(preData, this)
@@ -136,6 +155,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         }
                     }
                     1 -> {//새로 올라온 영상
+                        Log.i("getData", "새로 올라온 영상")
                         newData.addAll(items)
                         if(newData.size >0 ) {
                             val nadapter = YoutubeResultListViewAdapter(newData, this)
@@ -143,6 +163,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         }
                     }
                     2 -> {//인기많은 영상
+                        Log.i("getData", "인기많은 영상")
                         popData.addAll(items)
                         if(popData.size >0 ) {
                             val padapter = YoutubeResultListViewAdapter(popData, this)
@@ -150,6 +171,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         }
                     }
                     3 -> {//내가 본 영상
+                        Log.i("getData", "내가 본 영상")
                         myData.addAll(items)
                         if(myData.size >0 ) {
                             val madapter = YoutubeResultListViewAdapter(myData, this)
@@ -159,9 +181,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
     }
-    fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
+    suspend fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
         Log.i(TAG, "addData")
-        val apiService = YoutubeApi.create()
         val body = response.body()
         Log.i(TAG + "request", response.raw().request().url().toString())
         Log.i(TAG + "response", response.body().toString())
@@ -182,15 +203,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
                 if(body.nextPageToken != null) {
+                    val apiService = YoutubeApi.create()
                     page = body.nextPageToken
-
+                    val youtubeResponseCall = apiService.nextVideo("snippet", max_result, q, "KR",  searchType, page, order, api_Key,"2d")
+                    launch { addData( youtubeResponseCall.execute(), section, q, api_Key,  max_result, searchType, order)
+                    }
+/*
                     val youtubeResponseCall = apiService.nextVideo("snippet", max_result, q, "KR",  searchType, page, order, api_Key,"2d")
                     youtubeResponseCall.enqueue(callback2(
                             { r -> addData(r, section, q, api_Key,  max_result, searchType, order) },
                             { t -> Log.i(TAG, t.message) }))
                     Log.i(TAG, youtubeResponseCall.toString())
+                    */
                 }else{
-                    getData(response, section)
+                   launch(UI){getData(response, section)}
                 }
             }
     }
@@ -234,7 +260,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnGoalInteractionListener(uri: Uri) {
     }
 
-    override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int) {
+    override suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int) {
         Log.i(TAG, "getDatas")
         val searchType = "video"
         val a = q.replace("[", "");
@@ -255,12 +281,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 order = "relevance"
             }
         }
+        Log.i("getData", order)
             val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR",  searchType, order, api_Key, "2d")
+        launch {addData( youtubeResponseCall.execute(), section, q, api_Key,  max_result, searchType, order)}
+        /*
             youtubeResponseCall.enqueue(callback2(
                     { r -> addData(r, section, b, api_Key,  max_result, searchType, order) },
                     { t -> Log.i(TAG, t.message) }))
-            Log.i(TAG, youtubeResponseCall.request().url().toString())
+            Log.i(TAG, youtubeResponseCall.request().url().toString())*/
     }
+    /*
     fun <YoutubeResponse> callback2(success: ((Response<YoutubeResponse>) -> Unit)?, failure: ((t: Throwable) -> Unit)? = null): Callback<YoutubeResponse> {
         return object : Callback<YoutubeResponse> {
             override fun onResponse(call: Call<YoutubeResponse>, response: Response<YoutubeResponse>) { success?.invoke(response)
@@ -268,7 +298,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             override fun onFailure(call: Call<YoutubeResponse>, t: Throwable) { failure?.invoke(t)
                 Log.i(TAG , "Failure") }
         }
-    }
+    }*/
     override fun OnFollowInteraction() {
         Log.i(TAG, "OnFollowInteraction")
         supportFragmentManager
@@ -381,6 +411,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         setContentView(R.layout.activity_main)
         Log.d(TAG + "_", "onCreate")
         configureGoogleSignIn()
+        mPb = ProgressDialog(this)
         mCredential = GoogleAccountCredential.usingOAuth2(
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(ExponentialBackOff());

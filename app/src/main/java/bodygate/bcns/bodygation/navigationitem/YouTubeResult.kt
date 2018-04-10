@@ -93,7 +93,7 @@ class YouTubeResult : Fragment() {
     interface OnYoutubeResultInteraction {
         fun OnYoutubeResultInteraction()
         fun moveBack(q:Fragment)
-        fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
+        suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
         fun getpage():String
         var data: MutableList<YoutubeResponse.Items>
         val context:Context
