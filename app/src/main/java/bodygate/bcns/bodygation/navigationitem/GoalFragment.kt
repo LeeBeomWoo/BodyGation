@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
 import com.google.android.gms.fitness.result.DataSourcesResult
+import kotlinx.android.synthetic.main.fragment_goal.*
 
 
 /**
@@ -34,7 +35,9 @@ class GoalFragment : Fragment() {
             mParam2 = arguments!!.getString(ARG_PARAM2)
         }
     }
-
+    fun getBMI(){
+       my_bmi_txtB.setText((my_weight_txtB.text.toString().toDouble()/(goal_height_txtB.text.toString().toDouble() * 0.01)*(goal_height_txtB.text.toString().toDouble() * 0.01)).toString())
+    }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_goal, container, false)

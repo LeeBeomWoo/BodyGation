@@ -140,7 +140,8 @@
     <string name="title_goal">목적지</string>
     <string name="desweight">목표 체중 :</string>
     <string name="desbmi">목표 BMI :</string>
-    <string name="desbodyfat">목표 체지방 :</string>
+    <string name="manbodyfat">남성목표 체지방</string>
+    <string name="girlbodyfat">여성목표 체지방</string>
     <string name="desmusclemass">목표 골격근량 :</string>
     <string name="dessubcutaneousfat">목표 피하지방 :</string>
     <string name="desvisceralfat">목표 내장지방 :</string>
@@ -181,6 +182,12 @@
     <string name="failed">유튜브 계정연결에 실패했습니다</string>
     <string name="permission_request">카메라사용에 대한 허가를 요청합니다.</string>
     <string name="walk">걸음수</string>
-    <string name="calore">칼로리</string>
+    <string name="calore">기초대사량 변화</string>
     <string name="mylist">내가 본 영상</string>
+    <string name="myweight">현재 체중:</string>
+    <string name="mybmi">현재 BMI :</string>
+    <string name="mybodyfat">현재 체지방 :</string>
+    <string name="mysubcutaneousfat">현재 피하지방 :</string>
+    <string name="mymusclemass">현재 골격근량 :</string>
+    <string name="myvisceralfat">현재 내장지방 :</string>
 </resources>
