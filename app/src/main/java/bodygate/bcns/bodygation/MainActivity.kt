@@ -2,20 +2,20 @@ package bodygate.bcns.bodygation
 
 import android.accounts.AccountManager
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentSender
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.Uri
-import android.os.AsyncTask
-import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
+import android.os.*
 import android.support.annotation.NonNull
 import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.text.TextUtils
@@ -86,7 +86,7 @@ import kotlin.collections.ArrayList
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction{
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction {
 
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
@@ -119,6 +119,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var pPb:ProgressDialog? = null
     var nPb:ProgressDialog? = null
     var cPb:ProgressDialog? = null
+    private var doubleBackToExitPressedOnce: Boolean = false
     override val context:Context = this
     override var data: MutableList<YoutubeResponse.Items>
         get() = preData
@@ -379,6 +380,40 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         false
     }
 
+    override fun onBackPressed() {
+        Log.i(TAG,"onBackPressed")
+        if (doubleBackToExitPressedOnce) {
+            moveTaskToBack(true)
+            android.os.Process.killProcess(android.os.Process.myPid())
+            System.exit(1)
+            return
+        }else{
+            doubleBackToExitPressedOnce = true
+        }
+        // Do something
+        if (navigation.selectedItemId != navigation_follow) {
+            navigation.selectedItemId = navigation_follow
+            Log.i(TAG,"onBackPressed 1")
+        } else {
+            Log.i(TAG,"onBackPressed 2")
+            val builder = AlertDialog.Builder(this)
+            if (title != null) builder.setTitle(title)
+            builder.setMessage("프로그램을 종료하시겠습니까?")
+            builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
+                override fun onClick(dialog: DialogInterface?, which: Int) {
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                }
+            })
+            builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
+                override fun onClick(dialog: DialogInterface?, which: Int) {
+                    dialog!!.dismiss()
+                }
+
+            }
+            )
+            builder.show()
+        }
+    }
     constructor(parcel: Parcel) : this() {
         authInProgress = parcel.readByte() != 0.toByte()
     }
@@ -436,7 +471,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         setContentView(R.layout.activity_main)
         Log.d(TAG + "_", "onCreate")
         configureGoogleSignIn()
-        mPb = ProgressDialog(this)
+        // mPb = ProgressDialog(this)
+       // pPb = ProgressDialog(this)
+       // nPb = ProgressDialog(this)
+        cPb = ProgressDialog(this)
         mCredential = GoogleAccountCredential.usingOAuth2(
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(ExponentialBackOff());

@@ -2,14 +2,18 @@ package bodygate.bcns.bodygation
 
 import android.app.Activity
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.hardware.Camera
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.Surface
+import bodygate.bcns.bodygation.navigationitem.FollowFragment
 import cn.gavinliu.android.lib.scale.config.ScaleConfig
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 @Suppress("DEPRECATED_IDENTITY_EQUALS")
@@ -75,7 +79,6 @@ class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionList
 
     override fun onBackPressed() {
         // Otherwise defer to system default behavior.
-        super.onBackPressed()
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivity(intent)

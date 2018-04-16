@@ -31,6 +31,7 @@ android {
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
@@ -45,6 +46,8 @@ android {
     buildToolsVersion '27.0.3'
     dexOptions {
     }
+    productFlavors {
+    }
 }
 
 dependencies {
@@ -53,25 +56,26 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.22.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.22.2'
-    implementation "org.jetbrains.anko:anko-commons:0.10.2"
-    implementation "org.jetbrains.anko:anko-design:0.10.2"
+    implementation 'org.jetbrains.anko:anko-commons:0.10.2'
+    implementation 'org.jetbrains.anko:anko-design:0.10.2'
     implementation 'com.android.support:exifinterface:27.1.1'
     implementation 'com.android.support:support-vector-drawable:27.1.1'
     implementation 'com.android.support:animated-vector-drawable:27.1.1'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:support-annotations:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.android.support:design:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     implementation 'com.android.support:mediarouter-v7:27.1.1'
-    implementation 'com.google.android.gms:play-services-fitness:12.0.1'
-    implementation 'com.google.android.gms:play-services-auth:12.0.1'
-    implementation 'com.google.android.gms:play-services-plus:12.0.1'
-    implementation 'com.google.android.gms:play-services-base:12.0.1'
-    implementation 'com.google.android.gms:play-services-identity:12.0.1'
-    implementation 'com.google.firebase:firebase-core:12.0.1'
-    implementation 'com.google.firebase:firebase-crash:12.0.1'
-    implementation 'com.google.firebase:firebase-auth:12.0.1'
+    implementation 'com.google.android.gms:play-services-fitness:15.0.0'
+    implementation 'com.google.android.gms:play-services-auth:15.0.0'
+    implementation 'com.google.android.gms:play-services-plus:15.0.0'
+    implementation 'com.google.android.gms:play-services-base:15.0.0'
+    implementation 'com.google.android.gms:play-services-identity:15.0.0'
+    implementation 'com.google.firebase:firebase-core:15.0.0'
+    implementation 'com.google.firebase:firebase-crash:15.0.0'
+    implementation 'com.google.firebase:firebase-auth:15.0.0'
     implementation 'com.google.code.gson:gson:2.8.2'
     implementation 'com.google.apis:google-api-services-people:v1-rev4-1.22.0'
     implementation 'com.google.api-client:google-api-client:1.23.0'
