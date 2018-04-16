@@ -25,6 +25,7 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import bodygate.bcns.bodygation.R.id.navigation_follow
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
 import bodygate.bcns.bodygation.youtube.YoutubeApi
@@ -154,12 +155,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 Log.i(TAG, "startProgress")
                 mPb!!.setTitle("데이터 받기")
                 mPb!!.setMessage("유튜브 데이터를 받아오는 중입니다")
+                mPb!!.setCancelable(false)
                 mPb!!.show()
             }
             0->  if(!cPb!!.isShowing) {
                 Log.i(TAG, "startProgress")
                 cPb!!.setTitle("데이터 받기")
                 cPb!!.setMessage("유튜브 데이터를 받아오는 중입니다")
+                cPb!!.setCancelable(false)
                 cPb!!.show()
 
             }
@@ -167,12 +170,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 Log.i(TAG, "startProgress")
                 pPb!!.setTitle("데이터 받기")
                 pPb!!.setMessage("유튜브 데이터를 받아오는 중입니다")
+                pPb!!.setCancelable(false)
                 pPb!!.show()
             }
             1->   if(!nPb!!.isShowing) {
                 Log.i(TAG, "startProgress")
                 nPb!!.setTitle("데이터 받기")
                 nPb!!.setMessage("유튜브 데이터를 받아오는 중입니다")
+                nPb!!.setCancelable(false)
                 nPb!!.show()
             }
         }
@@ -349,13 +354,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         .commit()
                 return@OnNavigationItemSelectedListener true
             }
-            R.id.navigation_home -> {
+            /**R.id.navigation_home -> {
                 supportFragmentManager
                         .beginTransaction()
                         .replace(R.id.root_layout, MovieFragment.newInstance(), "rageComicList")
                         .commit()
                 return@OnNavigationItemSelectedListener true
-            }
+            }*/
             R.id.navigation_follow -> {
                 supportFragmentManager
                         .beginTransaction()
@@ -439,8 +444,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         } else {
             supportFragmentManager.beginTransaction()
-                    .add(R.id.root_layout, MovieFragment.newInstance(), "rageComicList")
+                    .add(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
                     .commit()
+            navigation.selectedItemId = navigation_follow
         }
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_WEIGHT)
