@@ -190,4 +190,7 @@
     <string name="mysubcutaneousfat">현재 피하지방 :</string>
     <string name="mymusclemass">현재 골격근량 :</string>
     <string name="myvisceralfat">현재 내장지방 :</string>
+    <string name="woman">여성</string>
+    <string name="man">남성</string>
+    <string name="mainbodyfat">표준체지방률 :</string>
 </resources>
