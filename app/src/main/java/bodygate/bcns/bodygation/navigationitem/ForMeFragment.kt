@@ -338,7 +338,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     interface OnForMeInteraction {
         // TODO: Update argument type and name
         fun OnForMeInteraction()
-
+        fun makePersonalData()
         var weight_dateSET: DataSet?
         var bfp_dateSET: DataSet?
         var walk_dateSET: DataSet?

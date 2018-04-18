@@ -7,15 +7,29 @@ import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.R
+import com.google.android.gms.common.api.ResultCallback
+import com.google.android.gms.fitness.Fitness.ConfigApi
+import com.google.android.gms.fitness.data.DataPoint
+import com.google.android.gms.fitness.data.DataSource
+import com.google.android.gms.fitness.data.Field
+import com.google.android.gms.fitness.request.DataTypeCreateRequest
 import com.google.android.gms.fitness.result.DataSourcesResult
+import com.google.android.gms.fitness.result.DataTypeResult
 import kotlinx.android.synthetic.main.fragment_goal.*
+import kotlin.math.min
+import java.lang.reflect.Array.setInt
+import java.lang.reflect.Array.setFloat
+
+
 
 
 /**
@@ -49,10 +63,6 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
 
     val TAG = "GoalFragment"
     val muslceD = 0.45
-    val onlymuscleD = 0.577
-    val girlfatD = 1.07
-    val manfatD = 1.1
-    val fatD = 128.0
 
     // TODO: Rename and change types of parameters
     private var mParam1: String? = null
@@ -97,57 +107,51 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         Log.i(TAG, "onActivityCreated")
         man_RBtn.setOnCheckedChangeListener(this)
         girl_RBtn.setOnCheckedChangeListener(this)
-        goal_height_txtB.addTextChangedListener(object :TextWatcher{
-            override fun afterTextChanged(s: Editable?) {
-                goal_weight_txtB.setText(weightCal(s.toString().toDouble()*0.01).toString())
-                goal_bmi_txtB.setText(BMICal(s.toString().toDouble()*0.01, goal_weight_txtB.text.toString().toDouble()).toString())
-                goal_bodyfat_txtB.setText(bodyfatCal(s.toString().toDouble()*0.01, goal_weight_txtB.text.toString().toDouble()).toString())
-                goal_musclemass_txtB.setText(muscleCal(goal_weight_txtB.text.toString().toDouble()).toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                Log.i(TAG, "goal_musclemass_txtB_onTextChanged")
-                if(!man_RBtn.isChecked && !girl_RBtn.isChecked){
-                    Toast.makeText(this@GoalFragment.requireContext(), "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
-                    goal_height_txtB.setText("")
-                    Log.i(TAG, "if_txtB_onTextChanged")
+        goal_height_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
+            override fun onFocusChange(v: View?, hasFocus: Boolean) {
+                if(hasFocus){
+                    if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
+                        Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
+                    }
+                } else if(!hasFocus){
+                    if (goal_height_txtB.text != null) {
+                        goal_weight_txtB.setText((Math.round(weightCal(goal_height_txtB.text.toString().toDouble() * 0.01) * 100)*0.01).toString())
+                        goal_bmi_txtB.setText((Math.round(BMICal(goal_height_txtB.text.toString().toDouble() * 0.01, goal_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
+                        //goal_bodyfat_txtB.setText(bodyfatCal(goal_height_txtB.text.toString().toDouble(), goal_weight_txtB.text.toString().toDouble()).toString())
+                        if(man_RBtn.isChecked){
+                            goal_bodyfat_txtB.setText("13%~23%")
+                        }else if(girl_RBtn.isChecked){
+                            goal_bodyfat_txtB.setText("18%~27%")
+                        }
+                        goal_musclemass_txtB.setText((Math.round(muscleCal(goal_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
+                    }
                 }
             }
 
         })
-        my_weight_txtB.setOnEditorActionListener(object :View.Ed){
-            override fun afterTextChanged(s: Editable?) {
-                my_bmi_txtB.setText(BMICal(goal_height_txtB.text.toString().toDouble()*0.01, my_weight_txtB.text.toString().toDouble()).toString())
-                my_bodyfat_txtB.setText(bodyfatCal(goal_height_txtB.text.toString().toDouble()*0.01, my_weight_txtB.text.toString().toDouble()).toString())
-                my_musclemass_txtB.setText(muscleCal(my_weight_txtB.text.toString().toDouble()).toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                Log.i(TAG, "my_weight_txtB_txtB_onTextChanged")
-                if(!man_RBtn.isChecked && !girl_RBtn.isChecked){
-                    Toast.makeText(this@GoalFragment.requireContext(), "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
-                    goal_height_txtB.setText("")
+        my_weight_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
+            override fun onFocusChange(v: View?, hasFocus: Boolean) {
+                if(hasFocus){
+                    if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
+                        Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
+                    }
+                } else if(!hasFocus) {
+                    if (my_weight_txtB.text != null && goal_height_txtB.text != null) {
+                        my_bmi_txtB.setText((Math.round(BMICal(goal_height_txtB.text.toString().toDouble()*0.01, my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
+                        goal_weight_musclemass_txtB.setText((Math.round(muscleCal(my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
+                    }
                 }
             }
-
         })
-    }
-    fun bodyfatCal(height:Double, weight:Double):Double{
-        var result = 0.0
-        if(man_RBtn.isChecked){
-            result = (manfatD*weight)-((fatD*(weight*weight))/(height*height))
-        }else{
-            result = (girlfatD*weight)-((fatD*(weight*weight))/(height*height))
-        }
-        return result
     }
     fun BMICal(height:Double, weight:Double):Double{
         return weight/(height*height)
     }
     fun muscleCal(weight:Double):Double{
-        return (weight*muslceD)*onlymuscleD
+        return (weight*muslceD)
+    }
+    fun weight_muscleCal(weight:Double):Double{
+        return (weight*muslceD)
     }
     fun weightCal(height:Double):Double{
         var result = 0.0
@@ -158,6 +162,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         }
         return result
     }
+
     override fun onDetach() {
         super.onDetach()
         mListener = null

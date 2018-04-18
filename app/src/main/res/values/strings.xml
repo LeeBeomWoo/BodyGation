@@ -113,11 +113,14 @@
     <string name="tall">키 :</string>
     <string name="hope">운동을 하는 이유</string>
     <string name="cancel">취소</string>
-    <string name="join_text">우리 프로그램에 가입하여 주셔서 감사합니다. \n우리 어플은 운동과 몸을
-        만드는데 필요한 정보를 \n전문가들이 검토하거나 제작하여 만든 자료로써 저작권은 \n각각의 작성자들에게
-        있으며 본 프로그램은 이러한 \n정보를 사용자들에게 전달할 수 있는 하나의 수단 일 \n뿐입니다.
-    그리고 우리의 자료는 2차, 3차로 각 분야의 \n전문가들이 검토 후 업로드 되는 방식이므로 혹시나 \n오류가
-    있거나 문제가 있는 자료들은 즉시 연락을 주시면 자문위원단의 검토 후 수정을 하거나 \n답변을 드리도록 하겠습니다.</string>
+    <string name="explain_text">자동으로 입력되는 수치는 키에 따른 평균 수치이며\n
+                                    체성분 분석(흔히 인바디라 부르는)이 가능한 곳에서\n
+                                    월 1회정도 분석을 하신 후 그 자료와 비교를 해보세요\n\n
+                                    체중보다는 체지방률과 골격근량을 판단기준으로 삼고\n
+                                    알맞은 운동과 식단, 그리고 계획을 준비하면\n
+                                    원하는 목표에 다가갈 수 있을 것입니다.\n
+         또한 해당 자료는 단순 참고용 이므로 \n너무 수치에 연연하지 말고
+        \n자신의 모습을 월 단위로 비교하여 보는 것이 \n가장 바람직 한 운동의 결과를 체크하는 방법입니다. </string>
     <string name="follow_media">따라하기</string>
     <string name="internal_storage">내부 저장소</string>
     <string name="chooser_title">동영상 불러오기</string>
@@ -140,9 +143,10 @@
     <string name="title_goal">목적지</string>
     <string name="desweight">목표 체중 :</string>
     <string name="desbmi">목표 BMI :</string>
-    <string name="manbodyfat">남성목표 체지방</string>
-    <string name="girlbodyfat">여성목표 체지방</string>
-    <string name="desmusclemass">목표 골격근량 :</string>
+    <string name="masbodyfat">목표 체지방량 :</string>
+    <string name="mymasbodyfat">현재 체지방량</string>
+    <string name="desmusclemass">평균체중 골격근량 :</string>
+    <string name="weight_musclemass">내 체중의 평균 골격근량 :</string>
     <string name="dessubcutaneousfat">목표 피하지방 :</string>
     <string name="desvisceralfat">목표 내장지방 :</string>
     <string name="fitweight">당신의 적정 체중은</string>
@@ -186,7 +190,7 @@
     <string name="mylist">내가 본 영상</string>
     <string name="myweight">현재 체중:</string>
     <string name="mybmi">현재 BMI :</string>
-    <string name="mybodyfat">현재 체지방 :</string>
+    <string name="mybodyfat">현재 체지방률</string>
     <string name="mysubcutaneousfat">현재 피하지방 :</string>
     <string name="mymusclemass">현재 골격근량 :</string>
     <string name="myvisceralfat">현재 내장지방 :</string>
