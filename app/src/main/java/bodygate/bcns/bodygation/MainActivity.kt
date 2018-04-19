@@ -41,6 +41,7 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.ResultCallback
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
+import com.google.android.gms.fitness.Fitness.ConfigApi
 import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.FitnessStatusCodes
 import com.google.android.gms.fitness.data.*
@@ -49,9 +50,7 @@ import com.google.android.gms.fitness.request.DataTypeCreateRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.fitness.result.DataTypeResult
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.Tasks
+import com.google.android.gms.tasks.*
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.google.android.youtube.player.YouTubeThumbnailLoader
@@ -497,11 +496,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addDataType(DataType.TYPE_STEP_COUNT_CADENCE)
                 .build()
         if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
-            GoogleSignIn.requestPermissions(
+           GoogleSignIn.requestPermissions(
                     this,
                     REQUEST_OAUTH_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
-                    fitnessOptions);
+                    fitnessOptions)
         } else {
             registerFitnessDataListener();
         }
@@ -509,6 +508,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
+                .addApi(Fitness.CONFIG_API)
                 .addScope(Scope(Scopes.FITNESS_LOCATION_READ))
                 .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
                 .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ))
@@ -541,7 +541,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         when (requestCode) {
-            REQUEST_GOOGLE_PLAY_SERVICES -> consume {
+            REQUEST_GOOGLE_PLAY_SERVICES -> {
                 if (resultCode != RESULT_OK) {
                     mOutputText!!.setText(
                             "This app requires Google Play Services. Please install " +
@@ -550,7 +550,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     getResultsFromApi();
                 }
             }
-            REQUEST_ACCOUNT_PICKER -> consume {
+            REQUEST_ACCOUNT_PICKER -> {
                 if (resultCode == RESULT_OK && data != null &&
                         data.getExtras() != null) {
                     val accountName =
@@ -566,12 +566,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
             }
-            REQUEST_AUTHORIZATION -> consume {
+            REQUEST_AUTHORIZATION -> {
                 if (resultCode == RESULT_OK) {
                     getResultsFromApi();
                 }
             }
-            REQUEST_OAUTH -> consume {
+            REQUEST_OAUTH -> {
                 authInProgress = false;
                 if (resultCode == RESULT_OK) {
                     // Make sure the app is not already connected or attempting to connect
@@ -580,12 +580,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
             }
+            RC_SIGN_IN ->{
+                val task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                getProfileInformation(task.result);
+                val dialog = CustomDialogList(this)
+                dialog.setTitle("계정 로그인")
+                dialog.show()
+            }
         }
-    }
-
-    inline fun consume(f: () -> Unit): Boolean {
-        f()
-        return true
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -632,62 +634,52 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
         Log.i(TAG, "list point:" + weight_list.toString())
     }
-   override fun makePersonalData(){
+   override fun makePersonalData() = launch(CommonPool) {
         val request = DataTypeCreateRequest.Builder()
 // The prefix of your data type name must match your app's package name
-                .setName("bodygate.bcns.bodygation.datatype")
+                .setName("bodygate.bcns.bodygation.data_type")
 // Add some custom fields, both int and float
                 .addField("muscle", Field.FORMAT_FLOAT)
                 .addField("fat", Field.FORMAT_FLOAT)
 // Add some common fields
                 .addField(Field.FIELD_WEIGHT)
                 .build()
-        val pendingResult = Fitness.ConfigApi.createCustomDataType(mFitnessClient, request)
-        pendingResult.setResultCallback(
-                object: ResultCallback<DataTypeResult> {
-                    override fun onResult(dataTypeResult: DataTypeResult) {
-                        // Retrieve the created data type
-                        val customType = dataTypeResult.getDataType()
-                        // Use this custom data type to insert data in your app
-                        // (see other examples)
-                        // Create a data point for a data source that provides
-                        // data of type "com.app.custom_data_type" (created above)
-                        val myBuilder: DataSource.Builder = DataSource.Builder()
-                        myBuilder.setDataType(customType)
-                        myBuilder.setName("BodyGation Data")
-                        myBuilder.setAppPackageName(this@MainActivity)
-                        val myDataSource: DataSource = myBuilder.build()
-                        val dataSet = DataSet.create(myDataSource)
-                        val dataPoint = dataSet.createDataPoint()
-                        // Set values for the data point
-                        // This data type has two custom fields (int, float) and a common field
-                        dataPoint.getValue(Field.zza("muscle", Field.FORMAT_FLOAT)).setFloat(my_musclemass_txtB.text.toString().toFloat())
-                        dataPoint.getValue(Field.zza("fat", Field.FORMAT_FLOAT)).setFloat(my_bodyfat_txtB.text.toString().toFloat())
-                        dataPoint.getValue(Field.FIELD_WEIGHT).setInt(my_bodyfat_txtB.text.toString().toInt())
-                        dataSet.add(dataPoint)
-                        val account = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
-                        if(account != null){
-                            val task:Task<Void> = Fitness.getHistoryClient(this@MainActivity, account)
-                                    .insertData(dataSet)
-                                    .addOnCompleteListener(
-                                            object: OnCompleteListener<Void> {
-                                                override fun onComplete(@NonNull task:Task<Void>) {
-                                                    if (task.isSuccessful())
-                                                    {
-                                                        // At this point, the data has been inserted and can be read.
-                                                        Log.i(TAG, "Data insert was successful!")
-                                                    }
-                                                    else
-                                                    {
-                                                        Log.e(TAG, "There was a problem inserting the dataset.", task.getException())
-                                                    }
-                                                }
-                                            })
-                            task.co
-                        }
-                    }
-                }
-        )
+       if(!mFitnessClient.isConnected){
+           mFitnessClient.connect()
+       }
+       val response_1 = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
+               .createCustomDataType(request)
+       response_1.addOnFailureListener(object :OnFailureListener{
+           override fun onFailure(p0: java.lang.Exception) {
+               Log.i("pendingResult", this@MainActivity.packageName.toString())
+               Log.i("pendingResult", "response_1- " + p0.toString())
+           }
+
+       })
+       Tasks.await(response_1)
+        val pendingResult = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.data_type");
+        pendingResult.setResultCallback(object : ResultCallback<DataTypeResult>{
+            override fun onResult(p0: DataTypeResult) {
+                Log.i("pendingResult", p0.toString())
+                Log.i("pendingResult", p0.dataType.toString())
+                val source = DataSource.Builder()
+                        .setName("bodygate.bcns.bodygation.data_type")
+                        .setDataType(p0.getDataType())
+                        .setType(DataSource.TYPE_DERIVED)
+                        .build()
+                val dataPoint = DataPoint.create(source)
+                // Set values for the data point
+                // This data type has two custom fields (int, float) and a common field
+                dataPoint.getValue(Field.zza("muscle", Field.FORMAT_FLOAT)).setFloat(my_musclemass_txtB.text.toString().toFloat())
+                dataPoint.getValue(Field.zza("fat", Field.FORMAT_FLOAT)).setFloat(my_bodyfat_txtB.text.toString().toFloat())
+                dataPoint.getValue(Field.FIELD_WEIGHT).setInt(my_bodyfat_txtB.text.toString().toInt())
+                val dataSet = DataSet.create(source)
+                dataSet.add(dataPoint)
+                val response = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).insertData(dataSet)
+                Tasks.await(response)
+            }
+
+        })
     }
     override fun onConnected(p0: Bundle?) {
         Log.i(TAG, "onConnected")
@@ -789,14 +781,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             //show the label and image view
             user_details_label.setVisibility(View.VISIBLE);
             user_profile_image_view.setVisibility(View.VISIBLE);
-
         } else {
-
             //if account is null change the text back to Sign In and hide the label and image view
             custom_sign_in_button.setText(getResources().getString(R.string.sign_in));
             user_details_label.setVisibility(View.GONE);
             user_profile_image_view.setVisibility(View.GONE);
-
         }
     }
 

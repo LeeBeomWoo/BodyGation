@@ -13,15 +13,16 @@
     <permission android:name="ACCOUNT_MANAGER" />
     <permission android:name="CAMERA" />
     <permission android:name="GET_TASKS" />
+
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!--wifi 연결을 확인함-->
+    <!-- wifi 연결을 확인함 -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <!--wifi 체인지를 확인함-->
+    <!-- wifi 체인지를 확인함 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!--네트웍이 연결된것을 확인할수 있게함-->
+    <!-- 네트웍이 연결된것을 확인할수 있게함 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- 인터넷을 사용함-->
+    <!-- 인터넷을 사용함 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -31,11 +32,11 @@
     <uses-feature
         android:name="android.hardware.camera2.full"
         android:required="false" />
-    <!--카메라 사용-->
+    <!-- 카메라 사용 -->
     <uses-feature
         android:name="android.hardware.camera.full"
         android:required="false" />
-    <!--카메라 사용-->
+    <!-- 카메라 사용 -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -69,9 +70,12 @@
             <meta-data
                 android:name="com.google.android.gms.version"
                 android:value="@integer/google_play_services_version" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
+
                 <action android:name="vnd.google.fitness.VIEW" />
             </intent-filter>
             <intent-filter>
@@ -82,8 +86,10 @@
                 <data android:mimeType="vnd.google.fitness.data_type/com.google.step_count.delta" />
             </intent-filter>
         </activity>
-        <activity android:name=".ItemActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"/>
+        <activity
+            android:name=".ItemActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity android:name=".SignActivity"></activity>
     </application>
 
 </manifest>

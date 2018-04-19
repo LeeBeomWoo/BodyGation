@@ -25,6 +25,7 @@ import com.google.android.gms.fitness.request.DataTypeCreateRequest
 import com.google.android.gms.fitness.result.DataSourcesResult
 import com.google.android.gms.fitness.result.DataTypeResult
 import kotlinx.android.synthetic.main.fragment_goal.*
+import kotlinx.coroutines.experimental.Job
 import kotlin.math.min
 import java.lang.reflect.Array.setInt
 import java.lang.reflect.Array.setFloat
@@ -107,6 +108,20 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         Log.i(TAG, "onActivityCreated")
         man_RBtn.setOnCheckedChangeListener(this)
         girl_RBtn.setOnCheckedChangeListener(this)
+        upload_Btn.setOnClickListener(object :View.OnClickListener{
+            override fun onClick(v: View?) {
+                if(my_bodyfat_txtB.text.isEmpty()){
+                    Toast.makeText(this@GoalFragment.context, "체지방률을 측정하여 작성하여 주세요", Toast.LENGTH_SHORT).show()
+                }
+                if(my_musclemass_txtB.text.isEmpty()){
+                    Toast.makeText(this@GoalFragment.context, "골격근량을 측정하여 작성하여 주세요", Toast.LENGTH_SHORT).show()
+                }
+                if(my_bodyfat_txtB.text.isNotEmpty() && my_musclemass_txtB.text.isNotEmpty()){
+                    mListener!!.makePersonalData()
+                }
+            }
+
+        })
         goal_height_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
                 if(hasFocus){
@@ -138,7 +153,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                 } else if(!hasFocus) {
                     if (my_weight_txtB.text != null && goal_height_txtB.text != null) {
                         my_bmi_txtB.setText((Math.round(BMICal(goal_height_txtB.text.toString().toDouble()*0.01, my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
-                        goal_weight_musclemass_txtB.setText((Math.round(muscleCal(my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
+                        goal_weight_musclemass_txtB.setText((Math.round(weight_muscleCal(my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
                     }
                 }
             }
@@ -180,7 +195,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
     interface OnGoalInteractionListener {
         // TODO: Update argument type and name
         fun OnGoalInteractionListener(uri: Uri)
-
+        fun makePersonalData(): Job
     }
 
     companion object {

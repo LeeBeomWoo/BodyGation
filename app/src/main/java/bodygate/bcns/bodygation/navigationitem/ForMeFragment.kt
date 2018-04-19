@@ -21,6 +21,7 @@ import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
@@ -338,7 +339,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     interface OnForMeInteraction {
         // TODO: Update argument type and name
         fun OnForMeInteraction()
-        fun makePersonalData()
         var weight_dateSET: DataSet?
         var bfp_dateSET: DataSet?
         var walk_dateSET: DataSet?
