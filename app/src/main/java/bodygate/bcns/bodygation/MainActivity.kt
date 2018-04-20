@@ -113,6 +113,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var bfp_data: DataSet? = null
     var walk_data: DataSet? = null
     var calore_data: DataSet? = null
+    var muscle_data: DataSet? = null
+    var bmi_data: DataSet? = null
     var page = ""
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
@@ -132,6 +134,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var calole_dateSET: DataSet?
         get() = calore_data
         set(value) {}
+    override var muscle_dateSET: DataSet?
+        get() = muscle_data
+        set(value) {}
+    override var bmi_dateSET: DataSet?
+        get() = bmi_data
+        set(value) {}
+
     fun stopProgress(i:Int) {
         when(i) {
            3-> if (mPb!!.isShowing) {
@@ -614,15 +623,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             DataType.TYPE_WEIGHT->{
                 weight_data = dataSet
             }
-            DataType.TYPE_BODY_FAT_PERCENTAGE->{
-                bfp_data = dataSet
-            }
-            DataType.TYPE_CALORIES_EXPENDED->{
-                calore_data = dataSet
-            }
-            DataType.TYPE_STEP_COUNT_CADENCE->{
-                walk_data = dataSet
-            }
         }
         for (dp: DataPoint in dataSet.getDataPoints()) {
             Log.i(TAG, "Data point:" + dp.toString())
@@ -635,12 +635,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, "list point:" + weight_list.toString())
     }
    override fun makePersonalData() = launch(CommonPool) {
+       val cal = Calendar.getInstance()
+       val now = Date()
+       cal.time = now
+       val nowTime = cal.timeInMillis
         val request = DataTypeCreateRequest.Builder()
 // The prefix of your data type name must match your app's package name
                 .setName("bodygate.bcns.bodygation.data_type")
 // Add some custom fields, both int and float
                 .addField("muscle", Field.FORMAT_FLOAT)
                 .addField("fat", Field.FORMAT_FLOAT)
+                .addField("bmi", Field.FORMAT_FLOAT)
 // Add some common fields
                 .addField(Field.FIELD_WEIGHT)
                 .build()
@@ -665,6 +670,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 val source = DataSource.Builder()
                         .setName("bodygate.bcns.bodygation.data_type")
                         .setDataType(p0.getDataType())
+                        .setAppPackageName(this@MainActivity.context)
                         .setType(DataSource.TYPE_DERIVED)
                         .build()
                 val dataPoint = DataPoint.create(source)
@@ -672,11 +678,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 // This data type has two custom fields (int, float) and a common field
                 dataPoint.getValue(Field.zza("muscle", Field.FORMAT_FLOAT)).setFloat(my_musclemass_txtB.text.toString().toFloat())
                 dataPoint.getValue(Field.zza("fat", Field.FORMAT_FLOAT)).setFloat(my_bodyfat_txtB.text.toString().toFloat())
-                dataPoint.getValue(Field.FIELD_WEIGHT).setInt(my_bodyfat_txtB.text.toString().toInt())
+                dataPoint.getValue(Field.zza("bmi", Field.FORMAT_FLOAT)).setFloat(my_bmi_txtB.text.toString().toFloat())
+                dataPoint.getValue(Field.FIELD_WEIGHT).setFloat(my_bodyfat_txtB.text.toString().toFloat())
+                dataPoint.setTimestamp(nowTime, TimeUnit.MILLISECONDS)
                 val dataSet = DataSet.create(source)
                 dataSet.add(dataPoint)
                 val response = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).insertData(dataSet)
-                Tasks.await(response)
+                launch(coroutineContext) { Tasks.await(response) }
             }
 
         })
@@ -713,13 +721,48 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val response = Fitness.getHistoryClient(this@MainActivity, task!!)
                 .readData(DataReadRequest.Builder()
                         .read(DataType.TYPE_WEIGHT)
-                        .read(DataType.TYPE_BODY_FAT_PERCENTAGE)
-                        .read(DataType.TYPE_CALORIES_EXPENDED)
-                        .read(DataType.TYPE_STEP_COUNT_CADENCE)
+                        .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                        .build())
+        val response_step = Fitness.getHistoryClient(this@MainActivity, task)
+            .readDailyTotal(DataType.AGGREGATE_STEP_COUNT_DELTA);
+        val response_kcal = Fitness.getHistoryClient(this@MainActivity, task)
+                .readDailyTotal(DataType.AGGREGATE_STEP_COUNT_DELTA);
+        val pendingResult = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.data_type");
+        pendingResult.setResultCallback(object : ResultCallback<DataTypeResult> {
+            override fun onResult(p0: DataTypeResult) {
+                p0.dataType.
+            }
+        }
+        val response_muscle = Fitness.getHistoryClient(this@MainActivity, task)
+                .readData(DataReadRequest.Builder()
+// The prefix of your data type name must match your app's package name
+                        .read(DataTyp"muscle", Field.FORMAT_FLOAT)
+// Add some custom fields, both int and float
+                        .addField("muscle", Field.FORMAT_FLOAT)
+                        .addField("fat", Field.FORMAT_FLOAT)
+                        .addField("bmi", Field.FORMAT_FLOAT)
+// Add some common fields
+                        .addField(Field.FIELD_WEIGHT)
+                        .build());
+        val response_fat = Fitness.getHistoryClient(this@MainActivity, task)
+                .readData(DataReadRequest.Builder()
+                        .read(DataType.TYPE_WEIGHT)
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                         .build());
+        val response_bmi = Fitness.getHistoryClient(this@MainActivity, task)
+                .readData(DataReadRequest.Builder()
+                        .read(DataType.TYPE_WEIGHT)
+                        .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                        .build());
+
         val readDataResult = Tasks.await(response);
-        val dataSet = readDataResult.getDataSet(DataType.TYPE_WEIGHT);
+        val readDataResult_step = Tasks.await(response_step);
+        val readDataResult_kcal = Tasks.await(response_kcal);
+        val readDataResult_muscle = Tasks.await(response_muscle);
+        val readDataResult_fat = Tasks.await(response_fat);
+        val readDataResult_bmi = Tasks.await(response_bmi);
+        val dataSet = readDataResult.getDataSet(DataType.TYPE_WEIGHT)
+        muscle_data = readDataResult_muscle.getDataSet(DataType.)
         Log.i(TAG + "dataSet", dataSet.toString())
         async(UI) { printData(readDataResult) }
     }

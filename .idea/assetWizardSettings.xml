@@ -30,15 +30,42 @@
                                           </PersistentState>
                                         </value>
                                       </entry>
+                                      <entry key="foregroundText">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="color" value="ffffff" />
+                                                <entry key="trimmed" value="true" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
+                                      <entry key="foregroundTextAsset">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="fontFamily" value="나눔고딕" />
+                                                <entry key="text" value="B.M.I" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
                                     </map>
                                   </option>
                                   <option name="values">
                                     <map>
                                       <entry key="backgroundAssetType" value="COLOR" />
                                       <entry key="backgroundColor" value="eaffe4" />
+                                      <entry key="backgroundLayerName" value="ic_logo_background" />
+                                      <entry key="foregroundAssetType" value="TEXT" />
                                       <entry key="foregroundImage" value="E:\personal\Android_Project\BodyGation\app\src\main\res\drawable\logo.xml" />
+                                      <entry key="foregroundLayerName" value="ic_logo_foreground" />
                                       <entry key="legacyIconShape" value="CIRCLE" />
-                                      <entry key="outputName" value="ic_logo" />
+                                      <entry key="outputName" value="bmi" />
                                       <entry key="previewDensity" value="MEDIUM" />
                                       <entry key="webIconShape" value="CIRCLE" />
                                     </map>

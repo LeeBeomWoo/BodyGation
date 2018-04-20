@@ -46,11 +46,10 @@
                 android:id="@+id/walk_lbl"
                 android:layout_width="85dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_marginTop="24dp"
                 android:text="@string/walk"
                 android:textAlignment="center"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/weight_Btn"
                 app:layout_constraintTop_toBottomOf="@+id/weight_Btn" />
 
             <TextView
@@ -74,6 +73,17 @@
                 android:textAlignment="center"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/mucsle_lbl"
+                android:layout_width="85dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/musclemass"
+                android:textAlignment="center"
+                app:layout_constraintEnd_toEndOf="@+id/bfp_Btn"
+                app:layout_constraintStart_toStartOf="@+id/bfp_Btn"
+                app:layout_constraintTop_toBottomOf="@+id/bfp_Btn" />
 
             <bodygate.bcns.bodygation.CheckableImageButton
                 android:id="@+id/weight_Btn"
@@ -110,6 +120,30 @@
                 app:layout_constraintEnd_toEndOf="@+id/kal_lbl"
                 app:layout_constraintStart_toStartOf="@+id/kal_lbl"
                 app:layout_constraintTop_toBottomOf="@+id/kal_lbl" />
+
+            <bodygate.bcns.bodygation.CheckableImageButton
+                android:id="@+id/muscle_Btn"
+                android:layout_width="0dp"
+                android:layout_height="85dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/nocolor"
+                android:scaleType="fitCenter"
+                android:src="@drawable/main_muscle_selector"
+                app:layout_constraintEnd_toEndOf="@+id/mucsle_lbl"
+                app:layout_constraintStart_toStartOf="@+id/mucsle_lbl"
+                app:layout_constraintTop_toBottomOf="@+id/mucsle_lbl" />
+
+            <bodygate.bcns.bodygation.CheckableImageButton
+                android:id="@+id/bmi_Btn"
+                android:layout_width="0dp"
+                android:layout_height="85dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/nocolor"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_logo_round"
+                app:layout_constraintEnd_toEndOf="@+id/bmi_lbl"
+                app:layout_constraintStart_toStartOf="@+id/bmi_lbl"
+                app:layout_constraintTop_toBottomOf="@+id/bmi_lbl" />
 
             <bodygate.bcns.bodygation.CheckableImageButton
                 android:id="@+id/bfp_Btn"

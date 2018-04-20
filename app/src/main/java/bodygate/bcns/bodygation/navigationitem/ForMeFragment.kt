@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.CheckableImageButton
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.R.id.*
 import com.google.android.gms.fitness.data.DataSet
 import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
@@ -343,6 +344,8 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         var bfp_dateSET: DataSet?
         var walk_dateSET: DataSet?
         var calole_dateSET: DataSet?
+        var muscle_dateSET: DataSet?
+        var bmi_dateSET: DataSet?
         var weight_list:Array<DataPoint>?
         var bfp_list:Array<DataPoint>?
     }

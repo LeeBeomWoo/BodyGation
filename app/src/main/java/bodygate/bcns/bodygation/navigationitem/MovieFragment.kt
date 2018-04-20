@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.MyRecyclerViewAdapter
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.R.id.pop_list
 import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.youtube.YoutubeResponse

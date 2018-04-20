@@ -16,6 +16,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.R.id.*
 import com.google.android.gms.common.api.ResultCallback
 import com.google.android.gms.fitness.Fitness.ConfigApi
 import com.google.android.gms.fitness.data.DataPoint
@@ -118,6 +119,8 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                 }
                 if(my_bodyfat_txtB.text.isNotEmpty() && my_musclemass_txtB.text.isNotEmpty()){
                     mListener!!.makePersonalData()
+                }else{
+
                 }
             }
 
@@ -127,6 +130,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                 if(hasFocus){
                     if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
                         Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
+                        goal_height_txtB.clearFocus()
                     }
                 } else if(!hasFocus){
                     if (goal_height_txtB.text != null) {
