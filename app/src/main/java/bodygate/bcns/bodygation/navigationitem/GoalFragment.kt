@@ -119,21 +119,27 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                 }
                 if(my_bodyfat_txtB.text.isNotEmpty() && my_musclemass_txtB.text.isNotEmpty()){
                     mListener!!.makePersonalData()
-                }else{
-
                 }
             }
 
         })
-        goal_height_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
+        goal_height_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener {
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
-                if(hasFocus){
+                if (hasFocus) {
                     if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
                         Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
                         goal_height_txtB.clearFocus()
                     }
-                } else if(!hasFocus){
-                    if (goal_height_txtB.text != null) {
+                }
+            }
+        })
+        my_weight_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
+            override fun onFocusChange(v: View?, hasFocus: Boolean) {
+                if(hasFocus){
+                    if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
+                        Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
+                    }else{
+                        if (goal_height_txtB.text != null) {
                         goal_weight_txtB.setText((Math.round(weightCal(goal_height_txtB.text.toString().toDouble() * 0.01) * 100)*0.01).toString())
                         goal_bmi_txtB.setText((Math.round(BMICal(goal_height_txtB.text.toString().toDouble() * 0.01, goal_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
                         //goal_bodyfat_txtB.setText(bodyfatCal(goal_height_txtB.text.toString().toDouble(), goal_weight_txtB.text.toString().toDouble()).toString())
@@ -144,24 +150,19 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                         }
                         goal_musclemass_txtB.setText((Math.round(muscleCal(goal_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
                     }
+                    }
                 }
             }
-
         })
-        my_weight_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
+        my_bmi_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
-                if(hasFocus){
-                    if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
-                        Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
-                    }
-                } else if(!hasFocus) {
-                    if (my_weight_txtB.text != null && goal_height_txtB.text != null) {
-                        my_bmi_txtB.setText((Math.round(BMICal(goal_height_txtB.text.toString().toDouble()*0.01, my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
-                        goal_weight_musclemass_txtB.setText((Math.round(weight_muscleCal(my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
-                    }
+                if(hasFocus)
+                if (my_weight_txtB.text != null && goal_height_txtB.text != null) {
+                    my_bmi_txtB.setText((Math.round(BMICal(goal_height_txtB.text.toString().toDouble()*0.01, my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
+                    goal_weight_musclemass_txtB.setText((Math.round(weight_muscleCal(my_weight_txtB.text.toString().toDouble()) * 100)*0.01).toString())
                 }
             }
-        })
+            })
     }
     fun BMICal(height:Double, weight:Double):Double{
         return weight/(height*height)
