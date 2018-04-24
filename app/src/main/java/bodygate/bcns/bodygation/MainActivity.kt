@@ -49,6 +49,7 @@ import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.DataTypeCreateRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
+import com.google.android.gms.fitness.result.DataReadResult
 import com.google.android.gms.fitness.result.DataTypeResult
 import com.google.android.gms.tasks.*
 import com.google.api.client.extensions.android.http.AndroidHttp
@@ -71,8 +72,10 @@ import kotlinx.coroutines.experimental.launch
 import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.Response
 import java.io.IOException
+import java.text.DateFormat
 import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getTimeInstance
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -461,7 +464,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         setContentView(R.layout.activity_main)
         Log.d(TAG + "_", "onCreate")
         configureGoogleSignIn()
-        // mPb = ProgressDialog(this)
+        //mPb = ProgressDialog(this)
        // pPb = ProgressDialog(this)
        // nPb = ProgressDialog(this)
         cPb = ProgressDialog(this)
@@ -676,7 +679,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     @SuppressLint("RestrictedApi")
-    fun registerFitnessDataListener(){
+    fun registerFitnessDataListener() = launch(CommonPool){
+        val label = SimpleDateFormat("MM/dd")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -795,42 +799,69 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
             }
         })
-        val response = Fitness.getHistoryClient(this@MainActivity, task!!)
-                .readData(DataReadRequest.Builder()
-                        .read(DataType.TYPE_WEIGHT)
-                        .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
-                        .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
-                        .bucketByTime(1, TimeUnit.DAYS)
-                        .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                        .build())
-           launch(CommonPool) {
-                Log.i("pendingResult_"+"data :" , "launch")
-                val readDataResult = Tasks.await(response)
-                Log.i("pendingResult_"+"data :" , "readDataResult")
-            weight_dateSET = readDataResult.getDataSet(DataType.TYPE_WEIGHT)
-                Log.i("pendingResult_"+"data :" , "weight_dateSET")
-            walk_dateSET = readDataResult.getDataSet(DataType.TYPE_STEP_COUNT_DELTA)
-                Log.i("pendingResult_"+"data :" , "walk_dateSET")
-            calole_dateSET = readDataResult.getDataSet(DataType.TYPE_CALORIES_EXPENDED)
-                Log.i("pendingResult_"+"data :" , "calole_dateSET")
-            Log.i("pendingResult_"+"walk :" , walk_dateSET.toString())
-            Log.i("pendingResult_"+"bmr :", calole_dateSET.toString())
-            Log.i("pendingResult_" + "weight", weight_dateSET.toString())}
-    }
-private fun dumpDataSet(dataSet:DataSet) {
-  Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-  val dateFormat = getTimeInstance();
+       launch {
+           val response = Fitness.getHistoryClient(this@MainActivity, task!!)
+                   .readData(DataReadRequest.Builder()
+                           .read(DataType.TYPE_WEIGHT)
+                           .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                           .build())
+           val readDataResult = Tasks.await(response)
+           Log.i("pendingResult_" + "size", readDataResult.dataSets.size.toString())
+           weight_dateSET = readDataResult.dataSets.get(0)
+           Log.i("pendingResult_" + "weight", weight_dateSET.toString())
+       }
+            val response_ag = DataReadRequest.Builder()
+                            .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                            .bucketByTime(1, TimeUnit.DAYS)
+                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                            .build()
+            Log.i("pendingResult_" + "data", "launch")
+            Fitness.HistoryApi.readData(mFitnessClient, response_ag).setResultCallback(object :ResultCallback<DataReadResult>{
+                override fun onResult(p0: DataReadResult) {
+                    if (p0.getBuckets().size > 0) {
+                        for (bucket :Bucket in p0.getBuckets()) {
+                        val dataSets = bucket.getDataSets();
+                        for (dataSet:DataSet in dataSets) {
+                        for ( dp:DataPoint in dataSet.getDataPoints()) {
+                        describeDataPoint(dp, label);
+                    }
+                    }
+                    }
+                    } else if (p0.getDataSets().size > 0) {
+                        for (dataSet : DataSet in p0.getDataSets()) {
+                        for ( dp :DataPoint in dataSet.getDataPoints()) {
+                        describeDataPoint(dp, label);
+                    }
+                    }
+                    }
+                    walk_dateSET = p0.dataSets.get(0)
+                    Log.i("pendingResult_" + "data", "walk_dateSET")
+                    Log.i("pendingResult_"+"walk :" , walk_dateSET.toString())
+                }
+            })
 
-  for ( dp :DataPoint in dataSet.getDataPoints()) {
-    Log.i(TAG, "Data point:");
-    Log.i(TAG, "\tType: " + dp.getDataType().getName());
-    Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-    Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-    for ( field : Field in dp.getDataType().getFields()) {
-      Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
+        launch {
+            val response_ag = DataReadRequest.Builder()
+                        .read(DataType.TYPE_CALORIES_EXPENDED)
+                        .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                        .build()
+            Log.i("pendingResult_" + "data", "launch")
+            Fitness.HistoryApi.readData(mFitnessClient, response_ag).setResultCallback(object :ResultCallback<DataReadResult>{
+                override fun onResult(p0: DataReadResult) {
+                    calole_dateSET = p0.dataSets.get(0)
+                    Log.i("pendingResult_" + "data", "calole_dateSET")
+                    Log.i("pendingResult_"+"bmr :" , calole_dateSET.toString())
+                }
+            })  }
     }
-  }
-}
+     fun describeDataPoint(dp:DataPoint, dateFormat: DateFormat) {
+        var msg = "dataPoint: " + "type: " + dp.getDataType().getName() +"\n"+ ", range: [" + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + "-" + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + "]\n"+ ", fields: [";
+         for( field :Field in dp.getDataType().getFields()) {
+            msg += field.getName() + "=" + dp.getValue(field) + " ";
+        }
+        msg += "]";
+         Log.i(TAG, msg)
+    }
     override fun onConnectionFailed(result: ConnectionResult) {
         Log.i(TAG, "onConnectionFailed")
         // Error while connecting. Try to resolve using the pending intent returned.

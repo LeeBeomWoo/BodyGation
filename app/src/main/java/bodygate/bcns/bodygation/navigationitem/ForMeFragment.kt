@@ -11,21 +11,18 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.CheckableImageButton
 import bodygate.bcns.bodygation.R
-import bodygate.bcns.bodygation.R.id.*
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.data.DataSet
 import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
-import com.google.android.gms.fitness.result.DataReadResponse
+import com.google.android.gms.tasks.OnSuccessListener
 import com.jjoe64.graphview.helper.StaticLabelsFormatter
-import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_for_me.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -265,6 +262,38 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         }
         graph.onDataChanged(true, true)
     }
+    fun lineSub(dataSet: DataSet?, i:Int):DataType{
+        var dt:DataType? = null
+        when(i){
+            0->{//mouscle
+                val pendingResult = Fitness.getConfigClient(mListener!!.context, GoogleSignIn.getLastSignedInAccount(mListener!!.context)!!).readDataType("bodygate.bcns.bodygation.muscle")
+                pendingResult.addOnSuccessListener(object : OnSuccessListener<DataType> {
+                    override fun onSuccess(p0: DataType?) {
+                        dt = p0
+                    }
+                })
+            }
+            1->{//fat
+
+            val pendingResult = Fitness.getConfigClient(mListener!!.context, GoogleSignIn.getLastSignedInAccount(mListener!!.context)!!).readDataType("bodygate.bcns.bodygation.fat")
+            pendingResult.addOnSuccessListener(object : OnSuccessListener<DataType> {
+                override fun onSuccess(p0: DataType?) {
+                    dt = p0
+                }
+            })
+            }
+            2->{//bmi
+
+            val pendingResult = Fitness.getConfigClient(mListener!!.context, GoogleSignIn.getLastSignedInAccount(mListener!!.context)!!).readDataType("bodygate.bcns.bodygation.bmi")
+            pendingResult.addOnSuccessListener(object : OnSuccessListener<DataType> {
+                override fun onSuccess(p0: DataType?) {
+                    dt = p0
+                }
+            })
+            }
+        }
+        return dt!!
+    }
     @SuppressLint("SimpleDateFormat")
     fun customdataLine(dataSet:DataSet?, i:Int):LineGraphSeries<DataPoint>?{
         if (dataSet != null) {
@@ -289,17 +318,17 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 when(i){
                     0->{//mouscle
                         m_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        mvalue.set(ia, dp.getValue(Field.FIELD_WEIGHT).toString().toDouble())
+                        mvalue.set(ia, dp.getValue(lineSub(dataSet, i).fields.get(0)).toString().toDouble())
                     }
                     1->{//fat
                         Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_CALORIES) + "type: " + dp.getValue(Field.FIELD_CALORIES).javaClass)
                         o_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        bvalue.set(ia, dp.getValue(Field.FIELD_CALORIES).toString().toDouble())
+                        bvalue.set(ia, dp.getValue(lineSub(dataSet, i).fields.get(0)).toString().toDouble())
                     }
                     2->{//bmi
                         Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_STEPS) + "type: " + dp.getValue(Field.FIELD_STEPS).javaClass)
                         b_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        fvalue.set(ia, dp.getValue(Field.FIELD_STEPS).toString().toDouble())
+                        fvalue.set(ia, dp.getValue(lineSub(dataSet, i).fields.get(0)).toString().toDouble())
                     }
                 }
                 ia += 1
@@ -314,7 +343,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             Log.i(TAG, "m_dAte value:" + m_dAte[e])
                             Log.i(TAG, "m_dAte point:" + m_dAte[e])
                             Log.i(TAG, "m_dAte value point:" + mvalue[e].toString())
-                            Log.i(TAG, "a point:" + e.toString())
+                            Log.i(TAG, "m point:" + e.toString())
                             mlist.add(DataPoint(e.toDouble(), mvalue[e]))
                             e +=1
                         }
@@ -326,7 +355,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             Log.i(TAG, "o_dAte value:" + o_dAte[a])
                             Log.i(TAG, "o_dAte point:" + o_dAte[a])
                             Log.i(TAG, "o_dAte value point:" + fvalue[a].toString())
-                            Log.i(TAG, "a point:" + a.toString())
+                            Log.i(TAG, "o point:" + a.toString())
                             flist.add(DataPoint(a.toDouble(), fvalue[a]))
                             a +=1
                         }
@@ -338,7 +367,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             Log.i(TAG, "b_dAte value:" + b_dAte[t])
                             Log.i(TAG, "b_dAte point:" + b_dAte[t])
                             Log.i(TAG, "b_dAte value point:" + bvalue[t].toString())
-                            Log.i(TAG, "a point:" + t.toString())
+                            Log.i(TAG, "b point:" + t.toString())
                             blist.add(DataPoint(t.toDouble(), bvalue[t]))
                             t +=1
                         }
@@ -365,6 +394,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         }
         return null
     }
+    @SuppressLint("SimpleDateFormat")
     fun lineGraph(dataSet:DataSet?):LineGraphSeries<DataPoint>?{
         if (dataSet != null) {
             Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName())
@@ -392,14 +422,14 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         evalue.set(i, dp.getValue(Field.FIELD_WEIGHT).toString().toDouble())
                     }
                     DataType.TYPE_CALORIES_EXPENDED->{
-                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_CALORIES) + "type: " + dp.getValue(Field.FIELD_CALORIES).javaClass)
+                        Log.i(TAG, " Value: " + dp.getValue(dp.dataType.fields.get(0)) + "type: " + dp.getValue(dp.dataType.fields.get(0)).javaClass)
                         a_dAte.set(i, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        avalue.set(i, dp.getValue(Field.FIELD_CALORIES).toString().toDouble())
+                        avalue.set(i, dp.getValue(dp.dataType.fields.get(0)).toString().toDouble())
                     }
                     DataType.TYPE_STEP_COUNT_DELTA->{
-                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_STEPS) + "type: " + dp.getValue(Field.FIELD_STEPS).javaClass)
+                        Log.i(TAG, " Value: " + dp.getValue(dp.dataType.fields.get(0)) + "type: " + dp.getValue(dp.dataType.fields.get(0)).javaClass)
                         t_dAte.set(i, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        tvalue.set(i, dp.getValue(Field.FIELD_STEPS).toString().toDouble())
+                        tvalue.set(i, dp.getValue(dp.dataType.fields.get(0)).toString().toDouble())
                     }
                 }
                 i += 1
@@ -414,7 +444,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             Log.i(TAG, "e_dAte value:" + e_dAte[e])
                             Log.i(TAG, "e_dAte point:" + e_dAte[e])
                             Log.i(TAG, "e_dAte value point:" + evalue[e].toString())
-                            Log.i(TAG, "a point:" + e.toString())
+                            Log.i(TAG, "e point:" + e.toString())
                             elist.add(DataPoint(e.toDouble(), evalue[e]))
                             e +=1
                         }
@@ -438,7 +468,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             Log.i(TAG, "t_dAte value:" + t_dAte[t])
                             Log.i(TAG, "t_dAte point:" + t_dAte[t])
                             Log.i(TAG, "t_dAte value point:" + tvalue[t].toString())
-                            Log.i(TAG, "a point:" + t.toString())
+                            Log.i(TAG, "t point:" + t.toString())
                             tlist.add(DataPoint(t.toDouble(), tvalue[t]))
                             t +=1
                         }
@@ -499,6 +529,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         var bmi_dateSET: DataSet?
         var weight_list:Array<DataPoint>?
         var bfp_list:Array<DataPoint>?
+        val context:Context
     }
 
     companion object {
