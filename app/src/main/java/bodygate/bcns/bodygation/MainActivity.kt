@@ -43,6 +43,7 @@ import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.Fitness.ConfigApi
 import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.FitnessStatusCodes
+import com.google.android.gms.fitness.HistoryApi
 import com.google.android.gms.fitness.data.*
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.DataTypeCreateRequest
@@ -71,6 +72,7 @@ import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.Response
 import java.io.IOException
 import java.text.DateFormat.getDateInstance
+import java.text.DateFormat.getTimeInstance
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -118,29 +120,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var data: MutableList<YoutubeResponse.Items>
         get() = preData
         set(value) {}
-    override var walk_dateSET: DataSet?
-        get() = walk_data
-        set(value) {}
-    override var calole_dateSET: DataSet?
-        get() = calore_data
-        set(value) {}
-    override var muscle_dateSET: DataSet?
-        get() = muscle_data
-        set(value) {}
-    override var bmi_dateSET: DataSet?
-        get() = bmi_data
-        set(value) {}
-    override var bfp_dateSET: DataSet?
-        get() = fat_data
-        set(value) {}
+    override var walk_dateSET: DataSet? = null
+    override var calole_dateSET: DataSet? = null
+    override var muscle_dateSET: DataSet? = null
+    override var bmi_dateSET: DataSet? = null
+    override var bfp_dateSET: DataSet? = null
+    override var weight_dateSET: DataSet? = null
 
     override var bfp_list: Array<com.jjoe64.graphview.series.DataPoint>?
         set(value) {}
         get() = arrayOf()
 
-    override var weight_dateSET: DataSet?
-        get() = weight_data
-        set(value) {}
 
     fun stopProgress(i:Int) {
         when(i) {
@@ -513,13 +503,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
         }
-        registerFitnessDataListener().start()
-        Log.i("pendingResult_" + "weight", weight_dateSET.toString())
-        Log.i("pendingResult_" + "muscle :", muscle_dateSET.toString())
-        Log.i("pendingResult_"+"fat :",  bfp_dateSET.toString())
-        Log.i("pendingResult_"+"bmi :",  bmi_dateSET.toString())
-        Log.i("pendingResult_"+"walk :" , walk_dateSET.toString())
-        Log.i("pendingResult_"+"bmr :", calole_dateSET.toString())
+        registerFitnessDataListener()
         getResultsFromApi()
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
     }
@@ -597,42 +581,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onSaveInstanceState(outState)
     }
 
-    fun printData(dataReadResult: DataReadResponse) {
-        // [START parse_read_data_result]
-        // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
-        // as buckets containing DataSets, instead of just DataSets.
-        if (dataReadResult.getDataSets().size > 0) {
-            Log.i(TAG, "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
-            for (dataSet in dataReadResult.getDataSets()) {
-                weight_dumpDataSet(dataSet)
-            }
-        }
-    }
-
-    fun weight_dumpDataSet(dataSet: DataSet) {
-        Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-        val dateFormat = getDateInstance()
-        when(dataSet.dataType){
-            DataType.TYPE_WEIGHT->{
-                weight_data = dataSet
-            }
-            DataType.TYPE_STEP_COUNT_DELTA->{
-                walk_data = dataSet
-            }
-            DataType.TYPE_CALORIES_EXPENDED->{
-                calore_data = dataSet
-            }
-        }
-        for (dp: DataPoint in dataSet.getDataPoints()) {
-            Log.i(TAG, "Data point:" + dp.toString())
-            Log.i(TAG, "Type: " + dp.getDataType().getName());
-            Log.i(TAG, "Start: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG, "End: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-            Log.i(TAG, "TimeStemp: " + dateFormat.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
-            Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_WEIGHT) + "type: " + dp.getValue(Field.FIELD_WEIGHT).javaClass)
-        }
-        Log.i(TAG, "list point:" + weight_list.toString())
-    }
    override fun makePersonalData() = launch(CommonPool) {
        val cal = Calendar.getInstance()
        val now = Date()
@@ -728,7 +676,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     @SuppressLint("RestrictedApi")
-    fun registerFitnessDataListener() = launch(CommonPool) {
+    fun registerFitnessDataListener(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -771,6 +719,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     Log.i("pendingResult", readDataResult.toString())
                     Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
                     bmi_dateSET =  readDataResult.getDataSet(p0.dataType)
+                    Log.i("pendingResult_"+"bmi :",  bmi_dateSET.toString())
                 }
             }
         })
@@ -806,6 +755,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     Log.i("pendingResult", readDataResult.toString())
                     Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
                     muscle_dateSET =  readDataResult.getDataSet(p0.dataType)
+                    Log.i("pendingResult_" + "muscle :", muscle_dateSET.toString())
                 }
             }
         })
@@ -841,23 +791,46 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     Log.i("pendingResult", readDataResult.toString())
                     Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
                     bfp_dateSET =  readDataResult.getDataSet(p0.dataType)
-                }
+                    Log.i("pendingResult_"+"fat :",  bfp_dateSET.toString())
+            }
             }
         })
         val response = Fitness.getHistoryClient(this@MainActivity, task!!)
                 .readData(DataReadRequest.Builder()
                         .read(DataType.TYPE_WEIGHT)
-                        .read(DataType.TYPE_CALORIES_EXPENDED)
-                        .read(DataType.TYPE_STEP_COUNT_DELTA)
+                        .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
+                        .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                        .bucketByTime(1, TimeUnit.DAYS)
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                         .build())
-        val readDataResult = Tasks.await(response)
-        launch(CommonPool) {
-        weight_dateSET = readDataResult.getDataSet(DataType.TYPE_WEIGHT)
-        walk_dateSET = readDataResult.getDataSet(DataType.TYPE_STEP_COUNT_DELTA)
-        calole_dateSET = readDataResult.getDataSet(DataType.TYPE_CALORIES_EXPENDED) }
+           launch(CommonPool) {
+                Log.i("pendingResult_"+"data :" , "launch")
+                val readDataResult = Tasks.await(response)
+                Log.i("pendingResult_"+"data :" , "readDataResult")
+            weight_dateSET = readDataResult.getDataSet(DataType.TYPE_WEIGHT)
+                Log.i("pendingResult_"+"data :" , "weight_dateSET")
+            walk_dateSET = readDataResult.getDataSet(DataType.TYPE_STEP_COUNT_DELTA)
+                Log.i("pendingResult_"+"data :" , "walk_dateSET")
+            calole_dateSET = readDataResult.getDataSet(DataType.TYPE_CALORIES_EXPENDED)
+                Log.i("pendingResult_"+"data :" , "calole_dateSET")
+            Log.i("pendingResult_"+"walk :" , walk_dateSET.toString())
+            Log.i("pendingResult_"+"bmr :", calole_dateSET.toString())
+            Log.i("pendingResult_" + "weight", weight_dateSET.toString())}
     }
+private fun dumpDataSet(dataSet:DataSet) {
+  Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
+  val dateFormat = getTimeInstance();
 
+  for ( dp :DataPoint in dataSet.getDataPoints()) {
+    Log.i(TAG, "Data point:");
+    Log.i(TAG, "\tType: " + dp.getDataType().getName());
+    Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+    Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+    for ( field : Field in dp.getDataType().getFields()) {
+      Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
+    }
+  }
+}
     override fun onConnectionFailed(result: ConnectionResult) {
         Log.i(TAG, "onConnectionFailed")
         // Error while connecting. Try to resolve using the pending intent returned.
