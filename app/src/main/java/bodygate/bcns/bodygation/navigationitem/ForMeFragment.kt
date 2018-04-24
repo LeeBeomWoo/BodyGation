@@ -310,11 +310,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             val flist = ArrayList<DataPoint>(siz)
             var ia = 0
             for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
-                Log.i(TAG, "Data point:" + dp.toString())
-                Log.i(TAG, "Type: " + dp.getDataType().getName());
-                Log.i(TAG, "Start: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-                Log.i(TAG, "End: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-                Log.i(TAG, "TimeStemp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
+                Log.i(TAG, "Data point:" + dp.toString() + "\nType: " + dp.getDataType().getName() + "\nStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + "\nEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + "\nTimeStemp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "\ntype: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
                 when(i){
                     0->{//mouscle
                         m_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
@@ -408,35 +404,35 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             val elist = ArrayList<DataPoint>(siz)
             val alist = ArrayList<DataPoint>(siz)
             val tlist = ArrayList<DataPoint>(siz)
-            var i = 0
-            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
-                Log.i(TAG, "Data point:" + dp.toString())
-                Log.i(TAG, "Type: " + dp.getDataType().getName());
-                Log.i(TAG, "Start: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-                Log.i(TAG, "End: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-                Log.i(TAG, "TimeStemp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
-                when(dataSet.dataType){
-                    DataType.TYPE_WEIGHT->{
-                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_WEIGHT) + "type: " + dp.getValue(Field.FIELD_WEIGHT).javaClass)
-                        e_dAte.set(i, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        evalue.set(i, dp.getValue(Field.FIELD_WEIGHT).toString().toDouble())
-                    }
-                    DataType.TYPE_CALORIES_EXPENDED->{
-                        Log.i(TAG, " Value: " + dp.getValue(dp.dataType.fields.get(0)) + "type: " + dp.getValue(dp.dataType.fields.get(0)).javaClass)
-                        a_dAte.set(i, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        avalue.set(i, dp.getValue(dp.dataType.fields.get(0)).toString().toDouble())
-                    }
-                    DataType.TYPE_STEP_COUNT_DELTA->{
-                        Log.i(TAG, " Value: " + dp.getValue(dp.dataType.fields.get(0)) + "type: " + dp.getValue(dp.dataType.fields.get(0)).javaClass)
-                        t_dAte.set(i, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        tvalue.set(i, dp.getValue(dp.dataType.fields.get(0)).toString().toDouble())
-                    }
-                }
-                i += 1
-            }
             var e = 0
             var a = 0
             var t = 0
+            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
+                Log.i(TAG, "Data point:" + dp.toString() + "\nType: " + dp.getDataType().getName() + "\nStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + "\nEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + "\nTimeStemp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "\ntype: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
+                when(dataSet.dataType){
+                    DataType.TYPE_WEIGHT->{
+                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_WEIGHT) + "type: " + dp.getValue(Field.FIELD_WEIGHT).javaClass)
+                        e_dAte.set(e, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        evalue.set(e, dp.getValue(Field.FIELD_WEIGHT).toString().toDouble())
+                        e +=1
+                    }
+                    DataType.TYPE_CALORIES_EXPENDED->{
+                        Log.i(TAG, " Value: " + dp.getValue(dp.dataType.fields.get(0)) + "type: " + dp.getValue(dp.dataType.fields.get(0)).javaClass)
+                        a_dAte.set(a, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        avalue.set(a, dp.getValue(dp.dataType.fields.get(0)).toString().toDouble())
+                        a +=1
+                    }
+                    DataType.TYPE_STEP_COUNT_DELTA->{
+                        Log.i(TAG, " Value: " + dp.getValue(dp.dataType.fields.get(0)) + "type: " + dp.getValue(dp.dataType.fields.get(0)).javaClass)
+                        t_dAte.set(t, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        tvalue.set(t, dp.getValue(dp.dataType.fields.get(0)).toString().toDouble())
+                        t +=1
+                    }
+                }
+            }
+            e = 0
+            a = 0
+            t = 0
             when(dataSet.dataType){
                 DataType.TYPE_WEIGHT->{
                     if(e_dAte.size > 1) {

@@ -806,40 +806,24 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                            .build())
            val readDataResult = Tasks.await(response)
-           Log.i("pendingResult_" + "size", readDataResult.dataSets.size.toString())
+           Log.i("pendingResult_" + "weight", readDataResult.dataSets.size.toString())
            weight_dateSET = readDataResult.dataSets.get(0)
            Log.i("pendingResult_" + "weight", weight_dateSET.toString())
        }
-            val response_ag = DataReadRequest.Builder()
-                            .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
-                            .bucketByTime(1, TimeUnit.DAYS)
-                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                            .build()
+        launch {
+            val response_a = DataReadRequest.Builder()
+                    .read(DataType.TYPE_STEP_COUNT_DELTA)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build()
             Log.i("pendingResult_" + "data", "launch")
-            Fitness.HistoryApi.readData(mFitnessClient, response_ag).setResultCallback(object :ResultCallback<DataReadResult>{
+            Fitness.HistoryApi.readData(mFitnessClient, response_a).setResultCallback(object :ResultCallback<DataReadResult>{
                 override fun onResult(p0: DataReadResult) {
-                    if (p0.getBuckets().size > 0) {
-                        for (bucket :Bucket in p0.getBuckets()) {
-                        val dataSets = bucket.getDataSets();
-                        for (dataSet:DataSet in dataSets) {
-                        for ( dp:DataPoint in dataSet.getDataPoints()) {
-                        describeDataPoint(dp, label);
-                    }
-                    }
-                    }
-                    } else if (p0.getDataSets().size > 0) {
-                        for (dataSet : DataSet in p0.getDataSets()) {
-                        for ( dp :DataPoint in dataSet.getDataPoints()) {
-                        describeDataPoint(dp, label);
-                    }
-                    }
-                    }
                     walk_dateSET = p0.dataSets.get(0)
                     Log.i("pendingResult_" + "data", "walk_dateSET")
+                    Log.i("pendingResult_"+"walk :" , p0.dataSets.size.toString())
                     Log.i("pendingResult_"+"walk :" , walk_dateSET.toString())
                 }
-            })
-
+            })  }
         launch {
             val response_ag = DataReadRequest.Builder()
                         .read(DataType.TYPE_CALORIES_EXPENDED)
@@ -850,6 +834,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 override fun onResult(p0: DataReadResult) {
                     calole_dateSET = p0.dataSets.get(0)
                     Log.i("pendingResult_" + "data", "calole_dateSET")
+                    Log.i("pendingResult_"+"bmr :" , p0.dataSets.size.toString())
                     Log.i("pendingResult_"+"bmr :" , calole_dateSET.toString())
                 }
             })  }
