@@ -50,6 +50,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     kal_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked)
                     bfp_Btn.setChecked(!check)
+                if (muscle_Btn.isChecked)
+                    muscle_Btn.setChecked(!check)
+                if (bmi_Btn.isChecked)
+                    bmi_Btn.setChecked(!check)
                 if (weight_Btn.isChecked){
                     async(UI) {graphSet(0)}
                 }
@@ -62,6 +66,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     kal_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked)
                     bfp_Btn.setChecked(!check)
+                if (muscle_Btn.isChecked)
+                    muscle_Btn.setChecked(!check)
+                if (bmi_Btn.isChecked)
+                    bmi_Btn.setChecked(!check)
                 if (walk_Btn.isChecked){
                     async(UI) {graphSet(1)}
                 }
@@ -74,6 +82,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     weight_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked)
                     bfp_Btn.setChecked(!check)
+                if (muscle_Btn.isChecked)
+                    muscle_Btn.setChecked(!check)
+                if (bmi_Btn.isChecked)
+                    bmi_Btn.setChecked(!check)
                 if (kal_Btn.isChecked){
                     async(UI) {graphSet(2)}
                 }
@@ -86,32 +98,44 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     weight_Btn.setChecked(!check)
                 if (kal_Btn.isChecked)
                     kal_Btn.setChecked(!check)
+                if (muscle_Btn.isChecked)
+                    muscle_Btn.setChecked(!check)
+                if (bmi_Btn.isChecked)
+                    bmi_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked){
                     async(UI) {graphSet(3)}
                 }
             }
             R.id.bmi_Btn -> {
-                bfp_Btn.setChecked(check)
+                bmi_Btn.setChecked(check)
                 if (walk_Btn.isChecked)
                     walk_Btn.setChecked(!check)
                 if (weight_Btn.isChecked)
                     weight_Btn.setChecked(!check)
                 if (kal_Btn.isChecked)
                     kal_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked){
-                    async(UI) {graphSet(3)}
+                if (bfp_Btn.isChecked)
+                    bfp_Btn.setChecked(!check)
+                if (muscle_Btn.isChecked)
+                    muscle_Btn.setChecked(!check)
+                if (bmi_Btn.isChecked){
+                    async(UI) {graphSet(5)}
                 }
             }
             R.id.muscle_Btn -> {
-                bfp_Btn.setChecked(check)
+                muscle_Btn.setChecked(check)
                 if (walk_Btn.isChecked)
                     walk_Btn.setChecked(!check)
                 if (weight_Btn.isChecked)
                     weight_Btn.setChecked(!check)
                 if (kal_Btn.isChecked)
                     kal_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked){
-                    async(UI) {graphSet(3)}
+                if (bfp_Btn.isChecked)
+                    bfp_Btn.setChecked(!check)
+                if (bmi_Btn.isChecked)
+                    bmi_Btn.setChecked(!check)
+                if (muscle_Btn.isChecked){
+                    async(UI) {graphSet(4)}
                 }
             }
         }
@@ -126,12 +150,12 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     val TAG = "ForMeFragment_"
     var height = 0.0
     var width = 0.0
-    var e_dAte = Array<String>(0){"it = \$it"}
-    var o_dAte = Array<String>(0){"it = \$it"}
-    var a_dAte = Array<String>(0){"it = \$it"}
-    var t_dAte = Array<String>(0){"it = \$it"}
-    var m_dAte = Array<String>(0){"it = \$it"}
-    var b_dAte = Array<String>(0){"it = \$it"}
+    var e_dAte = Array<String>(0){"it = \$it"} //체중
+    var a_dAte = Array<String>(0){"it = \$it"} //kcal
+    var t_dAte = Array<String>(0){"it = \$it"} // 걷기
+    var o_dAte = Array<String>(0){"it = \$it"} // fat
+    var m_dAte = Array<String>(0){"it = \$it"} //muscle
+    var b_dAte = Array<String>(0){"it = \$it"} //bmr
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -153,12 +177,15 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         kal_Btn.setOnCheckedChangeListener(this)
         walk_Btn.setOnCheckedChangeListener(this)
         bfp_Btn.setOnCheckedChangeListener(this)
+        bmi_Btn.setOnCheckedChangeListener(this)
+        muscle_Btn.setOnCheckedChangeListener(this)
     }
     fun graphSet(p:Int){
         graph.removeAllSeries()
         when(p){
             0->{//체중
                 graph.title = getString(R.string.weight)
+                mListener!!.weight_dateSET
                 if(mListener!!.weight_dateSET == null){
                     Log.i(TAG, "체중자료 없음")
                 }
@@ -168,7 +195,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
                 graph.gridLabelRenderer.setHumanRounding(false)
                 graph.getGridLabelRenderer().setNumHorizontalLabels(3)
-                graph.viewport.isScalable = true
+                graph.viewport.setScalable(true)
             }
             1->{//걷기
                 if(mListener!!.walk_dateSET == null){
@@ -181,7 +208,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
                 graph.gridLabelRenderer.setHumanRounding(false)
                 graph.getGridLabelRenderer().setNumHorizontalLabels(3)
-                graph.viewport.isScalable = true
+                graph.viewport.setScalable(true)
             }
             2->{//칼로리
                 if(mListener!!.calole_dateSET == null){
@@ -194,53 +221,150 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
                 graph.gridLabelRenderer.setHumanRounding(false)
                 graph.getGridLabelRenderer().setNumHorizontalLabels(3)
-                graph.viewport.isScalable = true
+                graph.viewport.setScalable(true)
             }
             3->{//체지방비율
                 if(mListener!!.bfp_dateSET == null){
                     Log.i(TAG, "체지방비율 없음")
                 }
                 graph.title = getString(R.string.bodyfat)
-                graph.addSeries(lineGraph(mListener!!.bfp_dateSET))
+                graph.addSeries(customdataLine(mListener!!.bfp_dateSET, 1))
                 val labelhorizon = StaticLabelsFormatter(graph)
                 labelhorizon.setHorizontalLabels(t_dAte)
                 graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
                 graph.gridLabelRenderer.setHumanRounding(false)
                 graph.getGridLabelRenderer().setNumHorizontalLabels(3)
-                graph.viewport.isScalable = true
+                graph.viewport.setScalable(true)
             }
             4->{//골격근
                 if(mListener!!.muscle_dateSET == null){
                     Log.i(TAG, "골격근 없음")
                 }
                 graph.title = getString(R.string.musclemass)
-                graph.addSeries(lineGraph(mListener!!.muscle_dateSET))
+                graph.addSeries(customdataLine(mListener!!.muscle_dateSET, 0))
                 val labelhorizon = StaticLabelsFormatter(graph)
                 labelhorizon.setHorizontalLabels(m_dAte)
                 graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
                 graph.gridLabelRenderer.setHumanRounding(false)
                 graph.getGridLabelRenderer().setNumHorizontalLabels(3)
-                graph.viewport.isScalable = true
+                graph.viewport.setScalable(true)
             }
-            4->{//BMI
+            5->{//BMI
                 if(mListener!!.bmi_dateSET == null){
                     Log.i(TAG, "BMI 없음")
                 }
-                graph.title = getString(R.string.musclemass)
-                graph.addSeries(lineGraph(mListener!!.bmi_dateSET))
+                graph.title = getString(R.string.bmi)
+                graph.addSeries(customdataLine(mListener!!.bmi_dateSET, 2))
                 val labelhorizon = StaticLabelsFormatter(graph)
                 labelhorizon.setHorizontalLabels(b_dAte)
                 graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
                 graph.gridLabelRenderer.setHumanRounding(false)
                 graph.getGridLabelRenderer().setNumHorizontalLabels(3)
-                graph.viewport.isScalable = true
+                graph.viewport.setScalable(true)
             }
         }
         graph.onDataChanged(true, true)
-
     }
     @SuppressLint("SimpleDateFormat")
-// TODO: Rename method, update argument and hook method into UI event
+    fun customdataLine(dataSet:DataSet?, i:Int):LineGraphSeries<DataPoint>?{
+        if (dataSet != null) {
+            Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName())
+            val label = SimpleDateFormat("MM/dd")
+            val siz = dataSet.dataPoints.size
+            val mvalue = DoubleArray(siz)
+            val bvalue = DoubleArray(siz)
+            val fvalue = DoubleArray(siz)
+            Log.i(TAG, "Data size:" + dataSet.dataPoints.size.toString())
+            m_dAte = Array<String>(siz){"it = \$it"}
+            val mlist = ArrayList<DataPoint>(siz)
+            val blist = ArrayList<DataPoint>(siz)
+            val flist = ArrayList<DataPoint>(siz)
+            var ia = 0
+            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
+                Log.i(TAG, "Data point:" + dp.toString())
+                Log.i(TAG, "Type: " + dp.getDataType().getName());
+                Log.i(TAG, "Start: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+                Log.i(TAG, "End: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+                Log.i(TAG, "TimeStemp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "type: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
+                when(i){
+                    0->{//mouscle
+                        m_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        mvalue.set(ia, dp.getValue(Field.FIELD_WEIGHT).toString().toDouble())
+                    }
+                    1->{//fat
+                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_CALORIES) + "type: " + dp.getValue(Field.FIELD_CALORIES).javaClass)
+                        o_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        bvalue.set(ia, dp.getValue(Field.FIELD_CALORIES).toString().toDouble())
+                    }
+                    2->{//bmi
+                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_STEPS) + "type: " + dp.getValue(Field.FIELD_STEPS).javaClass)
+                        b_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        fvalue.set(ia, dp.getValue(Field.FIELD_STEPS).toString().toDouble())
+                    }
+                }
+                ia += 1
+            }
+            var e = 0
+            var a = 0
+            var t = 0
+            when(i){
+                0->{//mouscle
+                    if(m_dAte.size > 1) {
+                        m_dAte.forEach {
+                            Log.i(TAG, "m_dAte value:" + m_dAte[e])
+                            Log.i(TAG, "m_dAte point:" + m_dAte[e])
+                            Log.i(TAG, "m_dAte value point:" + mvalue[e].toString())
+                            Log.i(TAG, "a point:" + e.toString())
+                            mlist.add(DataPoint(e.toDouble(), mvalue[e]))
+                            e +=1
+                        }
+                    }
+                }
+                1->{//fat
+                    if(o_dAte.size > 1) {
+                        o_dAte.forEach {
+                            Log.i(TAG, "o_dAte value:" + o_dAte[a])
+                            Log.i(TAG, "o_dAte point:" + o_dAte[a])
+                            Log.i(TAG, "o_dAte value point:" + fvalue[a].toString())
+                            Log.i(TAG, "a point:" + a.toString())
+                            flist.add(DataPoint(a.toDouble(), fvalue[a]))
+                            a +=1
+                        }
+                    }
+                }
+                2->{//bmi
+                    if(b_dAte.size > 1) {
+                        b_dAte.forEach {
+                            Log.i(TAG, "b_dAte value:" + b_dAte[t])
+                            Log.i(TAG, "b_dAte point:" + b_dAte[t])
+                            Log.i(TAG, "b_dAte value point:" + bvalue[t].toString())
+                            Log.i(TAG, "a point:" + t.toString())
+                            blist.add(DataPoint(t.toDouble(), bvalue[t]))
+                            t +=1
+                        }
+                    }
+                }
+            }
+            when(i){
+                0->{//muscle
+                    val series = LineGraphSeries<DataPoint>(mlist.toTypedArray())
+                    series.setColor(Color.BLUE)
+                    return series
+                }
+                1->{//fat
+                    val series = LineGraphSeries<DataPoint>(flist.toTypedArray())
+                    series.setColor(Color.YELLOW)
+                    return series
+                }
+                2->{//bmi
+                    val series = LineGraphSeries<DataPoint>(blist.toTypedArray())
+                    series.setColor(Color.MAGENTA)
+                    return series
+                }
+            }
+        }
+        return null
+    }
     fun lineGraph(dataSet:DataSet?):LineGraphSeries<DataPoint>?{
         if (dataSet != null) {
             Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName())
@@ -267,12 +391,12 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         e_dAte.set(i, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
                         evalue.set(i, dp.getValue(Field.FIELD_WEIGHT).toString().toDouble())
                     }
-                    DataType.AGGREGATE_CALORIES_EXPENDED->{
+                    DataType.TYPE_CALORIES_EXPENDED->{
                         Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_CALORIES) + "type: " + dp.getValue(Field.FIELD_CALORIES).javaClass)
                         a_dAte.set(i, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
                         avalue.set(i, dp.getValue(Field.FIELD_CALORIES).toString().toDouble())
                     }
-                    DataType.AGGREGATE_STEP_COUNT_DELTA->{
+                    DataType.TYPE_STEP_COUNT_DELTA->{
                         Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_STEPS) + "type: " + dp.getValue(Field.FIELD_STEPS).javaClass)
                         t_dAte.set(i, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
                         tvalue.set(i, dp.getValue(Field.FIELD_STEPS).toString().toDouble())
@@ -287,33 +411,33 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 DataType.TYPE_WEIGHT->{
                     if(e_dAte.size > 1) {
                         e_dAte.forEach {
-                            Log.i(TAG, "dAte value:" + e_dAte[e])
-                            Log.i(TAG, "dAte point:" + e_dAte[e])
-                            Log.i(TAG, "value point:" + evalue[e].toString())
+                            Log.i(TAG, "e_dAte value:" + e_dAte[e])
+                            Log.i(TAG, "e_dAte point:" + e_dAte[e])
+                            Log.i(TAG, "e_dAte value point:" + evalue[e].toString())
                             Log.i(TAG, "a point:" + e.toString())
                             elist.add(DataPoint(e.toDouble(), evalue[e]))
                             e +=1
                         }
                     }
                 }
-                DataType.AGGREGATE_CALORIES_EXPENDED->{
+                DataType.TYPE_CALORIES_EXPENDED->{
                     if(a_dAte.size > 1) {
                         a_dAte.forEach {
-                            Log.i(TAG, "dAte value:" + a_dAte[a])
-                            Log.i(TAG, "dAte point:" + a_dAte[a])
-                            Log.i(TAG, "value point:" + avalue[a].toString())
+                            Log.i(TAG, "a_dAte value:" + a_dAte[a])
+                            Log.i(TAG, "a_dAte point:" + a_dAte[a])
+                            Log.i(TAG, "a_dAte value point:" + avalue[a].toString())
                             Log.i(TAG, "a point:" + a.toString())
                             alist.add(DataPoint(a.toDouble(), avalue[a]))
                             a +=1
                         }
                     }
                 }
-                DataType.AGGREGATE_STEP_COUNT_DELTA->{
+                DataType.TYPE_STEP_COUNT_DELTA->{
                     if(t_dAte.size > 1) {
                         t_dAte.forEach {
-                            Log.i(TAG, "dAte value:" + t_dAte[t])
-                            Log.i(TAG, "dAte point:" + t_dAte[t])
-                            Log.i(TAG, "value point:" + tvalue[t].toString())
+                            Log.i(TAG, "t_dAte value:" + t_dAte[t])
+                            Log.i(TAG, "t_dAte point:" + t_dAte[t])
+                            Log.i(TAG, "t_dAte value point:" + tvalue[t].toString())
                             Log.i(TAG, "a point:" + t.toString())
                             tlist.add(DataPoint(t.toDouble(), tvalue[t]))
                             t +=1
@@ -327,12 +451,12 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     series.setColor(Color.GREEN)
                     return series
                 }
-                DataType.AGGREGATE_CALORIES_EXPENDED->{
+                DataType.TYPE_CALORIES_EXPENDED->{
                     val series = LineGraphSeries<DataPoint>(alist.toTypedArray())
                     series.setColor(Color.RED)
                     return series
                 }
-                DataType.AGGREGATE_STEP_COUNT_DELTA->{
+                DataType.TYPE_STEP_COUNT_DELTA->{
                     val series = LineGraphSeries<DataPoint>(tlist.toTypedArray())
                     series.setColor(Color.DKGRAY)
                     return series
