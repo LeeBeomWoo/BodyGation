@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.support.v4.content.ContextCompat.startActivity
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -83,7 +84,7 @@ class YoutubeResultListViewAdapter(var mValues: MutableList<YoutubeResponse.Item
 // To pass any data to next activity
         intent.putExtra("url", p)
 // start your next activity
-        context.startActivity(intent)
+        startActivity(context, intent, null)
     }
     inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
         val ytThubnailView: YouTubeThumbnailView

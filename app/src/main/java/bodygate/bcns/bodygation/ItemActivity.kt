@@ -46,9 +46,8 @@ class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionList
                 (3).toFloat(),    // Design FontScale
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_item)
-        val intent = intent
         url = intent.getStringExtra("url")
-        supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url), "your_fragment").commit()
+        supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url)).commit()
         if (android.provider.Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) != 1){
            setAutoOrientationEnabled(this, true);
         }

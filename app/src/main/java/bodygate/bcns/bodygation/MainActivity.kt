@@ -100,7 +100,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
     var weight_data: DataSet? = null
-    var bfp_data: DataSet? = null
     var walk_data: DataSet? = null
     var calore_data: DataSet? = null
     var muscle_data: DataSet? = null
@@ -130,6 +129,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         set(value) {}
     override var bmi_dateSET: DataSet?
         get() = bmi_data
+        set(value) {}
+    override var bfp_dateSET: DataSet?
+        get() = fat_data
+        set(value) {}
+
+    override var bfp_list: Array<com.jjoe64.graphview.series.DataPoint>?
+        set(value) {}
+        get() = arrayOf()
+
+    override var weight_dateSET: DataSet?
+        get() = weight_data
         set(value) {}
 
     fun stopProgress(i:Int) {
@@ -225,7 +235,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         }
                     }
                 }
-            stopProgress(section)
+            launch(UI) {stopProgress(section)}
             }
     }
     suspend fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
@@ -278,18 +288,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnYoutubeResultInteraction(){
 
     }
-
-    override var bfp_dateSET: DataSet?
-        get() = bfp_data
-        set(value) {}
-
-    override var bfp_list: Array<com.jjoe64.graphview.series.DataPoint>?
-        set(value) {}
-        get() = arrayOf()
-
-    override var weight_dateSET: DataSet?
-        get() = weight_data
-        set(value) {}
 
     override var weight_list: Array<com.jjoe64.graphview.series.DataPoint>?
         set(value) {}
@@ -516,6 +514,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     fitnessOptions)
         }
         registerFitnessDataListener().start()
+        Log.i("pendingResult_" + "weight", weight_dateSET.toString())
+        Log.i("pendingResult_" + "muscle :", muscle_dateSET.toString())
+        Log.i("pendingResult_"+"fat :",  bfp_dateSET.toString())
+        Log.i("pendingResult_"+"bmi :",  bmi_dateSET.toString())
+        Log.i("pendingResult_"+"walk :" , walk_dateSET.toString())
+        Log.i("pendingResult_"+"bmr :", calole_dateSET.toString())
         getResultsFromApi()
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
     }
@@ -766,7 +770,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     val readDataResult = Tasks.await(response_second)
                     Log.i("pendingResult", readDataResult.toString())
                     Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
-                    bmi_data =  readDataResult.getDataSet(p0.dataType)
+                    bmi_dateSET =  readDataResult.getDataSet(p0.dataType)
                 }
             }
         })
@@ -801,7 +805,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     val readDataResult = Tasks.await(response_second)
                     Log.i("pendingResult", readDataResult.toString())
                     Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
-                    muscle_data =  readDataResult.getDataSet(p0.dataType)
+                    muscle_dateSET =  readDataResult.getDataSet(p0.dataType)
                 }
             }
         })
@@ -836,7 +840,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     val readDataResult = Tasks.await(response_second)
                     Log.i("pendingResult", readDataResult.toString())
                     Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
-                    fat_data =  readDataResult.getDataSet(p0.dataType)
+                    bfp_dateSET =  readDataResult.getDataSet(p0.dataType)
                 }
             }
         })
@@ -848,16 +852,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                         .build())
         val readDataResult = Tasks.await(response)
-        launch(UI) {
-        weight_data = readDataResult.getDataSet(DataType.TYPE_WEIGHT)
-        walk_data = readDataResult.getDataSet(DataType.TYPE_STEP_COUNT_DELTA)
-        calore_data = readDataResult.getDataSet(DataType.TYPE_CALORIES_EXPENDED)
-        Log.i("pendingResult_" + "dataSet", weight_data.toString())
-        Log.i("pendingResult_" + "muscle :", muscle_data.toString())
-        Log.i("pendingResult_"+"fat :",  fat_data.toString())
-        Log.i("pendingResult_"+"bmi :",  bmi_data.toString())
-        Log.i("pendingResult_"+"walk :" , walk_data.toString())
-        Log.i("pendingResult_"+"bmr :", calore_data.toString()) }
+        launch(CommonPool) {
+        weight_dateSET = readDataResult.getDataSet(DataType.TYPE_WEIGHT)
+        walk_dateSET = readDataResult.getDataSet(DataType.TYPE_STEP_COUNT_DELTA)
+        calole_dateSET = readDataResult.getDataSet(DataType.TYPE_CALORIES_EXPENDED) }
     }
 
     override fun onConnectionFailed(result: ConnectionResult) {
