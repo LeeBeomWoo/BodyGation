@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentSender
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.AsyncTask
@@ -59,6 +60,7 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTubeScopes
+import com.jjoe64.graphview.series.LineGraphSeries
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_follow.*
@@ -85,6 +87,7 @@ import kotlin.collections.ArrayList
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction {
 
+
     private val PREF_ACCOUNT_NAME = "accountName"
     private var mOutputText: TextView? = null;
     val REQUEST_ACCOUNT_PICKER = 1000
@@ -104,12 +107,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val REQUEST_OAUTH_REQUEST_CODE = 1
-    var weight_data: DataSet? = null
-    var walk_data: DataSet? = null
-    var calore_data: DataSet? = null
-    var muscle_data: DataSet? = null
-    var bmi_data: DataSet? = null
-    var fat_data: DataSet? = null
     var page = ""
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
@@ -123,18 +120,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var data: MutableList<YoutubeResponse.Items>
         get() = preData
         set(value) {}
-    override var walk_dateSET: DataSet? = null
-    override var calole_dateSET: DataSet? = null
-    override var muscle_dateSET: DataSet? = null
-    override var bmi_dateSET: DataSet? = null
-    override var bfp_dateSET: DataSet? = null
-    override var weight_dateSET: DataSet? = null
-
-    override var bfp_list: Array<com.jjoe64.graphview.series.DataPoint>?
-        set(value) {}
-        get() = arrayOf()
-
-
+    override var kcalResponse: DataReadResponse? = null
+    override var walkResponse: DataReadResponse? = null
+    override var readResponse: DataReadResponse? = null
+    override var muscleResponse: DataReadResponse? = null
+    override var fatResponse: DataReadResponse? = null
+    override var bmiResponse: DataReadResponse? = null
     fun stopProgress(i:Int) {
         when(i) {
            3-> if (mPb!!.isShowing) {
@@ -281,10 +272,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnYoutubeResultInteraction(){
 
     }
-
-    override var weight_list: Array<com.jjoe64.graphview.series.DataPoint>?
-        set(value) {}
-        get() = arrayOf()
 
     override fun writeToParcel(p0: Parcel?, p1: Int) {
     }
@@ -480,11 +467,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             navigation.selectedItemId = navigation_follow
         }
         val fitnessOptions = FitnessOptions.builder()
-                .addDataType(DataType.TYPE_WEIGHT)
-                .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE)
-                .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE)
-                .addDataType(DataType.TYPE_CALORIES_EXPENDED)
-                .addDataType(DataType.TYPE_STEP_COUNT_DELTA)
+                .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
                 .build()
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
@@ -684,7 +673,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
-        cal.set(2000, 1, 1)
+        cal.set(2018, 1, 1)
         val startTime = cal.timeInMillis
         Log.i(TAG, "Range Start: " + startTime.toString())
         Log.i(TAG, "Range End: " + endTime.toString())
@@ -719,11 +708,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                                     .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                                     .build())
                 launch(CommonPool) {
-                    val readDataResult = Tasks.await(response_second)
-                    Log.i("pendingResult", readDataResult.toString())
-                    Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
-                    bmi_dateSET =  readDataResult.getDataSet(p0.dataType)
-                    Log.i("pendingResult_"+"bmi :",  bmi_dateSET.toString())
+                    bmiResponse = Tasks.await(response_second)
                 }
             }
         })
@@ -755,11 +740,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                                 .build())
                 launch(CommonPool) {
-                    val readDataResult = Tasks.await(response_second)
-                    Log.i("pendingResult", readDataResult.toString())
-                    Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
-                    muscle_dateSET =  readDataResult.getDataSet(p0.dataType)
-                    Log.i("pendingResult_" + "muscle :", muscle_dateSET.toString())
+                    muscleResponse = Tasks.await(response_second)
                 }
             }
         })
@@ -791,11 +772,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                                 .build())
                 launch(CommonPool) {
-                    val readDataResult = Tasks.await(response_second)
-                    Log.i("pendingResult", readDataResult.toString())
-                    Log.i("pendingResult", readDataResult.getDataSet(p0.dataType).toString())
-                    bfp_dateSET =  readDataResult.getDataSet(p0.dataType)
-                    Log.i("pendingResult_"+"fat :",  bfp_dateSET.toString())
+                    fatResponse = Tasks.await(response_second)
             }
             }
         })
@@ -805,58 +782,42 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                            .read(DataType.TYPE_WEIGHT)
                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                            .build())
-           val readDataResult = Tasks.await(response)
-           Log.i("pendingResult_" + "weight", readDataResult.dataSets.size.toString())
-           weight_dateSET = readDataResult.getDataSet(DataType.TYPE_WEIGHT)
-           Log.i("pendingResult_" + "weight", weight_dateSET.toString())
+           readResponse = Tasks.await(response)
        }
         launch {
-            val response_a = DataReadRequest.Builder()
-                    .read(DataType.TYPE_STEP_COUNT_DELTA)
+            val ds = DataSource.Builder()
+                    .setAppPackageName("com.google.android.gms")
+                    .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
+                    .setType(DataSource.TYPE_DERIVED)
+                    .setStreamName("estimated_steps")
+                    .build()
+            val response_ds = DataReadRequest.Builder()
+                    .aggregate(ds, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                    .bucketByTime(1, TimeUnit.DAYS)
                     .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                     .build()
-            Log.i("pendingResult_" + "data", "launch")
-            Fitness.HistoryApi.readData(mFitnessClient, response_a).setResultCallback(object :ResultCallback<DataReadResult>{
-                override fun onResult(p0: DataReadResult) {
-                    val satuts = p0.status
-                    if(satuts.isSuccess){
-                    walk_dateSET = p0.getDataSet(DataType.TYPE_STEP_COUNT_DELTA)
-                    Log.i("pendingResult_" + "data", "walk_dateSET")
-                    Log.i("pendingResult_"+"walk" , p0.dataSets.size.toString())
-                    Log.i("pendingResult_"+"walk" , walk_dateSET.toString())
-                    }else{
-                        Log.i("pendingResult_" + "error", "statusCode:" + satuts.getStatusCode() + ",message:" + satuts.getStatusMessage());
-                    }
-                }
-            })  }
-        launch {
-            val response_ag = DataReadRequest.Builder()
-                        .read(DataType.TYPE_CALORIES_EXPENDED)
-                        .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                        .build()
-            Log.i("pendingResult_" + "data", "launch")
-            Fitness.HistoryApi.readData(mFitnessClient, response_ag).setResultCallback(object :ResultCallback<DataReadResult>{
-                override fun onResult(p0: DataReadResult) {
-                    val satuts = p0.status
-                    if(satuts.isSuccess){
-                    calole_dateSET = p0.getDataSet(DataType.TYPE_CALORIES_EXPENDED)
-                    Log.i("pendingResult_" + "data", "calole_dateSET")
-                    Log.i("pendingResult_"+"bmr :" , p0.dataSets.size.toString())
-                    Log.i("pendingResult_"+"bmr :" , calole_dateSET.toString())
-                    }else{
-                        Log.i("pendingResult_" + "error", "statusCode:" + satuts.getStatusCode() + ",message:" + satuts.getStatusMessage());
-                    }
-                }
-            })  }
-    }
-     fun describeDataPoint(dp:DataPoint, dateFormat: DateFormat) {
-        var msg = "dataPoint: " + "type: " + dp.getDataType().getName() +"\n"+ ", range: [" + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + "-" + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + "]\n"+ ", fields: [";
-         for( field :Field in dp.getDataType().getFields()) {
-            msg += field.getName() + "=" + dp.getValue(field) + " ";
+            val sss = Fitness.getHistoryClient(this@MainActivity, task!!)
+                    .readData(response_ds)
+            walkResponse = Tasks.await(sss)
+
+            val dc = DataSource.Builder()
+                    .setAppPackageName("com.google.android.gms")
+                    .setDataType(DataType.TYPE_CALORIES_EXPENDED)
+                    .setType(DataSource.TYPE_DERIVED)
+                    .setStreamName("estimated_steps")
+                    .build()
+            val response_dc = DataReadRequest.Builder()
+                    .aggregate(dc, DataType.AGGREGATE_CALORIES_EXPENDED)
+                    .bucketByTime(1, TimeUnit.DAYS)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build()
+            val ccc = Fitness.getHistoryClient(this@MainActivity, task)
+                    .readData(response_dc)
+            kcalResponse = Tasks.await(ccc)
         }
-        msg += "]";
-         Log.i(TAG, msg)
     }
+
+
     override fun onConnectionFailed(result: ConnectionResult) {
         Log.i(TAG, "onConnectionFailed")
         // Error while connecting. Try to resolve using the pending intent returned.
