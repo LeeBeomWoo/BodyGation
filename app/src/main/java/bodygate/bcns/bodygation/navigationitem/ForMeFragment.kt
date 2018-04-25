@@ -23,6 +23,7 @@ import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -297,6 +298,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     @SuppressLint("SimpleDateFormat")
     fun customdataLine(dataSet:DataSet?, i:Int):LineGraphSeries<DataPoint>?{
         if (dataSet != null) {
+            showDataSet(dataSet)
             Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName())
             val label = SimpleDateFormat("MM/dd")
             val siz = dataSet.dataPoints.size
@@ -304,26 +306,27 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             val bvalue = DoubleArray(siz)
             val fvalue = DoubleArray(siz)
             Log.i(TAG, "Data size:" + dataSet.dataPoints.size.toString())
+            Log.i(TAG, "Data set:" + dataSet.toString())
             m_dAte = Array<String>(siz){"it = \$it"}
             val mlist = ArrayList<DataPoint>(siz)
             val blist = ArrayList<DataPoint>(siz)
             val flist = ArrayList<DataPoint>(siz)
             var ia = 0
-            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
+            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints) {
                 Log.i(TAG, "Data point:" + dp.toString() + "\nType: " + dp.getDataType().getName() + "\nStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + "\nEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + "\nTimeStemp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "\ntype: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
                 when(i){
                     0->{//mouscle
-                        m_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        m_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                         mvalue.set(ia, dp.getValue(lineSub(dataSet, i).fields.get(0)).toString().toDouble())
                     }
                     1->{//fat
-                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_CALORIES) + "type: " + dp.getValue(Field.FIELD_CALORIES).javaClass)
-                        o_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        Log.i(TAG, " Value: " + dp.getValue(lineSub(dataSet, i).fields.get(0)) + "type: " + dp.getValue(lineSub(dataSet, i).fields.get(0)).javaClass)
+                        o_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                         bvalue.set(ia, dp.getValue(lineSub(dataSet, i).fields.get(0)).toString().toDouble())
                     }
                     2->{//bmi
-                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_STEPS) + "type: " + dp.getValue(Field.FIELD_STEPS).javaClass)
-                        b_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        Log.i(TAG, " Value: " + dp.getValue(lineSub(dataSet, i).fields.get(0)) + "type: " + dp.getValue(lineSub(dataSet, i).fields.get(0)).javaClass)
+                        b_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                         fvalue.set(ia, dp.getValue(lineSub(dataSet, i).fields.get(0)).toString().toDouble())
                     }
                 }
@@ -393,13 +396,15 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     @SuppressLint("SimpleDateFormat")
     fun lineGraph(dataSet:DataSet?):LineGraphSeries<DataPoint>?{
         if (dataSet != null) {
+            showDataSet(dataSet)
             Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName())
-            val label = SimpleDateFormat("MM/dd")
+            val label = SimpleDateFormat("yy/MM/dd")
             val siz = dataSet.dataPoints.size
             val evalue = DoubleArray(siz)
             val avalue = DoubleArray(siz)
             val tvalue = DoubleArray(siz)
-            Log.i(TAG, "Data size:" + dataSet.dataPoints.size.toString())
+            Log.i(TAG, "Data size:" + dataSet.dataPoints.lastIndex.toString())
+            Log.i(TAG, "Data set:" + dataSet.toString())
                 e_dAte = Array<String>(siz){"it = \$it"}
             val elist = ArrayList<DataPoint>(siz)
             val alist = ArrayList<DataPoint>(siz)
@@ -407,25 +412,25 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             var e = 0
             var a = 0
             var t = 0
-            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
+            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints) {
                 Log.i(TAG, "Data point:" + dp.toString() + "\nType: " + dp.getDataType().getName() + "\nStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + "\nEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + "\nTimeStemp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)) + "\ntype: " + dp.getTimestamp(TimeUnit.MILLISECONDS).javaClass)
                 when(dataSet.dataType){
                     DataType.TYPE_WEIGHT->{
-                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_WEIGHT) + "type: " + dp.getValue(Field.FIELD_WEIGHT).javaClass)
-                        e_dAte.set(e, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
+                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_WEIGHT) + "  \ntype: " + dp.getValue(Field.FIELD_WEIGHT).javaClass + "  \ndate : " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                        e_dAte.set(e, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                         evalue.set(e, dp.getValue(Field.FIELD_WEIGHT).toString().toDouble())
                         e +=1
                     }
                     DataType.TYPE_CALORIES_EXPENDED->{
-                        Log.i(TAG, " Value: " + dp.getValue(dp.dataType.fields.get(0)) + "type: " + dp.getValue(dp.dataType.fields.get(0)).javaClass)
-                        a_dAte.set(a, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        avalue.set(a, dp.getValue(dp.dataType.fields.get(0)).toString().toDouble())
+                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_CALORIES) + "  \ntype: " + dp.getValue(Field.FIELD_CALORIES).javaClass + "  \ndate : " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                        a_dAte.set(a, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                        avalue.set(a, dp.getValue(Field.FIELD_STEPS).toString().toDouble())
                         a +=1
                     }
                     DataType.TYPE_STEP_COUNT_DELTA->{
-                        Log.i(TAG, " Value: " + dp.getValue(dp.dataType.fields.get(0)) + "type: " + dp.getValue(dp.dataType.fields.get(0)).javaClass)
-                        t_dAte.set(t, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS).toDouble()))
-                        tvalue.set(t, dp.getValue(dp.dataType.fields.get(0)).toString().toDouble())
+                        Log.i(TAG, " Value: " + dp.getValue(Field.FIELD_STEPS) + "  \ntype: " + dp.getValue(Field.FIELD_STEPS).javaClass + "  \ndate : " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                        t_dAte.set(t, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                        tvalue.set(t, dp.getValue(Field.FIELD_STEPS).toString().toDouble())
                         t +=1
                     }
                 }
@@ -499,7 +504,22 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
     }
+private fun showDataSet(dataSet:DataSet) {
+    Log.e("History", "Data returned for Data type: " + dataSet.getDataType().getName());
+    val dateFormat = DateFormat.getDateInstance();
+    val timeFormat = DateFormat.getTimeInstance();
 
+    for (dp :com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints) {
+        Log.e("History", "Data point:");
+        Log.e("History", "tType: " + dp.getDataType().getName());
+        Log.e("History", "tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + " " + timeFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+        Log.e("History", "tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + " " + timeFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+        for(field : Field in dp.getDataType().getFields()) {
+            Log.e("History", "tField: " + field.getName() +
+                    " Value: " + dp.getValue(field))
+        }
+    }
+}
     override fun onDetach() {
         super.onDetach()
         mListener = null

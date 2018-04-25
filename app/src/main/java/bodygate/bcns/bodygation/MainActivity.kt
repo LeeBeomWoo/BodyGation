@@ -807,7 +807,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                            .build())
            val readDataResult = Tasks.await(response)
            Log.i("pendingResult_" + "weight", readDataResult.dataSets.size.toString())
-           weight_dateSET = readDataResult.dataSets.get(0)
+           weight_dateSET = readDataResult.getDataSet(DataType.TYPE_WEIGHT)
            Log.i("pendingResult_" + "weight", weight_dateSET.toString())
        }
         launch {
@@ -818,10 +818,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             Log.i("pendingResult_" + "data", "launch")
             Fitness.HistoryApi.readData(mFitnessClient, response_a).setResultCallback(object :ResultCallback<DataReadResult>{
                 override fun onResult(p0: DataReadResult) {
-                    walk_dateSET = p0.dataSets.get(0)
+                    val satuts = p0.status
+                    if(satuts.isSuccess){
+                    walk_dateSET = p0.getDataSet(DataType.TYPE_STEP_COUNT_DELTA)
                     Log.i("pendingResult_" + "data", "walk_dateSET")
-                    Log.i("pendingResult_"+"walk :" , p0.dataSets.size.toString())
-                    Log.i("pendingResult_"+"walk :" , walk_dateSET.toString())
+                    Log.i("pendingResult_"+"walk" , p0.dataSets.size.toString())
+                    Log.i("pendingResult_"+"walk" , walk_dateSET.toString())
+                    }else{
+                        Log.i("pendingResult_" + "error", "statusCode:" + satuts.getStatusCode() + ",message:" + satuts.getStatusMessage());
+                    }
                 }
             })  }
         launch {
@@ -832,10 +837,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             Log.i("pendingResult_" + "data", "launch")
             Fitness.HistoryApi.readData(mFitnessClient, response_ag).setResultCallback(object :ResultCallback<DataReadResult>{
                 override fun onResult(p0: DataReadResult) {
-                    calole_dateSET = p0.dataSets.get(0)
+                    val satuts = p0.status
+                    if(satuts.isSuccess){
+                    calole_dateSET = p0.getDataSet(DataType.TYPE_CALORIES_EXPENDED)
                     Log.i("pendingResult_" + "data", "calole_dateSET")
                     Log.i("pendingResult_"+"bmr :" , p0.dataSets.size.toString())
                     Log.i("pendingResult_"+"bmr :" , calole_dateSET.toString())
+                    }else{
+                        Log.i("pendingResult_" + "error", "statusCode:" + satuts.getStatusCode() + ",message:" + satuts.getStatusMessage());
+                    }
                 }
             })  }
     }
