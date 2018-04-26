@@ -475,6 +475,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
                 .build()
+        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
+            GoogleSignIn.requestPermissions(
+                    this,
+                    REQUEST_OAUTH_REQUEST_CODE,
+                    GoogleSignIn.getLastSignedInAccount(this),
+                    fitnessOptions)
+        }
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
                 .addApi(Fitness.CONFIG_API)
@@ -488,13 +495,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnConnectionFailedListener(this)
                 .build()
         mFitnessClient.connect()
-        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
-           GoogleSignIn.requestPermissions(
-                    this,
-                    REQUEST_OAUTH_REQUEST_CODE,
-                    GoogleSignIn.getLastSignedInAccount(this),
-                    fitnessOptions)
-        }
         registerFitnessDataListener()
         getResultsFromApi()
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
@@ -669,11 +669,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     @SuppressLint("RestrictedApi")
     fun registerFitnessDataListener() = launch(CommonPool){
-        val label = SimpleDateFormat("MM/dd")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
-        cal.set(2018, 1, 1)
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        cal.set(2015, 1, 1)
         val startTime = cal.timeInMillis
         Log.i(TAG, "Range Start: " + startTime.toString())
         Log.i(TAG, "Range End: " + endTime.toString())
@@ -785,36 +786,35 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
            readResponse = Tasks.await(response)
        }
         launch {
-            val ds = DataSource.Builder()
+         /*   val ds = DataSource.Builder()
                     .setAppPackageName("com.google.android.gms")
                     .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
                     .setType(DataSource.TYPE_DERIVED)
                     .setStreamName("estimated_steps")
-                    .build()
+                    .build()*/
             val response_ds = DataReadRequest.Builder()
-                    .aggregate(ds, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                    .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
                     .bucketByTime(1, TimeUnit.DAYS)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .setTimeRange(startTime, calendar.timeInMillis, TimeUnit.MILLISECONDS)
                     .build()
             val sss = Fitness.getHistoryClient(this@MainActivity, task!!)
                     .readData(response_ds)
             walkResponse = Tasks.await(sss)
-
-            val dc = DataSource.Builder()
-                    .setAppPackageName("com.google.android.gms")
-                    .setDataType(DataType.TYPE_CALORIES_EXPENDED)
-                    .setType(DataSource.TYPE_DERIVED)
-                    .setStreamName("estimated_steps")
-                    .build()
-            val response_dc = DataReadRequest.Builder()
-                    .aggregate(dc, DataType.AGGREGATE_CALORIES_EXPENDED)
+        }
+        launch {
+       /*     val response_dc = DataReadRequest.Builder()
+                    .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.TYPE_CALORIES_EXPENDED)
                     .bucketByTime(1, TimeUnit.DAYS)
                     .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build()
-            val ccc = Fitness.getHistoryClient(this@MainActivity, task)
+                    .build()*/
+            val response_dc = DataReadRequest.Builder()
+                .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
+                .bucketByTime(1, TimeUnit.DAYS)
+                .setTimeRange(startTime, calendar.timeInMillis, TimeUnit.MILLISECONDS)
+                .build()
+            val ccc = Fitness.getHistoryClient(this@MainActivity, task!!)
                     .readData(response_dc)
-            kcalResponse = Tasks.await(ccc)
-        }
+            kcalResponse = Tasks.await(ccc) }
     }
 
 

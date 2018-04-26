@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="bodygate.bcns.bodygation">
 
     <permission android:name="FITNESS_ACTIVITY_READ_WRITE" />
@@ -62,7 +63,9 @@
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_logo_round"
         android:supportsRtl="true"
-        android:theme="@style/Bodygator">
+        android:theme="@style/Bodygator"
+        android:fullBackupContent="@xml/backup_descriptor"
+        tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".MainActivity"
             android:icon="@mipmap/ic_logo_round"
@@ -89,7 +92,6 @@
         <activity
             android:name=".ItemActivity"
             android:configChanges="orientation|screenSize|keyboardHidden" />
-        <activity android:name=".SignActivity"></activity>
     </application>
 
 </manifest>

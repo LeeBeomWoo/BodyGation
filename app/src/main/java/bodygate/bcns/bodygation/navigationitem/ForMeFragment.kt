@@ -23,8 +23,10 @@ import com.jjoe64.graphview.helper.StaticLabelsFormatter
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import kotlinx.android.synthetic.main.fragment_for_me.*
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -148,15 +150,12 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     private var mParam3: Array<String>? = null
     private var datalist: Array<DataPoint>? = null
     private var mListener: OnForMeInteraction? = null
+    val value:MutableList<Double> =  kotlin.collections.ArrayList()
+    val horizonValue:MutableList<String> =  kotlin.collections.ArrayList()
+    val verticalValue:MutableList<String> =  kotlin.collections.ArrayList()
     val TAG = "ForMeFragment_"
     var height = 0.0
     var width = 0.0
-    var e_dAte = Array<String>(0){"it = \$it"} //체중
-    var a_dAte = Array<String>(0){"it = \$it"} //kcal
-    var t_dAte = Array<String>(0){"it = \$it"} // 걷기
-    var o_dAte = Array<String>(0){"it = \$it"} // fat
-    var m_dAte = Array<String>(0){"it = \$it"} //muscle
-    var b_dAte = Array<String>(0){"it = \$it"} //bmr
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -173,6 +172,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        mListener!!.OnForMeInteraction()
         weight_Btn.setOnCheckedChangeListener(this)
         kal_Btn.setOnCheckedChangeListener(this)
         walk_Btn.setOnCheckedChangeListener(this)
@@ -182,27 +182,35 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     }
     fun graphSet(p:Int){
         graph.removeAllSeries()
+        horizonValue.clear()
+        verticalValue.clear()
+        value.clear()
         when(p){
             0->{//체중
-                graph.title = getString(R.string.weight)
-                graph.addSeries(printData(mListener!!.readResponse!!, 0))
-                val labelhorizon = StaticLabelsFormatter(graph)
-                labelhorizon.setHorizontalLabels(e_dAte)
-                graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                graph.gridLabelRenderer.setHumanRounding(false)
-                graph.getGridLabelRenderer().setNumHorizontalLabels(3)
-                graph.viewport.setScalable(true)
+                if(mListener!!.readResponse == null){
+                    Log.i(TAG, "체지방비율 없음")
+                }else {
+                    val series = printData(mListener!!.readResponse!!, p)
+                    graph.title = getString(R.string.weight)
+                    graph.addSeries(series)
+                    val labelhorizon = StaticLabelsFormatter(graph)
+                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
+                    graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
+                    graph.gridLabelRenderer.setHumanRounding(true)
+                    graph.getGridLabelRenderer().setNumHorizontalLabels(3)
+                    graph.viewport.setScalable(true)
+                }
             }
             1->{//걷기
                 if(mListener!!.walkResponse == null){
                     Log.i(TAG, "걷기 없음")
                 }else {
                     graph.title = getString(R.string.walk)
-                    graph.addSeries(printData(mListener!!.walkResponse!!, 1))
+                    graph.addSeries(printData(mListener!!.walkResponse!!, p))
                     val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(t_dAte)
+                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
                     graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(false)
+                    graph.gridLabelRenderer.setHumanRounding(true)
                     graph.getGridLabelRenderer().setNumHorizontalLabels(3)
                     graph.viewport.setScalable(true)
                 }
@@ -212,11 +220,11 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     Log.i(TAG, "칼로리 없음")
                 }else {
                     graph.title = getString(R.string.calore)
-                    graph.addSeries(printData(mListener!!.walkResponse!!, 2))
+                    graph.addSeries(printData(mListener!!.kcalResponse!!, p))
                     val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(a_dAte)
+                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
                     graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(false)
+                    graph.gridLabelRenderer.setHumanRounding(true)
                     graph.getGridLabelRenderer().setNumHorizontalLabels(3)
                     graph.viewport.setScalable(true)
                 }
@@ -226,11 +234,11 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     Log.i(TAG, "체지방비율 없음")
                 }else {
                     graph.title = getString(R.string.bodyfat)
-                    graph.addSeries(printData(mListener!!.walkResponse!!, 3))
+                    graph.addSeries(printData(mListener!!.fatResponse!!, p))
                     val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(o_dAte)
+                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
                     graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(false)
+                    graph.gridLabelRenderer.setHumanRounding(true)
                     graph.getGridLabelRenderer().setNumHorizontalLabels(3)
                     graph.viewport.setScalable(true)
                 }
@@ -240,11 +248,11 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     Log.i(TAG, "골격근 없음")
                 }else {
                     graph.title = getString(R.string.musclemass)
-                    graph.addSeries(printData(mListener!!.walkResponse!!, 4))
+                    graph.addSeries(printData(mListener!!.muscleResponse!!, p))
                     val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(m_dAte)
+                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
                     graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(false)
+                    graph.gridLabelRenderer.setHumanRounding(true)
                     graph.getGridLabelRenderer().setNumHorizontalLabels(3)
                     graph.viewport.setScalable(true)
                 }
@@ -254,11 +262,11 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     Log.i(TAG, "BMI 없음")
                 }else {
                     graph.title = getString(R.string.bmi)
-                    graph.addSeries(printData(mListener!!.walkResponse!!, 5))
+                    graph.addSeries(printData(mListener!!.bmiResponse!!, p))
                     val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(b_dAte)
+                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
                     graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(false)
+                    graph.gridLabelRenderer.setHumanRounding(true)
                     graph.getGridLabelRenderer().setNumHorizontalLabels(3)
                     graph.viewport.setScalable(true)
                 }
@@ -266,25 +274,39 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         }
         graph.onDataChanged(true, false)
     }
+    @SuppressLint("SimpleDateFormat")
     fun printData(dataReadResult: DataReadResponse, i:Int):LineGraphSeries<com.jjoe64.graphview.series.DataPoint> {
         // [START parse_read_data_result]
         // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
         // as buckets containing DataSets, instead of just DataSets.
+        val label = SimpleDateFormat("MM/dd")
+        var ia = 0
         val line :MutableList<com.jjoe64.graphview.series.DataPoint> = ArrayList()
-        if (dataReadResult.getBuckets().size > 0) {
-            Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
-            for (bucket :Bucket in dataReadResult.getBuckets()) {
-                val dataSets = bucket.getDataSets();
-                for ( dataSet : DataSet in dataSets) {
+            if (dataReadResult.getBuckets().size > 0) {
+                Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
+
+                for (bucket: Bucket in dataReadResult.getBuckets()) {
+                    Log.i("printData", "Bucket point:");
+                    Log.i("printData", "bucket : " + bucket.toString())
+                    Log.i("printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
+                    Log.i("printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                    Log.i("printData", "\tdataSets: " + bucket.dataSets.toString())
+                    Log.i("printData", "\tdataPoints: " + bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!.dataPoints.getOrNull(0).toString())
+                    val data = bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!.dataPoints.getOrNull(0)
+                    Log.i("printData", "\tgetValue: " + data?.getValue(Field.FIELD_STEPS).toString())
+                    horizonValue.add(label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                    value.add(data?.getValue(Field.FIELD_STEPS).toString().toDouble())
+                    ia += 1
+                }
+                for(a:Int in 0..ia){
+                    line.add(com.jjoe64.graphview.series.DataPoint(label.parse(horizonValue.get(a)), value.get(a)))
+                }
+            } else if (dataReadResult.getDataSets().size > 0) {
+                Log.i("printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
+                for (dataSet: DataSet in dataReadResult.getDataSets()) {
                     line.addAll(dumpDataSet(dataSet, i))
                 }
             }
-        } else if (dataReadResult.getDataSets().size > 0) {
-            Log.i("printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
-            for ( dataSet :DataSet in dataReadResult.getDataSets()) {
-                line.addAll(dumpDataSet(dataSet, i))
-            }
-        }
         val series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(line.toTypedArray())
         when(i) {
             0 -> {//체중
@@ -313,107 +335,29 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     private fun dumpDataSet(dataSet:DataSet, i:Int): ArrayList<com.jjoe64.graphview.series.DataPoint> {
         Log.i("printData", "Data returned for Data type: " + dataSet.getDataType().getName());
         val label = SimpleDateFormat("MM/dd")
-        val siz = dataSet.dataPoints.size
-        val value = DoubleArray(siz)
-        Log.i(TAG, "Data size:" + dataSet.dataPoints.size.toString())
-        Log.i(TAG, "Data set:" + dataSet.toString())
-        val mlist = ArrayList<com.jjoe64.graphview.series.DataPoint>(siz)
+        Log.i("printData", "Data size:" + dataSet.getDataPoints().size.toString())
+        Log.i("printData", "Data set:" + dataSet.toString())
         var ia = 0
-
-        when(i){
-            0->{//체중
-                e_dAte = Array<String>(siz){"it = \$it"} //체중
-            }
-            1-> {//걷기
-                t_dAte = Array<String>(siz){"it = \$it"} // 걷기
-            }
-            2->{//칼로리
-                a_dAte = Array<String>(siz){"it = \$it"} //kcal
-            }
-            3->{//체지방
-                o_dAte = Array<String>(siz){"it = \$it"} // fat
-            }
-            4->{//골격근
-                m_dAte = Array<String>(siz){"it = \$it"} //muscle
-            }
-            5->{//bmr
-                b_dAte = Array<String>(siz){"it = \$it"} //bmr
-            }
-        }
         for ( dp : com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
             Log.i("printData", "Data point:");
             Log.i("printData", "\tType: " + dp.getDataType().getName());
             Log.i("printData", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
             Log.i("printData", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
             Log.i("printData", "\tTimestamp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-            for (field :Field in dp.getDataType().getFields()) {
-                Log.i("printData", "\tField: " + field.getName() + " Value: " + dp.getValue(field))
-                when(i){
-                    0->{//체중
-                        e_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                         }
-                    1-> {//걷기
-                        t_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                    }
-                    2->{//칼로리
-                        a_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                    }
-                    3->{//체지방
-                        o_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                    }
-                    4->{//골격근
-                        m_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                    }
-                    5->{//bmr
-                        b_dAte.set(ia, label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                    }
-                }
-                value.set(ia, dp.getValue(field).toString().toDouble())
-                ia += 1
-            }
+            Log.i("printData", "\tValue: " + dp.getValue(dp.getDataType().fields.get(0)).toString());
+            horizonValue.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+            value.add(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble())
+            ia += 1
+            Log.i("printData", "ia: " + ia.toString())
         }
-
-        var e = 0
-        when(i) {
-            0 -> {//체중
-                if(e_dAte.size > 1) {
-                    mlist.add(com.jjoe64.graphview.series.DataPoint(label.parse(e_dAte[e]), value[e]))
-                    e +=1
-                }
-            }
-            1 -> {//걷기
-                if(t_dAte.size > 1) {
-                    mlist.add(com.jjoe64.graphview.series.DataPoint(label.parse(t_dAte[e]), value[e]))
-                    e +=1
-                }
-            }
-            2 -> {//칼로리
-                if(a_dAte.size > 1) {
-                    mlist.add(com.jjoe64.graphview.series.DataPoint(label.parse(a_dAte[e]), value[e]))
-                    e +=1
-                }
-            }
-            3 -> {//체지방
-                if(o_dAte.size > 1) {
-                    mlist.add(com.jjoe64.graphview.series.DataPoint(label.parse(o_dAte[e]), value[e]))
-                    e +=1
-                }
-            }
-            4 -> {//골격근
-                if(m_dAte.size > 1) {
-                    mlist.add(com.jjoe64.graphview.series.DataPoint(label.parse(m_dAte[e]), value[e]))
-                    e +=1
-                }
-            }
-            5 -> {//bmr
-                if(b_dAte.size > 1) {
-                    mlist.add(com.jjoe64.graphview.series.DataPoint(label.parse(b_dAte[e]), value[e]))
-                    e +=1
-                }
-            }
+        val mlist:ArrayList<com.jjoe64.graphview.series.DataPoint> = ArrayList((ia+1))
+        for(a:Int in 0..ia){
+            mlist.add(com.jjoe64.graphview.series.DataPoint(label.parse(horizonValue.get(a)), value.get(a)))
         }
+        Log.i("printData", "Data ia:"+ia.toString())
         return mlist
     }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is OnForMeInteraction) {
@@ -423,22 +367,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         }
     }
 
-private fun showDataSet(dataSet:DataSet) {
-    Log.e("History", "Data returned for Data type: " + dataSet.getDataType().getName());
-    val dateFormat = DateFormat.getDateInstance();
-    val timeFormat = DateFormat.getTimeInstance();
-
-    for (dp :com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints) {
-        Log.e("History", "Data point:");
-        Log.e("History", "tType: " + dp.getDataType().getName());
-        Log.e("History", "tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + " " + timeFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-        Log.e("History", "tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + " " + timeFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-        for(field : Field in dp.getDataType().getFields()) {
-            Log.e("History", "tField: " + field.getName() +
-                    " Value: " + dp.getValue(field))
-        }
-    }
-}
     override fun onDetach() {
         super.onDetach()
         mListener = null
