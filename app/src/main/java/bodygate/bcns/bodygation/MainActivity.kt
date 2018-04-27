@@ -406,7 +406,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .requestIdToken(getString(R.string.server_client_id))
                 .requestEmail()//request email id
                 .build()
-
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
     }
@@ -474,6 +473,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
                 .build()
         if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
             GoogleSignIn.requestPermissions(
@@ -487,10 +493,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addApi(Fitness.CONFIG_API)
                 .addScope(Scope(Scopes.FITNESS_LOCATION_READ))
                 .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ))
                 .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
                 .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_BODY_READ))
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build()
@@ -530,8 +534,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
             REQUEST_ACCOUNT_PICKER -> {
-                if (resultCode == RESULT_OK && data != null &&
-                        data.getExtras() != null) {
+                if (resultCode == RESULT_OK && data.getExtras() != null) {
                     val accountName =
                             data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
                     if (accountName != null) {
@@ -777,7 +780,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
             }
         })
-       launch {
+       launch(CommonPool) {
            val response = Fitness.getHistoryClient(this@MainActivity, task!!)
                    .readData(DataReadRequest.Builder()
                            .read(DataType.TYPE_WEIGHT)
@@ -785,7 +788,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                            .build())
            readResponse = Tasks.await(response)
        }
-        launch {
+        launch(CommonPool) {
          /*   val ds = DataSource.Builder()
                     .setAppPackageName("com.google.android.gms")
                     .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
@@ -801,7 +804,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .readData(response_ds)
             walkResponse = Tasks.await(sss)
         }
-        launch {
+        launch(CommonPool) {
        /*     val response_dc = DataReadRequest.Builder()
                     .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.TYPE_CALORIES_EXPENDED)
                     .bucketByTime(1, TimeUnit.DAYS)
@@ -927,7 +930,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
      * of the preconditions are not satisfied, the app will prompt the user as
      * appropriate.
      */
-    private fun getResultsFromApi() = launch {
+    private fun getResultsFromApi() {
         if (isGooglePlayServicesAvailable()) {
             acquireGooglePlayServices();
         } else if (mCredential!!.getSelectedAccountName() == null) {
@@ -1075,12 +1078,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
      */
     @SuppressLint("StaticFieldLeak")
     inner class MakeRequestTask(mCredential: GoogleAccountCredential?) : AsyncTask<Void, Void, MutableList<String>?>() {
+        val user = mCredential
         override fun doInBackground(vararg p0: Void?): MutableList<String>? {
             Log.i(TAG, "MakeRequestTask")
             val transport = AndroidHttp.newCompatibleTransport ();
             val jsonFactory = JacksonFactory.getDefaultInstance ();
             mService = com.google.api.services.youtube.YouTube.Builder(
-                    transport, jsonFactory, mCredential)
+                    transport, jsonFactory, user)
                     .setApplicationName("YouTube Data API Android Quickstart")
                     .build()
             try {

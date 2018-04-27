@@ -3,7 +3,9 @@ package bodygate.bcns.bodygation.navigationitem
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,6 +21,7 @@ import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.tasks.OnSuccessListener
+import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter
 import com.jjoe64.graphview.helper.StaticLabelsFormatter
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
@@ -27,6 +30,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
+import org.jetbrains.anko.runOnUiThread
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -58,7 +62,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (weight_Btn.isChecked){
-                    async(UI) {graphSet(0)}
+                   graphSet(0)
                 }
             }
             R.id.walk_Btn -> {
@@ -74,7 +78,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (walk_Btn.isChecked){
-                    async(UI) {graphSet(1)}
+                    graphSet(1)
                 }
             }
             R.id.kal_Btn -> {
@@ -90,7 +94,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (kal_Btn.isChecked){
-                    async(UI) {graphSet(2)}
+                    graphSet(2)
                 }
             }
             R.id.bfp_Btn -> {
@@ -106,7 +110,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked){
-                    async(UI) {graphSet(3)}
+                    graphSet(3)
                 }
             }
             R.id.bmi_Btn -> {
@@ -122,7 +126,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (muscle_Btn.isChecked)
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked){
-                    async(UI) {graphSet(5)}
+                    graphSet(5)
                 }
             }
             R.id.muscle_Btn -> {
@@ -138,7 +142,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (muscle_Btn.isChecked){
-                    async(UI) {graphSet(4)}
+                    graphSet(4)
                 }
             }
         }
@@ -150,13 +154,11 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     private var mParam3: Array<String>? = null
     private var datalist: Array<DataPoint>? = null
     private var mListener: OnForMeInteraction? = null
-    val value:MutableList<Double> =  kotlin.collections.ArrayList()
-    val horizonValue:MutableList<String> =  kotlin.collections.ArrayList()
-    val verticalValue:MutableList<String> =  kotlin.collections.ArrayList()
+    val value:MutableList<Double> =  ArrayList()
+    val horizonValue:MutableList<Date> =  ArrayList()
+    val verticalValue:MutableList<String> =  ArrayList()
     val TAG = "ForMeFragment_"
-    var height = 0.0
-    var width = 0.0
-
+    var series:LineGraphSeries<DataPoint>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i(TAG, "onCreate")
@@ -188,16 +190,22 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         when(p){
             0->{//체중
                 if(mListener!!.readResponse == null){
-                    Log.i(TAG, "체지방비율 없음")
+                    Log.i(TAG, "체중 없음")
                 }else {
-                    val series = printData(mListener!!.readResponse!!, p)
+                    if(series ==null){
+                        series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.readResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.BLUE)
+                        graph.addSeries(series)
+                    }else{
+                            series!!.resetData(printData(mListener!!.readResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.BLUE)
+                            graph.addSeries(series)
+                    }
                     graph.title = getString(R.string.weight)
-                    graph.addSeries(series)
-                    val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
-                    graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.getGridLabelRenderer().setNumHorizontalLabels(3)
+                    graph.titleTextSize = 100.toFloat()
+                    series!!.setDrawDataPoints(true);
+                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
+                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -205,13 +213,20 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if(mListener!!.walkResponse == null){
                     Log.i(TAG, "걷기 없음")
                 }else {
+                    if(series == null){
+                        series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.walkResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.YELLOW)
+                        graph.addSeries(series)
+                    }else{
+                            series!!.resetData(printData(mListener!!.walkResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.YELLOW)
+                            graph.addSeries(series)
+                    }
                     graph.title = getString(R.string.walk)
-                    graph.addSeries(printData(mListener!!.walkResponse!!, p))
-                    val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
-                    graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.getGridLabelRenderer().setNumHorizontalLabels(3)
+                    graph.titleTextSize = 100.toFloat()
+                    series!!.setDrawDataPoints(true);
+                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
+                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -219,13 +234,14 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if(mListener!!.kcalResponse == null){
                     Log.i(TAG, "칼로리 없음")
                 }else {
+                        series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.kcalResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.RED)
+                        graph.addSeries(series)
                     graph.title = getString(R.string.calore)
-                    graph.addSeries(printData(mListener!!.kcalResponse!!, p))
-                    val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
-                    graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.getGridLabelRenderer().setNumHorizontalLabels(3)
+                    graph.titleTextSize = 100.toFloat()
+                    series!!.setDrawDataPoints(true);
+                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
+                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -233,13 +249,20 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if(mListener!!.fatResponse == null){
                     Log.i(TAG, "체지방비율 없음")
                 }else {
+                    if(series ==null){
+                        series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.fatResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.MAGENTA)
+                        graph.addSeries(series)
+                    }else{
+                        series!!.resetData(printData(mListener!!.fatResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.MAGENTA)
+                        graph.addSeries(series)
+                    }
                     graph.title = getString(R.string.bodyfat)
-                    graph.addSeries(printData(mListener!!.fatResponse!!, p))
-                    val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
-                    graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.getGridLabelRenderer().setNumHorizontalLabels(3)
+                    graph.titleTextSize = 100.toFloat()
+                    series!!.setDrawDataPoints(true);
+                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
+                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -247,13 +270,20 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if(mListener!!.muscleResponse == null){
                     Log.i(TAG, "골격근 없음")
                 }else {
+                    if(series ==null){
+                        series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.muscleResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.DKGRAY)
+                        graph.addSeries(series)
+                    }else{
+                        series!!.resetData(printData(mListener!!.muscleResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.DKGRAY)
+                        graph.addSeries(series)
+                    }
                     graph.title = getString(R.string.musclemass)
-                    graph.addSeries(printData(mListener!!.muscleResponse!!, p))
-                    val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
-                    graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.getGridLabelRenderer().setNumHorizontalLabels(3)
+                    graph.titleTextSize = 100.toFloat()
+                    series!!.setDrawDataPoints(true);
+                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
+                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -261,75 +291,81 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if(mListener!!.bmiResponse == null){
                     Log.i(TAG, "BMI 없음")
                 }else {
+                    if(series ==null){
+                        series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.bmiResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.GREEN)
+                        graph.addSeries(series)
+                    }else{
+                        series!!.resetData(printData(mListener!!.bmiResponse!!, p).toTypedArray())
+                        series!!.setColor(Color.GREEN)
+                        graph.addSeries(series)
+                    }
+                    graph.getGridLabelRenderer().setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context))
                     graph.title = getString(R.string.bmi)
-                    graph.addSeries(printData(mListener!!.bmiResponse!!, p))
-                    val labelhorizon = StaticLabelsFormatter(graph)
-                    labelhorizon.setHorizontalLabels(horizonValue.toTypedArray())
-                    graph.getGridLabelRenderer().setLabelFormatter(labelhorizon)
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.getGridLabelRenderer().setNumHorizontalLabels(3)
+                    graph.titleTextSize = 100.toFloat()
+                    series!!.setDrawDataPoints(true);
+                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
         }
-        graph.onDataChanged(true, false)
     }
     @SuppressLint("SimpleDateFormat")
-    fun printData(dataReadResult: DataReadResponse, i:Int):LineGraphSeries<com.jjoe64.graphview.series.DataPoint> {
-        // [START parse_read_data_result]
-        // If the DataReadRequest object specified aggregated data, dataReadResult will be returned
-        // as buckets containing DataSets, instead of just DataSets.
+    fun printData(dataReadResult: DataReadResponse, i:Int):MutableList<com.jjoe64.graphview.series.DataPoint> {
         val label = SimpleDateFormat("MM/dd")
         var ia = 0
         val line :MutableList<com.jjoe64.graphview.series.DataPoint> = ArrayList()
             if (dataReadResult.getBuckets().size > 0) {
                 Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
 
-                for (bucket: Bucket in dataReadResult.getBuckets()) {
-                    Log.i("printData", "Bucket point:");
-                    Log.i("printData", "bucket : " + bucket.toString())
-                    Log.i("printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
-                    Log.i("printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                    Log.i("printData", "\tdataSets: " + bucket.dataSets.toString())
-                    Log.i("printData", "\tdataPoints: " + bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!.dataPoints.getOrNull(0).toString())
-                    val data = bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!.dataPoints.getOrNull(0)
-                    Log.i("printData", "\tgetValue: " + data?.getValue(Field.FIELD_STEPS).toString())
-                    horizonValue.add(label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                    value.add(data?.getValue(Field.FIELD_STEPS).toString().toDouble())
-                    ia += 1
-                }
-                for(a:Int in 0..ia){
-                    line.add(com.jjoe64.graphview.series.DataPoint(label.parse(horizonValue.get(a)), value.get(a)))
+                    for (bucket: Bucket in dataReadResult.getBuckets()) {
+                        Log.i("printData", "Bucket point:");
+                        Log.i("printData", "bucket : " + bucket.toString())
+                        Log.i("printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
+                        Log.i("printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                        Log.i("printData", "\tdataSets: " + bucket.dataSets.toString())
+                        printBucket(bucket, i)
+                        ia += 1
+                        Log.i("printData", "\tia : " + ia.toString())
+                    }
+                Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
+                Log.i("printData", "\tvalue : " + value.size.toString())
+                for(a:Int in 0..(horizonValue.size-1)){
+                    line.add(com.jjoe64.graphview.series.DataPoint(horizonValue.get(a), value.get(a)))
                 }
             } else if (dataReadResult.getDataSets().size > 0) {
                 Log.i("printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
                 for (dataSet: DataSet in dataReadResult.getDataSets()) {
                     line.addAll(dumpDataSet(dataSet, i))
+                    ia += 1
                 }
             }
-        val series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(line.toTypedArray())
-        when(i) {
-            0 -> {//체중
-                series.setColor(Color.GREEN)
-            }
+        return line
+    }
+
+    fun printBucket(bucket:Bucket, i: Int) {
+        Log.i("printData", "printBucket")
+        when(i){
             1 -> {//걷기
-                series.setColor(Color.DKGRAY)
+                val set = bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!
+                for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints){
+                    Log.i("printData", "\tdataPoints: " + dp.toString())
+                    Log.i("printData", "\tgetValue: " + dp.getValue(Field.FIELD_STEPS).toString())
+                    horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                    value.add(dp.getValue(Field.FIELD_STEPS).asInt().toDouble())
+                }
             }
             2 -> {//칼로리
-                series.setColor(Color.RED)
-            }
-            3 -> {//체지방
-                series.setColor(Color.YELLOW)
-            }
-            4 -> {//골격근
-                series.setColor(Color.BLUE)
-            }
-            5 -> {//bmr
-                series.setColor(Color.MAGENTA)
+                val set = bucket.getDataSet(DataType.AGGREGATE_CALORIES_EXPENDED)!!
+                for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints){
+                    Log.i("printData", "\tdataPoints: " + dp.toString())
+                    Log.i("printData", "\tgetValue: " + dp.getValue(Field.FIELD_CALORIES).toString())
+                    horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                    value.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
+                }
             }
         }
-        return series
-        // [END parse_read_data_result]
+
     }
     @SuppressLint("SimpleDateFormat")
     private fun dumpDataSet(dataSet:DataSet, i:Int): ArrayList<com.jjoe64.graphview.series.DataPoint> {
@@ -345,14 +381,16 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             Log.i("printData", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
             Log.i("printData", "\tTimestamp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
             Log.i("printData", "\tValue: " + dp.getValue(dp.getDataType().fields.get(0)).toString());
-            horizonValue.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+            horizonValue.add(Date(dp.getTimestamp(TimeUnit.MILLISECONDS)))
             value.add(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble())
             ia += 1
             Log.i("printData", "ia: " + ia.toString())
         }
-        val mlist:ArrayList<com.jjoe64.graphview.series.DataPoint> = ArrayList((ia+1))
-        for(a:Int in 0..ia){
-            mlist.add(com.jjoe64.graphview.series.DataPoint(label.parse(horizonValue.get(a)), value.get(a)))
+        val mlist:ArrayList<com.jjoe64.graphview.series.DataPoint> = ArrayList()
+        Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
+        Log.i("printData", "\tvalue : " + value.size.toString())
+        for(a:Int in 0..(horizonValue.size - 1)){
+            mlist.add(com.jjoe64.graphview.series.DataPoint(horizonValue.get(a), value.get(a)))
         }
         Log.i("printData", "Data ia:"+ia.toString())
         return mlist
