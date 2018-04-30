@@ -148,7 +148,12 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         }
     }
 
-    // TODO: Rename and change types of parameters
+    val kcalories_Str = arrayOf("0", "1000", "2000", "5000", "4000")
+    val bmi_Str = arrayOf("0", "18.5", "25", "30")
+    val muscle_Str = arrayOf("0", "1000", "2000", "5000", "4000")
+    val fatman_Str = arrayOf("0", "13", "22", "28")
+    val fatgirl_Str = arrayOf("0", "22", "34", "40")
+    val walk_Str = arrayOf("0", "5000", "10000", "15000", "20000", "25000")
     private var mParam1: String? = null
     private var mParam2: DoubleArray? = null
     private var mParam3: Array<String>? = null
@@ -222,11 +227,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         series!!.setColor(Color.YELLOW)
                             graph.addSeries(series)
                     }
+                    val staticLabelsFormatter = StaticLabelsFormatter(graph);
+                    staticLabelsFormatter.setHorizontalLabels(verticalValue.toTypedArray())
+                    staticLabelsFormatter.setVerticalLabels(walk_Str)
+                    graph.gridLabelRenderer.setLabelFormatter(staticLabelsFormatter)
                     graph.title = getString(R.string.walk)
                     graph.titleTextSize = 100.toFloat()
                     series!!.setDrawDataPoints(true);
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -237,11 +244,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         series = LineGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.kcalResponse!!, p).toTypedArray())
                         series!!.setColor(Color.RED)
                         graph.addSeries(series)
+                    val staticLabelsFormatter = StaticLabelsFormatter(graph)
+                    staticLabelsFormatter.setHorizontalLabels(verticalValue.toTypedArray())
+                    staticLabelsFormatter.setVerticalLabels(kcalories_Str)
                     graph.title = getString(R.string.calore)
                     graph.titleTextSize = 100.toFloat()
                     series!!.setDrawDataPoints(true);
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
+                    graph.gridLabelRenderer.setLabelFormatter(staticLabelsFormatter);
                     graph.viewport.setScalable(true)
                 }
             }
@@ -258,11 +267,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         series!!.setColor(Color.MAGENTA)
                         graph.addSeries(series)
                     }
+                    val staticLabelsFormatter = StaticLabelsFormatter(graph)
+                    staticLabelsFormatter.setHorizontalLabels(verticalValue.toTypedArray())
+                    staticLabelsFormatter.setVerticalLabels(fatgirl_Str)
+                    graph.gridLabelRenderer.setLabelFormatter(staticLabelsFormatter)
                     graph.title = getString(R.string.bodyfat)
                     graph.titleTextSize = 100.toFloat()
                     series!!.setDrawDataPoints(true);
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -279,11 +290,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         series!!.setColor(Color.DKGRAY)
                         graph.addSeries(series)
                     }
+                    val staticLabelsFormatter = StaticLabelsFormatter(graph)
+                    staticLabelsFormatter.setHorizontalLabels(verticalValue.toTypedArray())
+                    staticLabelsFormatter.setVerticalLabels(muscle_Str)
+                    graph.gridLabelRenderer.setLabelFormatter(staticLabelsFormatter)
                     graph.title = getString(R.string.musclemass)
                     graph.titleTextSize = 100.toFloat()
                     series!!.setDrawDataPoints(true);
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -300,11 +313,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         series!!.setColor(Color.GREEN)
                         graph.addSeries(series)
                     }
-                    graph.getGridLabelRenderer().setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context))
+                    val staticLabelsFormatter = StaticLabelsFormatter(graph)
+                    staticLabelsFormatter.setHorizontalLabels(verticalValue.toTypedArray())
+                    staticLabelsFormatter.setVerticalLabels(bmi_Str)
+                    graph.gridLabelRenderer.setLabelFormatter(staticLabelsFormatter)
                     graph.title = getString(R.string.bmi)
                     graph.titleTextSize = 100.toFloat()
                     series!!.setDrawDataPoints(true);
-                    graph.gridLabelRenderer.setHumanRounding(false)
                     graph.viewport.setScalable(true)
                 }
             }
@@ -345,12 +360,14 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
 
     fun printBucket(bucket:Bucket, i: Int) {
         Log.i("printData", "printBucket")
+        val label = SimpleDateFormat("MM/dd")
         when(i){
             1 -> {//걷기
                 val set = bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!
                 for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints){
                     Log.i("printData", "\tdataPoints: " + dp.toString())
                     Log.i("printData", "\tgetValue: " + dp.getValue(Field.FIELD_STEPS).toString())
+                    verticalValue.add(label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
                     horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
                     value.add(dp.getValue(Field.FIELD_STEPS).asInt().toDouble())
                 }
@@ -360,6 +377,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints){
                     Log.i("printData", "\tdataPoints: " + dp.toString())
                     Log.i("printData", "\tgetValue: " + dp.getValue(Field.FIELD_CALORIES).toString())
+                    verticalValue.add(label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
                     horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
                     value.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
                 }
@@ -381,6 +399,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             Log.i("printData", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
             Log.i("printData", "\tTimestamp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
             Log.i("printData", "\tValue: " + dp.getValue(dp.getDataType().fields.get(0)).toString());
+            verticalValue.add(label.format(Date(dp.getTimestamp(TimeUnit.MILLISECONDS))))
             horizonValue.add(Date(dp.getTimestamp(TimeUnit.MILLISECONDS)))
             value.add(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble())
             ia += 1
