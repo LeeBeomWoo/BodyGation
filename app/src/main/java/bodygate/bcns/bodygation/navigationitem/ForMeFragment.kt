@@ -226,16 +226,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     graph.title = getString(R.string.weight)
                     graph.titleTextSize = 100.toFloat()
                     graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
-                   // graph.viewport.setMaxX(last_date!!.time)
-                   // graph.viewport.setMinX(1.0)
-                   // graph.viewport.setMaxY(8.0)
-                   // graph.viewport.setMinY(3.0)
-                    graph.viewport.isXAxisBoundsManual = true
-                    graph.viewport.isYAxisBoundsManual = true
+                    graph.gridLabelRenderer.setHumanRounding(true)
+                    graph.viewport.setXAxisBoundsManual(true)
                     graph.viewport.setScrollable(true)
-                    graph.gridLabelRenderer.numHorizontalLabels = 4
-                    graph.gridLabelRenderer.numVerticalLabels = 6
                 }
             }
             1->{//걷기
@@ -248,15 +241,15 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series == null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.walkResponse!!, p).toTypedArray())
                         series!!.setColor(Color.YELLOW)
-                        series!!.setSpacing(20)
                         series!!.setDrawValuesOnTop(true)
-                        series!!.valuesOnTopSize = 20.toFloat()
+                        series!!.valuesOnTopSize = 10.toFloat()
+                        series!!.setSpacing(20)
                         graph.addSeries(series)
                     }else{
                         series!!.resetData(printData(mListener!!.walkResponse!!, p).toTypedArray())
-                        series!!.setSpacing(20)
                         series!!.setDrawValuesOnTop(true)
-                        series!!.valuesOnTopSize = 20.toFloat()
+                        series!!.valuesOnTopSize = 10.toFloat()
+                        series!!.setSpacing(20)
                         series!!.setColor(Color.YELLOW)
                             graph.addSeries(series)
                     }
@@ -266,12 +259,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     graph.title = getString(R.string.walk)
                     graph.titleTextSize = 100.toFloat()
                     graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
-                    graph.gridLabelRenderer.numHorizontalLabels = 3
-                    graph.gridLabelRenderer.numVerticalLabels = 6
-                    graph.viewport.isYAxisBoundsManual = true
-                    graph.viewport.setMaxY(last_value!! + 100)
-                    graph.viewport.setMinY(first_value!! + 10)
+                    graph.gridLabelRenderer.setHumanRounding(true)
+                    graph.viewport.setXAxisBoundsManual(true)
+                    graph.viewport.setScrollable(true)
                 }
             }
             2->{//칼로리
@@ -283,30 +273,28 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     Log.i("graphSet_" + "value", value.size.toString())
                     if(series == null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.kcalResponse!!, p).toTypedArray())
-                        series!!.setColor(Color.YELLOW)
-                        series!!.setSpacing(50)
+                        series!!.setColor(Color.RED)
                         series!!.setDrawValuesOnTop(true)
-                        series!!.setValuesOnTopSize(20.toFloat())
+                        series!!.setSpacing(30)
+                        series!!.setValuesOnTopSize(50.toFloat())
                         graph.addSeries(series)
                     }else {
                         series!!.resetData(printData(mListener!!.kcalResponse!!, p).toTypedArray())
                         series!!.setColor(Color.RED)
-                        series!!.setSpacing(50)
                         series!!.setDrawValuesOnTop(true)
-                        series!!.setValuesOnTopSize(20.toFloat())
+                        series!!.setSpacing(30)
+                        series!!.setValuesOnTopSize(50.toFloat())
                         graph.addSeries(series)
                     }
                     Log.i("graphSet_"+ "horizonValue", horizonValue.size.toString())
                     Log.i("graphSet_"+ "verticalValue", verticalValue.size.toString())
                     Log.i("graphSet_" + "value", value.size.toString())
                     graph.title = getString(R.string.calore)
-                    graph.titleTextSize = 100.toFloat()
                     graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
+                    graph.titleTextSize = 100.toFloat()
+                    graph.gridLabelRenderer.setHumanRounding(true)
+                    graph.viewport.setXAxisBoundsManual(true)
                     graph.viewport.setScrollable(true)
-                    graph.viewport.setScrollableY(false)
-                    graph.viewport.isXAxisBoundsManual = true
-                    graph.viewport.isYAxisBoundsManual = true
                 }
             }
             3->{//체지방비율
@@ -319,10 +307,16 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series ==null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.fatResponse!!, p).toTypedArray())
                         series!!.setColor(Color.MAGENTA)
+                        series!!.setSpacing(30)
+                        series!!.setDrawValuesOnTop(true);
+                        series!!.setValuesOnTopSize(70.toFloat())
                         graph.addSeries(series)
                     }else{
                         series!!.resetData(printData(mListener!!.fatResponse!!, p).toTypedArray())
                          series!!.setColor(Color.MAGENTA)
+                        series!!.setSpacing(30)
+                        series!!.setDrawValuesOnTop(true);
+                        series!!.setValuesOnTopSize(70.toFloat())
                         graph.addSeries(series)
                     }
                     Log.i("graphSet_"+ "horizonValue", horizonValue.size.toString())
@@ -330,15 +324,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     Log.i("graphSet_" + "value", value.size.toString())
                     graph.title = getString(R.string.bodyfat)
                     graph.titleTextSize = 100.toFloat()
-                    series!!.setSpacing(50)
-                    series!!.setDrawValuesOnTop(true);
                     graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
-                    graph.viewport.setScalable(true)
-                    graph.viewport.setMaxX(5.0)
-                   // graph.viewport.setMinX(1.0)
-                    graph.viewport.setMaxY(8.0)
-                   // graph.viewport.setMinY(3.0)
+                    graph.gridLabelRenderer.setHumanRounding(true)
+                    graph.viewport.setXAxisBoundsManual(true)
+                    graph.viewport.setScrollable(true)
                 }
             }
             4->{//골격근
@@ -348,23 +337,24 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series ==null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.muscleResponse!!, p).toTypedArray())
                         series!!.setColor(Color.DKGRAY)
+                        series!!.setSpacing(30)
+                        series!!.setDrawValuesOnTop(true);
+                        series!!.valuesOnTopSize = 5.toFloat()
                         graph.addSeries(series)
                     }else{
                         series!!.resetData(printData(mListener!!.muscleResponse!!, p).toTypedArray())
                         series!!.setColor(Color.DKGRAY)
+                        series!!.setSpacing(30)
+                        series!!.setDrawValuesOnTop(true);
+                        series!!.valuesOnTopSize = 5.toFloat()
                         graph.addSeries(series)
                     }
                     graph.title = getString(R.string.musclemass)
                     graph.titleTextSize = 100.toFloat()
-                    series!!.setSpacing(50)
-                    series!!.setDrawValuesOnTop(true);
                     graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
-                    graph.viewport.setScalable(true)
-                    graph.viewport.setMaxX(5.0)
-                    graph.viewport.setMinX(1.0)
-                    graph.viewport.setMaxY(8.0)
-                    graph.viewport.setMinY(3.0)
+                    graph.gridLabelRenderer.setHumanRounding(true)
+                    graph.viewport.setXAxisBoundsManual(true)
+                    graph.viewport.setScrollable(true)
                 }
             }
             5->{//BMI
@@ -374,23 +364,22 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series ==null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.bmiResponse!!, p).toTypedArray())
                         series!!.setColor(Color.GREEN)
+                        series!!.setSpacing(30)
+                        series!!.setDrawValuesOnTop(true);
                         graph.addSeries(series)
                     }else{
                         series!!.resetData(printData(mListener!!.bmiResponse!!, p).toTypedArray())
                         series!!.setColor(Color.GREEN)
+                        series!!.setSpacing(30)
+                        series!!.setDrawValuesOnTop(true);
                         graph.addSeries(series)
                     }
                     graph.title = getString(R.string.bmi)
                     graph.titleTextSize = 100.toFloat()
-                    series!!.setSpacing(50)
-                    series!!.setDrawValuesOnTop(true);
                     graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(false)
-                    graph.viewport.setScalable(true)
-                    graph.viewport.setMaxX(5.0)
-                    graph.viewport.setMinX(1.0)
-                    graph.viewport.setMaxY(8.0)
-                    graph.viewport.setMinY(3.0)
+                    graph.gridLabelRenderer.setHumanRounding(true)
+                    graph.viewport.setXAxisBoundsManual(true)
+                    graph.viewport.setScrollable(true)
                 }
             }
         }
@@ -440,25 +429,29 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         when(i){
             1 -> {//걷기
                 val set = bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!
-                for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints){
-                    if(dp.getValue(Field.FIELD_STEPS).asInt() > 10) {
-                        Log.i("printData", "\tdataPoints: " + dp.toString())
-                        Log.i("printData", "\tgetValue: " + dp.getValue(Field.FIELD_STEPS).toString())
-                        verticalValue.add(label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
-                        horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                        value.add(dp.getValue(Field.FIELD_STEPS).asInt().toDouble())
+                for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints) {
+                    if (bucket.getEndTime(TimeUnit.MILLISECONDS) > 0) {
+                        if (dp.getValue(Field.FIELD_STEPS).asInt() > 10) {
+                            Log.i("printData_" + "걷기", "\tTimestamp: " + label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
+                            Log.i("printData_" + "걷기", "\tgetValue: " + dp.getValue(Field.FIELD_STEPS).toString())
+                            verticalValue.add(label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
+                            horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                            value.add(dp.getValue(Field.FIELD_STEPS).asInt().toDouble())
+                        }
                     }
                 }
             }
             2 -> {//칼로리
                 val set = bucket.getDataSet(DataType.AGGREGATE_CALORIES_EXPENDED)!!
-                for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints){
-                    Log.i("printData", "\tdataPoints: " + dp.toString())
-                    Log.i("printData", "\tgetValue: " + dp.getValue(Field.FIELD_CALORIES).toString())
-                    if(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble() > 100.0) {
-                        verticalValue.add(label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
-                        horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                        value.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
+                for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints) {
+                    Log.i("printData_" + "칼로리", "\tTimestamp: " + label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
+                    Log.i("printData_" + "칼로리", "\tgetValue: " + dp.getValue(Field.FIELD_CALORIES).toString())
+                    if (bucket.getEndTime(TimeUnit.MILLISECONDS) > 0) {
+                        if (dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble() > 100.0) {
+                            verticalValue.add(label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
+                            horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                            value.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
+                        }
                     }
                 }
             }
@@ -479,10 +472,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 value.add(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble())
                 ia += 1
                 Log.i("printData", "Data point:");
-                Log.i("printData", "\tType: " + dp.getDataType().getName());
+                Log.i("printData_", "\tType: " + dp.getDataType().getName());
                 Log.i("printData", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
                 Log.i("printData", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
-                Log.i("printData", "\tTimestamp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                Log.i("printData_", "\tTimestamp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                 Log.i("printData", "\tValue: " + dp.getValue(dp.getDataType().fields.get(0)).toString());
                 Log.i("printData", "ia: " + ia.toString())
             }
