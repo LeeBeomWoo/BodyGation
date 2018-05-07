@@ -11,6 +11,8 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/btm_layout"
         android:layout_alignParentStart="false"
+        app:seriesData="0=5;2=5;3=0;4=2"
+        app:seriesType="line"
         android:background="@color/nocolor" />
 
     <android.support.constraint.ConstraintLayout

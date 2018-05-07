@@ -21,6 +21,7 @@ import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.tasks.OnSuccessListener
+import com.jjoe64.graphview.LabelFormatter
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter
 import com.jjoe64.graphview.helper.StaticLabelsFormatter
 import com.jjoe64.graphview.series.BarGraphSeries
@@ -165,8 +166,8 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     val verticalValue:MutableList<String> =  ArrayList()
     var first_value:Double? = null
     var last_value:Double? = null
-    var first_date:Date? = null
-    var last_date:Date? = null
+    var first_date:Double? = null
+    var last_date:Double? = null
     val TAG = "ForMeFragment_"
     var series: BarGraphSeries<DataPoint>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -192,11 +193,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         bmi_Btn.setOnCheckedChangeListener(this)
         muscle_Btn.setOnCheckedChangeListener(this)
     }
+    @SuppressLint("SimpleDateFormat")
     fun graphSet(p:Int){
         graph.removeSeries(series)
-        horizonValue.clear()
-        verticalValue.clear()
-        value.clear()
+        graph.onDataChanged(false, true)
         when(p){
             0->{//체중
                 if(mListener!!.readResponse == null){
@@ -208,27 +208,17 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series ==null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.readResponse!!, p).toTypedArray())
                         series!!.setColor(Color.BLUE)
-                        series!!.setSpacing(20)
-                        series!!.setDrawValuesOnTop(true)
-                        series!!.valuesOnTopSize = 20.toFloat()
-                        graph.addSeries(series)
                     }else{
                         series!!.resetData(printData(mListener!!.readResponse!!, p).toTypedArray())
                         series!!.setColor(Color.BLUE)
-                        series!!.setSpacing(20)
-                        series!!.setDrawValuesOnTop(true)
-                        series!!.valuesOnTopSize = 20.toFloat()
-                        graph.addSeries(series)
                     }
                     Log.i("graphSet_"+ "horizonValue", horizonValue.size.toString())
                     Log.i("graphSet_"+ "verticalValue", verticalValue.size.toString())
                     Log.i("graphSet_" + "value", value.size.toString())
                     graph.title = getString(R.string.weight)
-                    graph.titleTextSize = 100.toFloat()
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.viewport.setXAxisBoundsManual(true)
-                    graph.viewport.setScrollable(true)
+                    series!!.setSpacing(20)
+                    series!!.setDrawValuesOnTop(true)
+                    graph.addSeries(series)
                 }
             }
             1->{//걷기
@@ -241,27 +231,17 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series == null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.walkResponse!!, p).toTypedArray())
                         series!!.setColor(Color.YELLOW)
-                        series!!.setDrawValuesOnTop(true)
-                        series!!.valuesOnTopSize = 10.toFloat()
-                        series!!.setSpacing(20)
-                        graph.addSeries(series)
                     }else{
                         series!!.resetData(printData(mListener!!.walkResponse!!, p).toTypedArray())
-                        series!!.setDrawValuesOnTop(true)
-                        series!!.valuesOnTopSize = 10.toFloat()
-                        series!!.setSpacing(20)
                         series!!.setColor(Color.YELLOW)
-                            graph.addSeries(series)
                     }
                     Log.i("graphSet_"+ "horizonValue", horizonValue.size.toString())
                     Log.i("graphSet_"+ "verticalValue", verticalValue.size.toString())
                     Log.i("graphSet_" + "value", value.size.toString())
                     graph.title = getString(R.string.walk)
-                    graph.titleTextSize = 100.toFloat()
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.viewport.setXAxisBoundsManual(true)
-                    graph.viewport.setScrollable(true)
+                    series!!.setSpacing(20)
+                    series!!.setDrawValuesOnTop(true)
+                    graph.addSeries(series)
                 }
             }
             2->{//칼로리
@@ -274,27 +254,17 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series == null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.kcalResponse!!, p).toTypedArray())
                         series!!.setColor(Color.RED)
-                        series!!.setDrawValuesOnTop(true)
-                        series!!.setSpacing(30)
-                        series!!.setValuesOnTopSize(50.toFloat())
-                        graph.addSeries(series)
                     }else {
                         series!!.resetData(printData(mListener!!.kcalResponse!!, p).toTypedArray())
                         series!!.setColor(Color.RED)
-                        series!!.setDrawValuesOnTop(true)
-                        series!!.setSpacing(30)
-                        series!!.setValuesOnTopSize(50.toFloat())
-                        graph.addSeries(series)
                     }
                     Log.i("graphSet_"+ "horizonValue", horizonValue.size.toString())
                     Log.i("graphSet_"+ "verticalValue", verticalValue.size.toString())
                     Log.i("graphSet_" + "value", value.size.toString())
                     graph.title = getString(R.string.calore)
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.titleTextSize = 100.toFloat()
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.viewport.setXAxisBoundsManual(true)
-                    graph.viewport.setScrollable(true)
+                    series!!.setSpacing(20)
+                    series!!.setDrawValuesOnTop(true)
+                    graph.addSeries(series)
                 }
             }
             3->{//체지방비율
@@ -307,27 +277,14 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series ==null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.fatResponse!!, p).toTypedArray())
                         series!!.setColor(Color.MAGENTA)
-                        series!!.setSpacing(30)
-                        series!!.setDrawValuesOnTop(true);
-                        series!!.setValuesOnTopSize(70.toFloat())
-                        graph.addSeries(series)
                     }else{
                         series!!.resetData(printData(mListener!!.fatResponse!!, p).toTypedArray())
                          series!!.setColor(Color.MAGENTA)
-                        series!!.setSpacing(30)
-                        series!!.setDrawValuesOnTop(true);
-                        series!!.setValuesOnTopSize(70.toFloat())
-                        graph.addSeries(series)
                     }
                     Log.i("graphSet_"+ "horizonValue", horizonValue.size.toString())
                     Log.i("graphSet_"+ "verticalValue", verticalValue.size.toString())
                     Log.i("graphSet_" + "value", value.size.toString())
                     graph.title = getString(R.string.bodyfat)
-                    graph.titleTextSize = 100.toFloat()
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.viewport.setXAxisBoundsManual(true)
-                    graph.viewport.setScrollable(true)
                 }
             }
             4->{//골격근
@@ -337,24 +294,15 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series ==null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.muscleResponse!!, p).toTypedArray())
                         series!!.setColor(Color.DKGRAY)
-                        series!!.setSpacing(30)
-                        series!!.setDrawValuesOnTop(true);
-                        series!!.valuesOnTopSize = 5.toFloat()
-                        graph.addSeries(series)
+                        series!!.setSpacing(50)
                     }else{
                         series!!.resetData(printData(mListener!!.muscleResponse!!, p).toTypedArray())
                         series!!.setColor(Color.DKGRAY)
-                        series!!.setSpacing(30)
-                        series!!.setDrawValuesOnTop(true);
-                        series!!.valuesOnTopSize = 5.toFloat()
-                        graph.addSeries(series)
                     }
                     graph.title = getString(R.string.musclemass)
-                    graph.titleTextSize = 100.toFloat()
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.viewport.setXAxisBoundsManual(true)
-                    graph.viewport.setScrollable(true)
+                    series!!.setSpacing(20)
+                    series!!.setDrawValuesOnTop(true)
+                    graph.addSeries(series)
                 }
             }
             5->{//BMI
@@ -364,25 +312,29 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if(series ==null){
                         series = BarGraphSeries<com.jjoe64.graphview.series.DataPoint>(printData(mListener!!.bmiResponse!!, p).toTypedArray())
                         series!!.setColor(Color.GREEN)
-                        series!!.setSpacing(30)
-                        series!!.setDrawValuesOnTop(true);
-                        graph.addSeries(series)
                     }else{
                         series!!.resetData(printData(mListener!!.bmiResponse!!, p).toTypedArray())
                         series!!.setColor(Color.GREEN)
-                        series!!.setSpacing(30)
-                        series!!.setDrawValuesOnTop(true);
-                        graph.addSeries(series)
                     }
                     graph.title = getString(R.string.bmi)
-                    graph.titleTextSize = 100.toFloat()
-                    graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context));
-                    graph.gridLabelRenderer.setHumanRounding(true)
-                    graph.viewport.setXAxisBoundsManual(true)
-                    graph.viewport.setScrollable(true)
+                    series!!.setSpacing(20)
+                    series!!.setDrawValuesOnTop(true)
+                    graph.addSeries(series)
                 }
             }
         }
+        val label = SimpleDateFormat("MM/dd")
+        graph.titleTextSize = 80.toFloat()
+        graph.gridLabelRenderer.setLabelFormatter(DateAsXAxisLabelFormatter(mListener!!.context, label))
+        graph.gridLabelRenderer.setNumHorizontalLabels(4)
+        graph.viewport.setXAxisBoundsManual(true)
+        graph.viewport.setYAxisBoundsManual(true)
+        graph.viewport.setMinX(series!!.lowestValueX)
+        graph.viewport.setMaxX(series!!.highestValueX)
+        graph.viewport.setScalable(true)
+        graph.gridLabelRenderer.setHumanRounding(false, true)
+        series!!.appendData(DataPoint(last_date!!, last_value!!), true, value.size
+        )
     }
     @SuppressLint("SimpleDateFormat")
     fun printData(dataReadResult: DataReadResponse, i:Int):MutableList<com.jjoe64.graphview.series.DataPoint> {
@@ -390,8 +342,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         var ia = 0
         val line :MutableList<com.jjoe64.graphview.series.DataPoint> = ArrayList()
             if (dataReadResult.getBuckets().size > 0) {
+                horizonValue.clear()
+                verticalValue.clear()
+                value.clear()
                 Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
-
                     for (bucket: Bucket in dataReadResult.getBuckets()) {
                         Log.i("printData", "Bucket point:");
                         Log.i("printData", "bucket : " + bucket.toString())
@@ -404,21 +358,25 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     }
                 Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
                 Log.i("printData", "\tvalue : " + value.size.toString())
-                for(a:Int in 0..(horizonValue.size-1)){
-                     line.add(com.jjoe64.graphview.series.DataPoint(horizonValue.get(a), value.get(a))) //동적
-                    // line.add(com.jjoe64.graphview.series.DataPoint(a.toDouble(), value.get(a))) //정적
-                }
-                last_date = horizonValue.last()
-                first_date = horizonValue.first()
-                first_value = value.min()
-                last_value = value.max()
             } else if (dataReadResult.getDataSets().size > 0) {
+                horizonValue.clear()
+                verticalValue.clear()
+                value.clear()
                 Log.i("printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
                 for (dataSet: DataSet in dataReadResult.getDataSets()) {
-                    line.addAll(dumpDataSet(dataSet, i))
+                    dumpDataSet(dataSet)
                     ia += 1
+                    Log.i("printData", "\tia : " + ia.toString())
                 }
             }
+        last_date = horizonValue.last().time.toDouble()
+        first_date = horizonValue.first().time.toDouble()
+        first_value = value.min()
+        last_value = value.max()
+        for(a:Int in 0..(horizonValue.size-2)){
+            line.add(com.jjoe64.graphview.series.DataPoint(horizonValue.get(a), value.get(a))) //동적
+            // line.add(com.jjoe64.graphview.series.DataPoint(a.toDouble(), value.get(a))) //정적
+        }
         return line
     }
 
@@ -459,12 +417,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
 
     }
     @SuppressLint("SimpleDateFormat")
-    private fun dumpDataSet(dataSet:DataSet, i:Int): ArrayList<com.jjoe64.graphview.series.DataPoint> {
+    private fun dumpDataSet(dataSet:DataSet) {
         Log.i("printData", "Data returned for Data type: " + dataSet.getDataType().getName());
         val label = SimpleDateFormat("MM/dd")
         Log.i("printData", "Data size:" + dataSet.getDataPoints().size.toString())
         Log.i("printData", "Data set:" + dataSet.toString())
         var ia = 0
+
         for ( dp : com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
             if(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble() > 0.5) {
                 verticalValue.add(label.format(Date(dp.getTimestamp(TimeUnit.MILLISECONDS))))
@@ -480,19 +439,8 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 Log.i("printData", "ia: " + ia.toString())
             }
         }
-        last_date = horizonValue.last()
-        first_date = horizonValue.first()
-        first_value = value.min()
-        last_value = value.max()
-        val mlist:ArrayList<com.jjoe64.graphview.series.DataPoint> = ArrayList()
         Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
         Log.i("printData", "\tvalue : " + value.size.toString())
-        for(a:Int in 0..(horizonValue.size - 1)){
-            mlist.add(com.jjoe64.graphview.series.DataPoint(horizonValue.get(a), value.get(a))) //동적
-         //   mlist.add(com.jjoe64.graphview.series.DataPoint(a.toDouble(), value.get(a))) //정적
-        }
-        Log.i("printData", "Data ia:"+ia.toString())
-        return mlist
     }
 
     override fun onAttach(context: Context) {
