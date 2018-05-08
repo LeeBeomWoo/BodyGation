@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentSender
-import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.AsyncTask
@@ -24,7 +23,6 @@ import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import bodygate.bcns.bodygation.R.id.custom_sign_in_button
 import bodygate.bcns.bodygation.R.id.navigation_follow
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
@@ -44,13 +42,11 @@ import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.Fitness.ConfigApi
 import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.FitnessStatusCodes
-import com.google.android.gms.fitness.HistoryApi
 import com.google.android.gms.fitness.data.*
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.DataTypeCreateRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
-import com.google.android.gms.fitness.result.DataReadResult
 import com.google.android.gms.fitness.result.DataTypeResult
 import com.google.android.gms.tasks.*
 import com.google.api.client.extensions.android.http.AndroidHttp
@@ -60,7 +56,6 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTubeScopes
-import com.jjoe64.graphview.series.LineGraphSeries
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_follow.*
@@ -69,15 +64,10 @@ import kotlinx.android.synthetic.main.fragment_movie.*
 import kotlinx.android.synthetic.main.google_login.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.Response
 import java.io.IOException
-import java.text.DateFormat
-import java.text.DateFormat.getDateInstance
-import java.text.DateFormat.getTimeInstance
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -789,31 +779,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
            readResponse = Tasks.await(response)
        }
         launch(CommonPool) {
-         /*   val ds = DataSource.Builder()
-                    .setAppPackageName("com.google.android.gms")
-                    .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
-                    .setType(DataSource.TYPE_DERIVED)
-                    .setStreamName("estimated_steps")
-                    .build()*/
             val response_ds = DataReadRequest.Builder()
                     .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
                     .bucketByTime(1, TimeUnit.DAYS)
-                    .setTimeRange(startTime, calendar.timeInMillis, TimeUnit.MILLISECONDS)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                     .build()
             val sss = Fitness.getHistoryClient(this@MainActivity, task!!)
                     .readData(response_ds)
             walkResponse = Tasks.await(sss)
         }
         launch(CommonPool) {
-       /*     val response_dc = DataReadRequest.Builder()
-                    .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.TYPE_CALORIES_EXPENDED)
-                    .bucketByTime(1, TimeUnit.DAYS)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build()*/
             val response_dc = DataReadRequest.Builder()
                 .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
                 .bucketByTime(1, TimeUnit.DAYS)
-                .setTimeRange(startTime, calendar.timeInMillis, TimeUnit.MILLISECONDS)
+                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
             val ccc = Fitness.getHistoryClient(this@MainActivity, task!!)
                     .readData(response_dc)
