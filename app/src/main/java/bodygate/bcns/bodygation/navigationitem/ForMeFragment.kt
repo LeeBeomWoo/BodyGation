@@ -2,8 +2,10 @@ package bodygate.bcns.bodygation.navigationitem
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.os.HandlerThread
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +15,7 @@ import bodygate.bcns.bodygation.CheckableImageButton
 import bodygate.bcns.bodygation.R
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
@@ -24,6 +27,10 @@ import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.result.DataReadResponse
 import kotlinx.android.synthetic.main.fragment_for_me.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -139,13 +146,18 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             }
         }
     }
-
+    val job:HandlerThread = HandlerThread("data_receive")
     private var mParam1: String? = null
     private var mListener: OnForMeInteraction? = null
     val value:MutableList<Double> =  ArrayList()
     val valueLabel:MutableList<String> =  ArrayList()
     val horizonValue:MutableList<Date> =  ArrayList()
-    val horizonLabel:MutableList<String> =  ArrayList()
+    val weight_Label:MutableList<String> =  ArrayList()
+    val kcal_Label:MutableList<String> =  ArrayList()
+    val walk_Label:MutableList<String> =  ArrayList()
+    val fat_Label:MutableList<String> =  ArrayList()
+    val muscle_Label:MutableList<String> =  ArrayList()
+    val bmi_Label:MutableList<String> =  ArrayList()
     val TAG = "ForMeFragment_"
     var weight_series: MutableList<BarEntry> = ArrayList()
     var muscle_series: MutableList<BarEntry> = ArrayList()
@@ -191,22 +203,17 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         l.setTextSize(8f)
         val rAxis = graph.getAxisRight()
         rAxis.setEnabled(false)
-        XAxis xAxis = chart.getXAxis();
-xAxis.setPosition(XAxisPosition.BOTTOM);
-xAxis.setTextSize(10f);
-xAxis.setTextColor(Color.RED);
-xAxis.setDrawAxisLine(true);
-xAxis.setDrawGridLines(false);
+        val xAxis = graph.getXAxis()
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTextSize(10f);
+        xAxis.setTextColor(Color.DKGRAY);
+        xAxis.setDrawAxisLine(true);
+        xAxis.setDrawGridLines(false);
+        graph.setVisibleXRangeMaximum(5.toFloat())
     }
     @SuppressLint("SimpleDateFormat")
     fun graphSet(p:Int){
-        val label = SimpleDateFormat("MM/dd")
-        horizonLabel.clear()
         valueLabel.clear()
-        for(a:Int in 0..(horizonValue.size-1)){
-            horizonLabel.add(label.format(horizonValue[a]))
-            valueLabel.add(value[a].toString())
-        }
         when(p){
             0->{//체중
                 if(mListener!!.readResponse == null){
@@ -216,14 +223,13 @@ xAxis.setDrawGridLines(false);
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     } else {
-                        weight_series = printData(mListener!!.readResponse!!, p)
+                            weight_series = printData(mListener!!.readResponse!!, p)
                         val set1 = BarDataSet(weight_series, getString(R.string.weight))
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            val mValues: Array<String> = horizonLabel.toTypedArray()
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return mValues[value.toInt()]
+                                return weight_Label[value.toInt()]
                             }
                         })
                         graph.setData(barData)
@@ -245,9 +251,8 @@ xAxis.setDrawGridLines(false);
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            val mValues: Array<String> = horizonLabel.toTypedArray()
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return mValues[value.toInt()]
+                                return walk_Label[value.toInt()]
                             }
                         })
                         graph.setData(barData)
@@ -269,9 +274,8 @@ xAxis.setDrawGridLines(false);
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            val mValues: Array<String> = horizonLabel.toTypedArray()
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return mValues[value.toInt()]
+                                return kcal_Label[value.toInt()]
                             }
                         })
                         graph.setData(barData)
@@ -293,9 +297,8 @@ xAxis.setDrawGridLines(false);
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            val mValues: Array<String> = horizonLabel.toTypedArray()
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return mValues[value.toInt()]
+                                return fat_Label[value.toInt()]
                             }
                         })
                         graph.setData(barData)
@@ -317,9 +320,8 @@ xAxis.setDrawGridLines(false);
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            val mValues: Array<String> = horizonLabel.toTypedArray()
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return mValues[value.toInt()]
+                                return muscle_Label[value.toInt()]
                             }
                         })
                         graph.setData(barData)
@@ -341,9 +343,8 @@ xAxis.setDrawGridLines(false);
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            val mValues: Array<String> = horizonLabel.toTypedArray()
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return mValues[value.toInt()]
+                                return bmi_Label[value.toInt()]
                             }
                         })
                         graph.setData(barData)
@@ -356,7 +357,7 @@ xAxis.setDrawGridLines(false);
     graph.invalidate()
     }
     @SuppressLint("SimpleDateFormat")
-    fun printData(dataReadResult: DataReadResponse, i:Int):MutableList<BarEntry> {
+   fun printData(dataReadResult: DataReadResponse, i:Int):MutableList<BarEntry> {
         val label = SimpleDateFormat("MM/dd")
         var ia = 0
         val line :MutableList<BarEntry> = ArrayList()
@@ -388,6 +389,27 @@ xAxis.setDrawGridLines(false);
             }
         val x = horizonValue.size-1
         for(a:Int in 0..x){
+            when(i){
+            0->{//체중
+                weight_Label.add(label.format(horizonValue[a]))
+            }
+            1->{//걷기
+                walk_Label.add(label.format(horizonValue[a]))
+            }
+            2->{//칼로리
+                kcal_Label.add(label.format(horizonValue[a]))
+            }
+            3->{//체지방
+                fat_Label.add(label.format(horizonValue[a]))
+            }
+            4->{//골격근
+                muscle_Label.add(label.format(horizonValue[a]))
+            }
+            5->{//BMI
+                bmi_Label.add(label.format(horizonValue[a]))
+            }
+        }
+            valueLabel.add(value[a].toString())
             line.add(BarEntry(a.toFloat(), value.get(a).toFloat())) //동적
             // line.add(com.jjoe64.graphview.series.DataPoint(a.toDouble(), value.get(a))) //정적
         }
@@ -444,17 +466,17 @@ xAxis.setDrawGridLines(false);
                 horizonValue.add(Date(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                 value.add(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble())
                 ia += 1
-                Log.i("printData", "Data point:");
+                Log.i("printData_", "Data point:");
                 Log.i("printData_", "\tType: " + dp.getDataType().getName());
-                Log.i("printData", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
-                Log.i("printData", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                Log.i("printData_", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
+                Log.i("printData_", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
                 Log.i("printData_", "\tTimestamp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                Log.i("printData", "\tValue: " + dp.getValue(dp.getDataType().fields.get(0)).toString());
-                Log.i("printData", "ia: " + ia.toString())
+                Log.i("printData_", "\tValue: " + dp.getValue(dp.getDataType().fields.get(0)).toString());
+                Log.i("printData_", "\tia: " + ia.toString())
             }
         }
-        Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
-        Log.i("printData", "\tvalue : " + value.size.toString())
+        Log.i("printData_", "\thorizonValue : " + horizonValue.size.toString())
+        Log.i("printData_", "\tvalue : " + value.size.toString())
     }
 
     override fun onAttach(context: Context) {
