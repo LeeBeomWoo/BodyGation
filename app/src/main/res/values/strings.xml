@@ -162,8 +162,8 @@
     <string name="bodyfat">체지방 변화</string>
     <string name="musclemass">골격근량 변화</string>
     <string name="fitheghit">아쉽게도 키는 목표를 잡을 수가 없네요</string>
-    <string name="server_client_id">193944482415-v5dg6cel56tugrv4r5j0k7c93944kimn.apps.googleusercontent.com</string>
-    <string name="API_key">AIzaSyDYApmvsPUrZkd1vr8yeN4ZvxkmE75HDa4</string>
+    <string name="server_client_id">742529529643-r530klr2se7g6g9h9klrv5hm5hhf4r06.apps.googleusercontent.com</string>
+    <string name="API_key">AIzaSyBVobo_AuzdUl9zIAAANnGMlJ_waexilY0</string>
     <string name="default_sign_in_button">구글 계정과 연동 합니다.</string>
     <string name="custom_sign_in_button">다른 구글 계정으로 연동합니다.</string>
     <string name="sign_in">로그인</string>

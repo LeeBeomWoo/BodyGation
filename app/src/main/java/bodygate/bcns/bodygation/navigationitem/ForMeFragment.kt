@@ -32,6 +32,7 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -206,175 +207,190 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         val rAxis = graph.getAxisRight()
         rAxis.setEnabled(false)
         val xAxis = graph.getXAxis()
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setTextSize(10f);
-        xAxis.setTextColor(Color.DKGRAY);
-        xAxis.setDrawAxisLine(true);
-        xAxis.setDrawGridLines(false);
-        graph.setVisibleXRangeMaximum(5.toFloat())
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM)
+        xAxis.setTextSize(10f)
+        xAxis.setTextColor(Color.DKGRAY)
+        xAxis.setDrawAxisLine(true)
+        xAxis.setDrawGridLines(false)
     }
     @SuppressLint("SimpleDateFormat")
     fun graphSet(p:Int)= runBlocking {
         Log.i("coroutine", "graphSet")
+        val label = SimpleDateFormat("MM/dd")
         when(p){
             0->{//체중
                 if(mListener!!.readResponse == null){
                     Log.i(TAG, "체중 없음")
                 }else {
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
+                    if (graph.data != null &&
+                            graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
-                    } else {
-                        val job = launch{
-                            Log.i("coroutine", "job")
-                            printData(mListener!!.readResponse!!, p)
-                        }
-                        Log.i("coroutine", "job_before")
-                        job.join()
-                        Log.i("coroutine", "job_after")
-                        val xAxis = graph.xAxis
-                        xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return weight_Label[value.toInt()]
-                            }
-                        })
-                        val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                        val barData = BarData(set1)
-                        graph.setData(barData)
-                        graph.getData().notifyDataChanged();
-                        graph.notifyDataSetChanged();
+                        graph.data.notifyDataChanged()
                     }
+                    val job = launch{
+                        Log.i("coroutine", "job")
+                        printData(mListener!!.readResponse!!, p)
+                    }
+                    Log.i("coroutine", "job_before")
+                    job.join()
+                    Log.i("coroutine", "job_after")
+                    val set1 = BarDataSet(weight_series, getString(R.string.weight))
+                    set1.setColor(R.color.weightcolor)
+                    set1.barBorderColor = R.color.weightcolor
+                    val xAxis = graph.xAxis
+                    xAxis.setValueFormatter(object : IAxisValueFormatter{
+                        override fun getFormattedValue(value: Float, axis: AxisBase?): String {
+                            Log.i("coroutine",label.format(value.toLong()))
+                            return label.format(value.toLong())
+                        }
+                    })
+                    val barData = BarData(set1)
+                    graph.setData(barData)
+                    graph.getData().notifyDataChanged();
+                    graph.notifyDataSetChanged();
                 }
             }
             1->{//걷기
                 if(mListener!!.walkResponse == null){
                     Log.i(TAG, "걷기 없음")
                 }else {
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
+                    if (graph.data != null &&
+                            graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
-                    } else {
+                        graph.data.notifyDataChanged()
+                    }
                         val job = launch {
                             printData(mListener!!.walkResponse!!, p)
                         }
                         job.join()
+                        val set1 = BarDataSet(walk_series, getString(R.string.walk))
+                    set1.setColor(R.color.walkcolor)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return walk_Label[value.toInt()]
+                                Log.i("coroutine",label.format(value.toLong()))
+                                return label.format(value.toLong())
                             }
                         })
-                        val set1 = BarDataSet(walk_series, getString(R.string.walk))
                         val barData = BarData(set1)
                         graph.setData(barData)
                         graph.getData().notifyDataChanged();
                         graph.notifyDataSetChanged();
-                    }
                 }
             }
             2-> {//칼로리
                 if (mListener!!.kcalResponse == null) {
                     Log.i(TAG, "칼로리 없음")
                 } else {
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
+                    if (graph.data != null &&
+                            graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
-                    } else {
+                        graph.data.notifyDataChanged()
+                    }
                         val job = launch {
                             printData(mListener!!.kcalResponse!!, p)
                         }
                         job.join()
+                        val set1 = BarDataSet(kcal_series, getString(R.string.calore))
+                    set1.setColor(R.color.kcalcolor)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return kcal_Label[value.toInt()]
+                                Log.i("coroutine",label.format(value.toLong()))
+                                return label.format(value.toLong())
                             }
                         })
-                        val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                         val barData = BarData(set1)
                         graph.setData(barData)
                         graph.getData().notifyDataChanged();
                         graph.notifyDataSetChanged();
-                    }
                 }
             }
             3->{//체지방비율
                 if(mListener!!.fatResponse == null){
                     Log.i(TAG, "체지방비율 없음")
                 }else {
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
+                    if (graph.data != null &&
+                            graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
-                    } else {
+                        graph.data.notifyDataChanged()
+                    }
                         val job = launch {
                             printData(mListener!!.fatResponse!!, p)
                         }
                         job.join()
+                        val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
+                    set1.setColor(R.color.fatcolor)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return fat_Label[value.toInt()]
+                                Log.i("coroutine",label.format(value.toLong()))
+                                return label.format(value.toLong())
                             }
                         })
-                        val set1 = BarDataSet(kcal_series, getString(R.string.bodyfat))
                         val barData = BarData(set1)
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged()
-                    }
+
                 }
             }
             4->{//골격근
                 if(mListener!!.muscleResponse == null){
                     Log.i(TAG, "골격근 없음")
                 }else {
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
+                    if (graph.data != null &&
+                            graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
-                    } else {
+                        graph.data.notifyDataChanged()
+                    }
                         val job = launch {
                             printData(mListener!!.muscleResponse!!, p)
                         }
                         job.join()
+                        val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
+                    set1.setColor(R.color.musclecolor)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return muscle_Label[value.toInt()]
+                                Log.i("coroutine",label.format(value.toLong()))
+                                return label.format(value.toLong())
                             }
                         })
-                        val set1 = BarDataSet(fat_series, getString(R.string.musclemass))
                         val barData = BarData(set1)
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged()
-                    }
+
                 }
             }
             5->{//BMI
                 if(mListener!!.bmiResponse == null){
                     Log.i(TAG, "BMI 없음")
                 }else {
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
+                    if (graph.data != null &&
+                            graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
-                    } else {
+                        graph.data.notifyDataChanged()
+                    }
                         val job = launch {
                             printData(mListener!!.bmiResponse!!, p)
                         }
                         job.join()
+                        val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
+                    set1.setColor(R.color.bmicolor)
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                return bmi_Label[value.toInt()]
+                                Log.i("coroutine",label.format(value.toLong()))
+                                return label.format(value.toLong())
                             }
                         })
-                        val set1 = BarDataSet(muscle_series, getString(R.string.bmi))
                         val barData = BarData(set1)
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged()
                     }
-                }
             }
         }
     graph.invalidate()
@@ -411,9 +427,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     }
     fun series_dataSet():MutableList<BarEntry>{
         val series: MutableList<BarEntry> = ArrayList()
-        val x = horizonValue.size-1
+        val x = value.size-1
         for (a: Int in 0..x) {
-            series.add(BarEntry(a.toFloat(), value.get(a).toFloat()))
+            series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
         }
         return series
     }
@@ -434,53 +450,52 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             Log.i("coroutine", "printData_job")
                 when (i) {
                     0 -> {//체중
-                        if(weight_series.size >0){
-                            Log.i("coroutine", "weight_series.size >0")
-                        }else{
-                            Log.i("coroutine", "else")
+                        if(weight_Label.isEmpty()){
                             dataRecieve(dataReadResult, i)
                             weight_series = series_dataSet()
                             weight_Label = label_dataSet()
+                            Log.i("coroutine", "else")
                         }
                     }
                     1 -> {//걷기
-                        if(walk_series.size >0){
-                        }else{
+                        if(walk_series.isEmpty()){
                             dataRecieve(dataReadResult, i)
                             walk_series = series_dataSet()
                             walk_Label = label_dataSet()
                         }
                     }
                     2 -> {//칼로리
-                        if(kcal_series.size >0){
-                        }else{
+                        if(kcal_series.isEmpty()){
                             dataRecieve(dataReadResult, i)
                             kcal_series = series_dataSet()
                             kcal_Label = label_dataSet()
                         }
                     }
                     3 -> {//체지방
-                        if(fat_series.size >0){
-                        }else{
+                        if(fat_series.isEmpty()){
                             dataRecieve(dataReadResult, i)
                             fat_series = series_dataSet()
                             fat_Label = label_dataSet()
+                            Log.i("coroutine", "fat_series :" + fat_series.size.toString())
+                            Log.i("coroutine", "fat_Label :" + fat_Label.size.toString())
                         }
                     }
                     4 -> {//골격근
-                        if(muscle_series.size >0){
-                        }else{
+                        if(muscle_series.isEmpty()){
                             dataRecieve(dataReadResult, i)
                             muscle_series = series_dataSet()
                             muscle_Label = label_dataSet()
+                            Log.i("coroutine", "muscle_series :" + muscle_series.size.toString())
+                            Log.i("coroutine", "muscle_Label :" + muscle_Label.size.toString())
                         }
                     }
                     5 -> {//BMI
-                        if(bmi_series.size >0){
-                        }else{
+                        if(bmi_series.isEmpty()){
                             dataRecieve(dataReadResult, i)
                             bmi_series = series_dataSet()
                             bmi_Label = label_dataSet()
+                            Log.i("coroutine", "bmi_series :" + bmi_series.size.toString())
+                            Log.i("coroutine", "bmi_Label :" + bmi_Label.size.toString())
                         }
                     }
             }

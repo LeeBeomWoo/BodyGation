@@ -6,4 +6,10 @@
     <color name="bodynavigationbar">#345e35</color>
     <color name="foreground_material_light">#243020</color>
     <color name="nocolor">#00ff0000</color>
+    <color name="fatcolor">#b446b8</color>
+    <color name="musclecolor">#3c57b8</color>
+    <color name="weightcolor">#28b8b8</color>
+    <color name="walkcolor">#b8b655</color>
+    <color name="bmicolor">#b89755</color>
+    <color name="kcalcolor">#b85755</color>
 </resources>
