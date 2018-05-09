@@ -31,6 +31,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -47,6 +48,7 @@ import kotlin.collections.ArrayList
  */
 class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.OnCheckedChangeListener {
     override fun onCheckedChanged(button: CheckableImageButton?, check: Boolean) {
+        Log.i("coroutine", "onCheckedChanged")
         when (button!!.id) {
             R.id.weight_Btn -> {
                 weight_Btn.setChecked(check)
@@ -152,12 +154,12 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     val value:MutableList<Double> =  ArrayList()
     val valueLabel:MutableList<String> =  ArrayList()
     val horizonValue:MutableList<Date> =  ArrayList()
-    val weight_Label:MutableList<String> =  ArrayList()
-    val kcal_Label:MutableList<String> =  ArrayList()
-    val walk_Label:MutableList<String> =  ArrayList()
-    val fat_Label:MutableList<String> =  ArrayList()
-    val muscle_Label:MutableList<String> =  ArrayList()
-    val bmi_Label:MutableList<String> =  ArrayList()
+    var weight_Label:MutableList<String> =  ArrayList()
+    var kcal_Label:MutableList<String> =  ArrayList()
+    var walk_Label:MutableList<String> =  ArrayList()
+    var fat_Label:MutableList<String> =  ArrayList()
+    var muscle_Label:MutableList<String> =  ArrayList()
+    var bmi_Label:MutableList<String> =  ArrayList()
     val TAG = "ForMeFragment_"
     var weight_series: MutableList<BarEntry> = ArrayList()
     var muscle_series: MutableList<BarEntry> = ArrayList()
@@ -212,8 +214,8 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         graph.setVisibleXRangeMaximum(5.toFloat())
     }
     @SuppressLint("SimpleDateFormat")
-    fun graphSet(p:Int){
-        valueLabel.clear()
+    fun graphSet(p:Int)= runBlocking {
+        Log.i("coroutine", "graphSet")
         when(p){
             0->{//체중
                 if(mListener!!.readResponse == null){
@@ -223,15 +225,21 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     } else {
-                            weight_series = printData(mListener!!.readResponse!!, p)
-                        val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                        val barData = BarData(set1)
+                        val job = launch{
+                            Log.i("coroutine", "job")
+                            printData(mListener!!.readResponse!!, p)
+                        }
+                        Log.i("coroutine", "job_before")
+                        job.join()
+                        Log.i("coroutine", "job_after")
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                                 return weight_Label[value.toInt()]
                             }
                         })
+                        val set1 = BarDataSet(weight_series, getString(R.string.weight))
+                        val barData = BarData(set1)
                         graph.setData(barData)
                         graph.getData().notifyDataChanged();
                         graph.notifyDataSetChanged();
@@ -246,15 +254,18 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     } else {
-                        walk_series = printData(mListener!!.walkResponse!!, p)
-                        val set1 = BarDataSet(walk_series, getString(R.string.walk))
-                        val barData = BarData(set1)
+                        val job = launch {
+                            printData(mListener!!.walkResponse!!, p)
+                        }
+                        job.join()
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                                 return walk_Label[value.toInt()]
                             }
                         })
+                        val set1 = BarDataSet(walk_series, getString(R.string.walk))
+                        val barData = BarData(set1)
                         graph.setData(barData)
                         graph.getData().notifyDataChanged();
                         graph.notifyDataSetChanged();
@@ -269,15 +280,18 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     } else {
-                        kcal_series = printData(mListener!!.kcalResponse!!, p)
-                        val set1 = BarDataSet(kcal_series, getString(R.string.calore))
-                        val barData = BarData(set1)
+                        val job = launch {
+                            printData(mListener!!.kcalResponse!!, p)
+                        }
+                        job.join()
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                                 return kcal_Label[value.toInt()]
                             }
                         })
+                        val set1 = BarDataSet(kcal_series, getString(R.string.calore))
+                        val barData = BarData(set1)
                         graph.setData(barData)
                         graph.getData().notifyDataChanged();
                         graph.notifyDataSetChanged();
@@ -292,15 +306,18 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     } else {
-                        fat_series = printData(mListener!!.fatResponse!!, p)
-                        val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
-                        val barData = BarData(set1)
+                        val job = launch {
+                            printData(mListener!!.fatResponse!!, p)
+                        }
+                        job.join()
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                                 return fat_Label[value.toInt()]
                             }
                         })
+                        val set1 = BarDataSet(kcal_series, getString(R.string.bodyfat))
+                        val barData = BarData(set1)
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged()
@@ -315,15 +332,18 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     } else {
-                        muscle_series = printData(mListener!!.muscleResponse!!, p)
-                        val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
-                        val barData = BarData(set1)
+                        val job = launch {
+                            printData(mListener!!.muscleResponse!!, p)
+                        }
+                        job.join()
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                                 return muscle_Label[value.toInt()]
                             }
                         })
+                        val set1 = BarDataSet(fat_series, getString(R.string.musclemass))
+                        val barData = BarData(set1)
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged()
@@ -338,15 +358,18 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     } else {
-                        bmi_series = printData(mListener!!.bmiResponse!!, p)
-                        val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
-                        val barData = BarData(set1)
+                        val job = launch {
+                            printData(mListener!!.bmiResponse!!, p)
+                        }
+                        job.join()
                         val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                                 return bmi_Label[value.toInt()]
                             }
                         })
+                        val set1 = BarDataSet(muscle_series, getString(R.string.bmi))
+                        val barData = BarData(set1)
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged()
@@ -357,65 +380,116 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     graph.invalidate()
     }
     @SuppressLint("SimpleDateFormat")
-   fun printData(dataReadResult: DataReadResponse, i:Int):MutableList<BarEntry> {
+    fun dataRecieve(dataReadResult: DataReadResponse, i:Int){
+        horizonValue.clear()
+        value.clear()
+        Log.i("coroutine", "dataRecieve")
         val label = SimpleDateFormat("MM/dd")
         var ia = 0
-        val line :MutableList<BarEntry> = ArrayList()
-            if (dataReadResult.getBuckets().size > 0) {
-                horizonValue.clear()
-                value.clear()
-                Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
-                    for (bucket: Bucket in dataReadResult.getBuckets()) {
-                        Log.i("printData", "Bucket point:");
-                        Log.i("printData", "bucket : " + bucket.toString())
-                        Log.i("printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
-                        Log.i("printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                        Log.i("printData", "\tdataSets: " + bucket.dataSets.toString())
-                        printBucket(bucket, i)
-                        ia += 1
-                        Log.i("printData", "\tia : " + ia.toString())
-                    }
-                Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
-                Log.i("printData", "\tvalue : " + value.size.toString())
-            } else if (dataReadResult.getDataSets().size > 0) {
-                horizonValue.clear()
-                value.clear()
-                Log.i("printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
-                for (dataSet: DataSet in dataReadResult.getDataSets()) {
-                    dumpDataSet(dataSet)
-                    ia += 1
-                    Log.i("printData", "\tia : " + ia.toString())
-                }
+        if (dataReadResult.getBuckets().size > 0) {
+            Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
+            for (bucket: Bucket in dataReadResult.getBuckets()) {
+                Log.i("printData", "Bucket point:");
+                Log.i("printData", "bucket : " + bucket.toString())
+                Log.i("printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
+                Log.i("printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                Log.i("printData", "\tdataSets: " + bucket.dataSets.toString())
+                printBucket(bucket, i)
+                ia += 1
+                Log.i("printData", "\tia : " + ia.toString())
             }
+            Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
+            Log.i("printData", "\tvalue : " + value.size.toString())
+        } else if (dataReadResult.getDataSets().size > 0) {
+            Log.i("printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
+            for (dataSet: DataSet in dataReadResult.getDataSets()) {
+                dumpDataSet(dataSet)
+                ia += 1
+                Log.i("printData", "\tia : " + ia.toString())
+            }
+        }
+    }
+    fun series_dataSet():MutableList<BarEntry>{
+        val series: MutableList<BarEntry> = ArrayList()
         val x = horizonValue.size-1
-        for(a:Int in 0..x){
-            when(i){
-            0->{//체중
-                weight_Label.add(label.format(horizonValue[a]))
-            }
-            1->{//걷기
-                walk_Label.add(label.format(horizonValue[a]))
-            }
-            2->{//칼로리
-                kcal_Label.add(label.format(horizonValue[a]))
-            }
-            3->{//체지방
-                fat_Label.add(label.format(horizonValue[a]))
-            }
-            4->{//골격근
-                muscle_Label.add(label.format(horizonValue[a]))
-            }
-            5->{//BMI
-                bmi_Label.add(label.format(horizonValue[a]))
-            }
+        for (a: Int in 0..x) {
+            series.add(BarEntry(a.toFloat(), value.get(a).toFloat()))
         }
+        return series
+    }
+    @SuppressLint("SimpleDateFormat")
+    fun label_dataSet():MutableList<String>{
+        val label = SimpleDateFormat("MM/dd")
+        val series: MutableList<String> = ArrayList()
+        val x = horizonValue.size-1
+        for (a: Int in 0..x) {
+            series.add(label.format(horizonValue[a]))
             valueLabel.add(value[a].toString())
-            line.add(BarEntry(a.toFloat(), value.get(a).toFloat())) //동적
-            // line.add(com.jjoe64.graphview.series.DataPoint(a.toDouble(), value.get(a))) //정적
         }
+        return series
+    }
+  suspend fun printData(dataReadResult: DataReadResponse, i:Int){
+        Log.i("coroutine", "printData")
+        val job = launch {
+            Log.i("coroutine", "printData_job")
+                when (i) {
+                    0 -> {//체중
+                        if(weight_series.size >0){
+                            Log.i("coroutine", "weight_series.size >0")
+                        }else{
+                            Log.i("coroutine", "else")
+                            dataRecieve(dataReadResult, i)
+                            weight_series = series_dataSet()
+                            weight_Label = label_dataSet()
+                        }
+                    }
+                    1 -> {//걷기
+                        if(walk_series.size >0){
+                        }else{
+                            dataRecieve(dataReadResult, i)
+                            walk_series = series_dataSet()
+                            walk_Label = label_dataSet()
+                        }
+                    }
+                    2 -> {//칼로리
+                        if(kcal_series.size >0){
+                        }else{
+                            dataRecieve(dataReadResult, i)
+                            kcal_series = series_dataSet()
+                            kcal_Label = label_dataSet()
+                        }
+                    }
+                    3 -> {//체지방
+                        if(fat_series.size >0){
+                        }else{
+                            dataRecieve(dataReadResult, i)
+                            fat_series = series_dataSet()
+                            fat_Label = label_dataSet()
+                        }
+                    }
+                    4 -> {//골격근
+                        if(muscle_series.size >0){
+                        }else{
+                            dataRecieve(dataReadResult, i)
+                            muscle_series = series_dataSet()
+                            muscle_Label = label_dataSet()
+                        }
+                    }
+                    5 -> {//BMI
+                        if(bmi_series.size >0){
+                        }else{
+                            dataRecieve(dataReadResult, i)
+                            bmi_series = series_dataSet()
+                            bmi_Label = label_dataSet()
+                        }
+                    }
+            }
+        }
+        Log.i("coroutine", "printData_job_before")
+        job.join()
+        Log.i("coroutine", "printData_job_after")
         Log.i("printData_size", "\thorizonValue.size : " + horizonValue.size.toString())
         Log.i("printData_size", "\tvalue.size : " + value.size.toString())
-        return line
     }
     @SuppressLint("SimpleDateFormat")
     fun printBucket(bucket:Bucket, i: Int) {
