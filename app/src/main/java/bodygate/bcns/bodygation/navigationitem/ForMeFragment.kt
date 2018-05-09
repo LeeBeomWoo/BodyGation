@@ -293,13 +293,15 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         job.join()
                         val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColor(R.color.kcalcolor)
-                        val xAxis = graph.xAxis
+                    set1.isHighlightEnabled = true
+                    set1.highLightColor = resources.getColor(R.color.kcalcolor)
+                  /*      val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                                 Log.i("coroutine",label.format(value.toLong()))
                                 return label.format(value.toLong())
                             }
-                        })
+                        })*/
                         val barData = BarData(set1)
                         graph.setData(barData)
                         graph.getData().notifyDataChanged();
@@ -321,13 +323,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         job.join()
                         val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColor(R.color.fatcolor)
-                        val xAxis = graph.xAxis
+                      /*  val xAxis = graph.xAxis
                         xAxis.setValueFormatter(object : IAxisValueFormatter{
                             override fun getFormattedValue(value: Float, axis: AxisBase?): String {
                                 Log.i("coroutine",label.format(value.toLong()))
                                 return label.format(value.toLong())
                             }
-                        })
+                        })*/
                         val barData = BarData(set1)
                         graph.setData(barData)
                         graph.data.notifyDataChanged()

@@ -455,6 +455,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .commit()
             navigation.selectedItemId = navigation_follow
         }
+        getResultsFromApi()
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_WRITE)
@@ -490,7 +491,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .build()
         mFitnessClient.connect()
         registerFitnessDataListener()
-        getResultsFromApi()
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
     }
 
