@@ -31,8 +31,6 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
-import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -49,7 +47,6 @@ import kotlin.collections.ArrayList
  */
 class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.OnCheckedChangeListener {
     override fun onCheckedChanged(button: CheckableImageButton?, check: Boolean) {
-        Log.i("coroutine", "onCheckedChanged")
         when (button!!.id) {
             R.id.weight_Btn -> {
                 weight_Btn.setChecked(check)
@@ -64,7 +61,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (weight_Btn.isChecked){
-                   graphSet(0)
+                    launch(UI){graphSet(0)}
                 }
             }
             R.id.walk_Btn -> {
@@ -80,7 +77,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (walk_Btn.isChecked){
-                    graphSet(1)
+                    launch(UI) {
+                        graphSet(1)
+                    }
                 }
             }
             R.id.kal_Btn -> {
@@ -96,7 +95,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (kal_Btn.isChecked){
-                    graphSet(2)
+                    launch(UI){graphSet(2)}
                 }
             }
             R.id.bfp_Btn -> {
@@ -112,7 +111,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked){
-                    graphSet(3)
+                    launch(UI){ graphSet(3)}
                 }
             }
             R.id.bmi_Btn -> {
@@ -128,7 +127,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (muscle_Btn.isChecked)
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked){
-                    graphSet(5)
+                    launch(UI){graphSet(5)}
                 }
             }
             R.id.muscle_Btn -> {
@@ -144,12 +143,11 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (muscle_Btn.isChecked){
-                    graphSet(4)
+                    launch(UI){graphSet(4)}
                 }
             }
         }
     }
-    val job:HandlerThread = HandlerThread("data_receive")
     private var mParam1: String? = null
     private var mListener: OnForMeInteraction? = null
     val value:MutableList<Double> =  ArrayList()
@@ -207,204 +205,227 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         val rAxis = graph.getAxisRight()
         rAxis.setEnabled(false)
         val xAxis = graph.getXAxis()
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM)
-        xAxis.setTextSize(10f)
-        xAxis.setTextColor(Color.DKGRAY)
-        xAxis.setDrawAxisLine(true)
-        xAxis.setDrawGridLines(false)
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTextSize(10f);
+        xAxis.setTextColor(Color.DKGRAY);
+        xAxis.setDrawAxisLine(true);
+        xAxis.setDrawGridLines(false);
+        graph.setVisibleXRangeMaximum(5.toFloat())
+        graph.setNoDataText("아래 머튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
+        graph.setNoDataTextColor(R.color.colorPrimaryDark)
+    }
+   fun series_dataSet():MutableList<BarEntry>{
+        val series: MutableList<BarEntry> = ArrayList()
+        val x = horizonValue.size-1
+        for (a: Int in 0..x) {
+            //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
+            series.add(BarEntry(a.toFloat(), value.get(a).toFloat()))
+        }
+        return series
     }
     @SuppressLint("SimpleDateFormat")
-    fun graphSet(p:Int)= runBlocking {
-        Log.i("coroutine", "graphSet")
+    fun label_dataSet():MutableList<String> {
         val label = SimpleDateFormat("MM/dd")
+        val series: MutableList<String> = ArrayList()
+        val x = horizonValue.size - 1
+        for (a: Int in 0..x) {
+            series.add(label.format(horizonValue[a]))
+        }
+        return series
+    }
+  suspend fun graphSet(p:Int){
         when(p){
             0->{//체중
                 if(mListener!!.readResponse == null){
                     Log.i(TAG, "체중 없음")
                 }else {
-                    if (graph.data != null &&
-                            graph.data.getDataSetCount() > 0) {
+                    if (graph.getData() != null &&
+                            graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                         graph.data.notifyDataChanged()
                     }
-                    val job = launch{
-                        Log.i("coroutine", "job")
-                        printData(mListener!!.readResponse!!, p)
-                    }
-                    Log.i("coroutine", "job_before")
-                    job.join()
-                    Log.i("coroutine", "job_after")
-                    val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                    set1.setColor(R.color.weightcolor)
-                    set1.barBorderColor = R.color.weightcolor
-                    val xAxis = graph.xAxis
-                    xAxis.setValueFormatter(object : IAxisValueFormatter{
-                        override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                            Log.i("coroutine",label.format(value.toLong()))
-                            return label.format(value.toLong())
+                    if(weight_series.isEmpty()){
+                        val job = launch {
+                         printData(mListener!!.readResponse!!, p)
                         }
-                    })
-                    val barData = BarData(set1)
-                    graph.setData(barData)
-                    graph.getData().notifyDataChanged();
-                    graph.notifyDataSetChanged();
-                }
+                        job.join()
+                        weight_series = series_dataSet()
+                        weight_Label = label_dataSet()
+                    }
+                    val job_UI= launch(UI) {
+                        val set1 = BarDataSet(weight_series, getString(R.string.weight))
+                        set1.setColors(R.color.weightcolor)
+                        val barData = BarData(set1)
+                        val xAxis = graph.xAxis
+                        xAxis.setGranularity(1f)
+                        xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
+                        graph.setData(barData)
+                        graph.getData().notifyDataChanged()
+                        graph.notifyDataSetChanged() }
+                    job_UI.join()
+                    }
             }
             1->{//걷기
                 if(mListener!!.walkResponse == null){
                     Log.i(TAG, "걷기 없음")
                 }else {
-                    if (graph.data != null &&
-                            graph.data.getDataSetCount() > 0) {
+                    if (graph.getData() != null &&
+                            graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                         graph.data.notifyDataChanged()
                     }
+                    if(walk_series.isEmpty()) {
                         val job = launch {
                             printData(mListener!!.walkResponse!!, p)
                         }
                         job.join()
+                        walk_series = series_dataSet()
+                        walk_Label = label_dataSet()
+                    }
+                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(walk_series, getString(R.string.walk))
-                    set1.setColor(R.color.walkcolor)
-                        val xAxis = graph.xAxis
-                        xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                Log.i("coroutine",label.format(value.toLong()))
-                                return label.format(value.toLong())
-                            }
-                        })
+                        set1.setColors(R.color.walkcolor)
                         val barData = BarData(set1)
+                        val xAxis = graph.xAxis
+                        xAxis.setGranularity(1f)
+                        xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
                         graph.setData(barData)
-                        graph.getData().notifyDataChanged();
-                        graph.notifyDataSetChanged();
-                }
+                        graph.getData().notifyDataChanged()
+                        graph.notifyDataSetChanged()}
+                    job_UI.join()
+                    }
             }
             2-> {//칼로리
                 if (mListener!!.kcalResponse == null) {
                     Log.i(TAG, "칼로리 없음")
                 } else {
-                    if (graph.data != null &&
-                            graph.data.getDataSetCount() > 0) {
+                    if (graph.getData() != null &&
+                            graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                         graph.data.notifyDataChanged()
                     }
+                    if(kcal_series.isEmpty()) {
                         val job = launch {
                             printData(mListener!!.kcalResponse!!, p)
                         }
                         job.join()
+                        kcal_series = series_dataSet()
+                        kcal_Label = label_dataSet()
+                    }
+                    val job_UI= launch(UI) {
+                        kcal_series = series_dataSet()
                         val set1 = BarDataSet(kcal_series, getString(R.string.calore))
-                    set1.setColor(R.color.kcalcolor)
-                    set1.isHighlightEnabled = true
-                    set1.highLightColor = resources.getColor(R.color.kcalcolor)
-                  /*      val xAxis = graph.xAxis
-                        xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                Log.i("coroutine",label.format(value.toLong()))
-                                return label.format(value.toLong())
-                            }
-                        })*/
+                        set1.setColors(R.color.kcalcolor)
                         val barData = BarData(set1)
+                        val xAxis = graph.xAxis
+                        xAxis.setGranularity(1f)
+                        xAxis.setValueFormatter(MyXAxisValueFormatter(kcal_Label.toTypedArray()))
                         graph.setData(barData)
                         graph.getData().notifyDataChanged();
-                        graph.notifyDataSetChanged();
-                }
+                        graph.notifyDataSetChanged();}
+                    job_UI.join()
+                    }
             }
             3->{//체지방비율
                 if(mListener!!.fatResponse == null){
                     Log.i(TAG, "체지방비율 없음")
                 }else {
-                    if (graph.data != null &&
-                            graph.data.getDataSetCount() > 0) {
+                    if (graph.getData() != null &&
+                            graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                         graph.data.notifyDataChanged()
                     }
+                    if(fat_series.isEmpty()) {
                         val job = launch {
                             printData(mListener!!.fatResponse!!, p)
                         }
                         job.join()
+                        fat_series = series_dataSet()
+                        fat_Label = label_dataSet()
+                    }
+                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
-                    set1.setColor(R.color.fatcolor)
-                      /*  val xAxis = graph.xAxis
-                        xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                Log.i("coroutine",label.format(value.toLong()))
-                                return label.format(value.toLong())
-                            }
-                        })*/
+                        set1.setColors(R.color.fatcolor)
                         val barData = BarData(set1)
+                        val xAxis = graph.xAxis
+                        xAxis.setGranularity(1f)
+                        xAxis.setValueFormatter(MyXAxisValueFormatter(fat_Label.toTypedArray()))
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()
-
-                }
+                        graph.notifyDataSetChanged()}
+                    job_UI.join()
+                    }
             }
             4->{//골격근
                 if(mListener!!.muscleResponse == null){
                     Log.i(TAG, "골격근 없음")
                 }else {
-                    if (graph.data != null &&
-                            graph.data.getDataSetCount() > 0) {
+                    if (graph.getData() != null &&
+                            graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                         graph.data.notifyDataChanged()
                     }
+                    if(muscle_series.isEmpty()) {
                         val job = launch {
                             printData(mListener!!.muscleResponse!!, p)
                         }
                         job.join()
+                        muscle_series = series_dataSet()
+                        muscle_Label = label_dataSet()
+                    }
+                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
-                    set1.setColor(R.color.musclecolor)
-                        val xAxis = graph.xAxis
-                        xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                Log.i("coroutine",label.format(value.toLong()))
-                                return label.format(value.toLong())
-                            }
-                        })
+                        set1.setColors(R.color.musclecolor)
                         val barData = BarData(set1)
+                        val xAxis = graph.xAxis
+                        xAxis.setGranularity(1f)
+                        xAxis.setValueFormatter(MyXAxisValueFormatter(muscle_Label.toTypedArray()))
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()
-
-                }
+                        graph.notifyDataSetChanged()}
+                    job_UI.join()
+                    }
             }
             5->{//BMI
                 if(mListener!!.bmiResponse == null){
                     Log.i(TAG, "BMI 없음")
                 }else {
-                    if (graph.data != null &&
-                            graph.data.getDataSetCount() > 0) {
+                    if (graph.getData() != null &&
+                            graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                         graph.data.notifyDataChanged()
                     }
+                    if(bmi_series.isEmpty()) {
                         val job = launch {
                             printData(mListener!!.bmiResponse!!, p)
                         }
                         job.join()
+                        bmi_series = series_dataSet()
+                        bmi_Label = label_dataSet()
+                    }
+                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
-                    set1.setColor(R.color.bmicolor)
-                        val xAxis = graph.xAxis
-                        xAxis.setValueFormatter(object : IAxisValueFormatter{
-                            override fun getFormattedValue(value: Float, axis: AxisBase?): String {
-                                Log.i("coroutine",label.format(value.toLong()))
-                                return label.format(value.toLong())
-                            }
-                        })
+                        set1.setColors(R.color.bmicolor)
                         val barData = BarData(set1)
+                        val xAxis = graph.xAxis
+                        xAxis.setGranularity(1f)
+                        xAxis.setValueFormatter(MyXAxisValueFormatter(bmi_Label.toTypedArray()))
                         graph.setData(barData)
                         graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()
+                        graph.notifyDataSetChanged()}
+                    job_UI.join()
                     }
-            }
+                }
         }
-    graph.invalidate()
+        graph.invalidate()
     }
     @SuppressLint("SimpleDateFormat")
-    fun dataRecieve(dataReadResult: DataReadResponse, i:Int){
-        horizonValue.clear()
-        value.clear()
-        Log.i("coroutine", "dataRecieve")
+   fun printData(dataReadResult: DataReadResponse, i:Int) {
         val label = SimpleDateFormat("MM/dd")
         var ia = 0
         if (dataReadResult.getBuckets().size > 0) {
+            horizonValue.clear()
+            value.clear()
             Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
             for (bucket: Bucket in dataReadResult.getBuckets()) {
                 Log.i("printData", "Bucket point:");
@@ -419,6 +440,8 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
             Log.i("printData", "\tvalue : " + value.size.toString())
         } else if (dataReadResult.getDataSets().size > 0) {
+            horizonValue.clear()
+            value.clear()
             Log.i("printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
             for (dataSet: DataSet in dataReadResult.getDataSets()) {
                 dumpDataSet(dataSet)
@@ -426,87 +449,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 Log.i("printData", "\tia : " + ia.toString())
             }
         }
-    }
-    fun series_dataSet():MutableList<BarEntry>{
-        val series: MutableList<BarEntry> = ArrayList()
-        val x = value.size-1
-        for (a: Int in 0..x) {
-            series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
-        }
-        return series
-    }
-    @SuppressLint("SimpleDateFormat")
-    fun label_dataSet():MutableList<String>{
-        val label = SimpleDateFormat("MM/dd")
-        val series: MutableList<String> = ArrayList()
-        val x = horizonValue.size-1
-        for (a: Int in 0..x) {
-            series.add(label.format(horizonValue[a]))
-            valueLabel.add(value[a].toString())
-        }
-        return series
-    }
-  suspend fun printData(dataReadResult: DataReadResponse, i:Int){
-        Log.i("coroutine", "printData")
-        val job = launch {
-            Log.i("coroutine", "printData_job")
-                when (i) {
-                    0 -> {//체중
-                        if(weight_Label.isEmpty()){
-                            dataRecieve(dataReadResult, i)
-                            weight_series = series_dataSet()
-                            weight_Label = label_dataSet()
-                            Log.i("coroutine", "else")
-                        }
-                    }
-                    1 -> {//걷기
-                        if(walk_series.isEmpty()){
-                            dataRecieve(dataReadResult, i)
-                            walk_series = series_dataSet()
-                            walk_Label = label_dataSet()
-                        }
-                    }
-                    2 -> {//칼로리
-                        if(kcal_series.isEmpty()){
-                            dataRecieve(dataReadResult, i)
-                            kcal_series = series_dataSet()
-                            kcal_Label = label_dataSet()
-                        }
-                    }
-                    3 -> {//체지방
-                        if(fat_series.isEmpty()){
-                            dataRecieve(dataReadResult, i)
-                            fat_series = series_dataSet()
-                            fat_Label = label_dataSet()
-                            Log.i("coroutine", "fat_series :" + fat_series.size.toString())
-                            Log.i("coroutine", "fat_Label :" + fat_Label.size.toString())
-                        }
-                    }
-                    4 -> {//골격근
-                        if(muscle_series.isEmpty()){
-                            dataRecieve(dataReadResult, i)
-                            muscle_series = series_dataSet()
-                            muscle_Label = label_dataSet()
-                            Log.i("coroutine", "muscle_series :" + muscle_series.size.toString())
-                            Log.i("coroutine", "muscle_Label :" + muscle_Label.size.toString())
-                        }
-                    }
-                    5 -> {//BMI
-                        if(bmi_series.isEmpty()){
-                            dataRecieve(dataReadResult, i)
-                            bmi_series = series_dataSet()
-                            bmi_Label = label_dataSet()
-                            Log.i("coroutine", "bmi_series :" + bmi_series.size.toString())
-                            Log.i("coroutine", "bmi_Label :" + bmi_Label.size.toString())
-                        }
-                    }
-            }
-        }
-        Log.i("coroutine", "printData_job_before")
-        job.join()
-        Log.i("coroutine", "printData_job_after")
-        Log.i("printData_size", "\thorizonValue.size : " + horizonValue.size.toString())
-        Log.i("printData_size", "\tvalue.size : " + value.size.toString())
     }
     @SuppressLint("SimpleDateFormat")
     fun printBucket(bucket:Bucket, i: Int) {
@@ -630,3 +572,19 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         }
     }
 }// Required empty public constructor
+
+class MyXAxisValueFormatter(private val mValues: Array<String>) : IAxisValueFormatter {
+
+    /** this is only needed if numbers are returned, else return 0  */
+    val decimalDigits: Int
+        get() = 0
+
+    override fun getFormattedValue(value: Float, axis: AxisBase): String {
+        // "value" represents the position of the label on the axis (x or y)
+        if(value.toInt()<mValues.size){
+            return mValues[value.toInt()]
+        }else{
+            return ""
+        }
+    }
+}
