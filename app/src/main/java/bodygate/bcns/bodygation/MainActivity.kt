@@ -116,6 +116,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var muscleResponse: DataReadResponse? = null
     override var fatResponse: DataReadResponse? = null
     override var bmiResponse: DataReadResponse? = null
+    override var BkcalResponse: DataReadResponse? = null
     fun stopProgress(i:Int) {
         when(i) {
            3-> if (mPb!!.isShowing) {
@@ -455,7 +456,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .commit()
             navigation.selectedItemId = navigation_follow
         }
-        getResultsFromApi()
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_WRITE)
@@ -472,13 +472,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
                 .build()
-        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
-            GoogleSignIn.requestPermissions(
-                    this,
-                    REQUEST_OAUTH_REQUEST_CODE,
-                    GoogleSignIn.getLastSignedInAccount(this),
-                    fitnessOptions)
-        }
+
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
                 .addApi(Fitness.CONFIG_API)
@@ -490,7 +484,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnConnectionFailedListener(this)
                 .build()
         mFitnessClient.connect()
-        registerFitnessDataListener()
+        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
+            GoogleSignIn.requestPermissions(
+                    this,
+                    REQUEST_OAUTH_REQUEST_CODE,
+                    GoogleSignIn.getLastSignedInAccount(this),
+                    fitnessOptions)
+        }else {
+            registerFitnessDataListener()
+        }
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
     }
 
@@ -514,15 +516,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         when (requestCode) {
-            REQUEST_GOOGLE_PLAY_SERVICES -> {
-                if (resultCode != RESULT_OK) {
-                    mOutputText!!.setText(
-                            "This app requires Google Play Services. Please install " +
-                                    "Google Play Services on your device and relaunch this app.");
-                } else {
-                    getResultsFromApi();
-                }
-            }
             REQUEST_ACCOUNT_PICKER -> {
                 if (resultCode == RESULT_OK && data.getExtras() != null) {
                     val accountName =
@@ -533,14 +526,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         val editor = settings.edit();
                         editor.putString(PREF_ACCOUNT_NAME, accountName);
                         editor.apply();
-                        mCredential!!.setSelectedAccountName(accountName);
-                        getResultsFromApi();
+                        mCredential!!.setSelectedAccountName(accountName)
                     }
-                }
-            }
-            REQUEST_AUTHORIZATION -> {
-                if (resultCode == RESULT_OK) {
-                    getResultsFromApi();
                 }
             }
             REQUEST_OAUTH -> {
@@ -550,6 +537,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     if (!mFitnessClient.isConnecting() && !mFitnessClient.isConnected()) {
                         mFitnessClient.connect();
                     }
+                    registerFitnessDataListener()
                 }
             }
             RC_SIGN_IN ->{
@@ -560,10 +548,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 dialog.show()
             }
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle?) {
-        super.onSaveInstanceState(outState)
     }
 
    override fun makePersonalData() = launch(CommonPool) {
@@ -631,12 +615,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                val dataSet = DataSet.create(source)
                dataSet.add(dataPoint)
                val response = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).insertData(dataSet)
-                       .addOnCompleteListener(object :OnCompleteListener<Void>{
-                           override fun onComplete(p0: Task<Void>) {
-                               Toast.makeText(this@MainActivity, "데이터 전송이 완료되었습니다.", Toast.LENGTH_SHORT).show()
-                               registerFitnessDataListener()
-                           }
-                       })
                launch(coroutineContext) { Tasks.await(response) }
            }
        })
@@ -777,7 +755,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                            .build())
            readResponse = Tasks.await(response)
-       }
+       }.join()
         launch(CommonPool) {
             val response_ds = DataReadRequest.Builder()
                     .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
@@ -787,7 +765,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val sss = Fitness.getHistoryClient(this@MainActivity, task!!)
                     .readData(response_ds)
             walkResponse = Tasks.await(sss)
-        }
+        }.join()
         launch(CommonPool) {
             val response_dc = DataReadRequest.Builder()
                 .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
@@ -796,7 +774,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .build()
             val ccc = Fitness.getHistoryClient(this@MainActivity, task!!)
                     .readData(response_dc)
-            kcalResponse = Tasks.await(ccc) }
+            kcalResponse = Tasks.await(ccc) }.join()
+        launch(CommonPool) {
+            val response_dc =  Fitness.getHistoryClient(this@MainActivity, task!!)
+                    .readData(DataReadRequest.Builder()
+                    .read(DataType.TYPE_BASAL_METABOLIC_RATE)
+                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                    .build())
+            BkcalResponse = Tasks.await(response_dc)}.join()
     }
 
 
@@ -903,60 +888,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     /**
-     * Attempt to call the API, after verifying that all the preconditions are
-     * satisfied. The preconditions are: Google Play Services installed, an
-     * account was selected and the device currently has online access. If any
-     * of the preconditions are not satisfied, the app will prompt the user as
-     * appropriate.
-     */
-    private fun getResultsFromApi() {
-        if (isGooglePlayServicesAvailable()) {
-            acquireGooglePlayServices();
-        } else if (mCredential!!.getSelectedAccountName() == null) {
-            chooseAccount();
-        } else if (!isDeviceOnline()) {
-        } else {
-            val task = MakeRequestTask(mCredential!!)
-            task.execute()
-            Log.i(TAG, task.get().toString())
-        }
-    }
-
-    /**
-     * Attempts to set the account used with the API credentials. If an account
-     * name was previously saved it will use that one; otherwise an account
-     * picker dialog will be shown to the user. Note that the setting the
-     * account to use with the credentials object requires the app to have the
-     * GET_ACCOUNTS permission, which is requested here if it is not already
-     * present. The AfterPermissionGranted annotation indicates that this
-     * function will be rerun automatically whenever the GET_ACCOUNTS permission
-     * is granted.
-     */
-    private fun chooseAccount() {
-        if (EasyPermissions.hasPermissions(
-                        this, Manifest.permission.ACCOUNT_MANAGER)) {
-            val accountName = getPreferences(Context.MODE_PRIVATE)
-                    .getString(PREF_ACCOUNT_NAME, null);
-            if (accountName != null) {
-                mCredential!!.setSelectedAccountName(accountName);
-                getResultsFromApi();
-            } else {
-                // Start a dialog from which the user can choose an account
-                startActivityForResult(
-                        mCredential!!.newChooseAccountIntent(),
-                        REQUEST_ACCOUNT_PICKER);
-            }
-        } else {
-            // Request the GET_ACCOUNTS permission via a user dialog
-            EasyPermissions.requestPermissions(
-                    this,
-                    "This app needs to access your Google account (via Contacts).",
-                    REQUEST_PERMISSION_GET_ACCOUNTS,
-                    Manifest.permission.ACCOUNT_MANAGER);
-        }
-    }
-
-    /**
      * Respond to requests for permissions at runtime for API 23 and above.
      * @param requestCode The request code passed in
      *     requestPermissions(android.app.Activity, String, int, String[])
@@ -1050,95 +981,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 REQUEST_GOOGLE_PLAY_SERVICES);
         dialog.show();
     }
-
-    /**
-     * An asynchronous task that handles the YouTube Data API call.
-     * Placing the API calls in their own task ensures the UI stays responsive.
-     */
-    @SuppressLint("StaticFieldLeak")
-    inner class MakeRequestTask(mCredential: GoogleAccountCredential?) : AsyncTask<Void, Void, MutableList<String>?>() {
-        val user = mCredential
-        override fun doInBackground(vararg p0: Void?): MutableList<String>? {
-            Log.i(TAG, "MakeRequestTask")
-            val transport = AndroidHttp.newCompatibleTransport ();
-            val jsonFactory = JacksonFactory.getDefaultInstance ();
-            mService = com.google.api.services.youtube.YouTube.Builder(
-                    transport, jsonFactory, user)
-                    .setApplicationName("YouTube Data API Android Quickstart")
-                    .build()
-            try {
-                return getDataFromApi(mService);
-            } catch (e: Exception) {
-                mLastError = e;
-                cancel(true);
-                return null;
-            }
-        }
-
-        var  mService:com.google.api.services.youtube.YouTube? = null;
-        var mLastError:Exception? = null;
-
-            /**
-             * Fetch information about the "GoogleDevelopers" YouTube channel.
-             * @return List of Strings containing information about the channel.
-             * @throws IOException
-             */
-            private fun getDataFromApi(mService: com.google.api.services.youtube.YouTube?): MutableList<String> {
-                Log.i(TAG, "getDataFromApi")
-                // Get a list of up to 10 files.
-                val channelInfo = ArrayList<String>()
-                val result = mService!!.channels().list("snippet,contentDetails,statistics")
-                        .setForUsername("GoogleDevelopers")
-                        .execute();
-                val channels = result.getItems();
-                if (channels != null) {
-                    val channel = channels.get(0);
-                    channelInfo.add("This channel's ID is " + channel.getId() + ". " +
-                            "Its title is '" + channel.getSnippet().getTitle() + ", " +
-                            "and it has " + channel.getStatistics().getViewCount() + " views.");
-                }
-                return channelInfo
-            }
-
-            override fun onPreExecute() {
-                super.onPreExecute()
-               // mOutputText.setText("");
-               // mProgress!!.show();
-            }
-
-            override fun onPostExecute(result: MutableList<String>?) {
-                super.onPostExecute(result)
-               // mProgress!!.hide();
-                if (result == null || result.size == 0) {
-                      mOutputText!!.setText("No results returned.");
-                } else {
-                    result.add(0, "Data retrieved using the YouTube Data API:");
-                    mOutputText!!.setText(TextUtils.join("\n", result));
-                }
-            }
-
-
-            override fun onCancelled() {
-                super.onCancelled()
-                //mProgress!!.hide();
-                if (mLastError != null) {
-                    if (mLastError is GooglePlayServicesAvailabilityIOException) {
-                        showGooglePlayServicesAvailabilityErrorDialog(
-                                (mLastError as GooglePlayServicesAvailabilityIOException)
-                                        .getConnectionStatusCode());
-                    } else if (mLastError is UserRecoverableAuthIOException) {
-                        startActivityForResult(
-                                (mLastError as UserRecoverableAuthIOException).getIntent(),
-                                REQUEST_AUTHORIZATION);
-                    } else {
-                        //mOutputText.setText("The following error occurred:\n"+ mLastError.message)
-                    }
-                } else {
-                   // mOutputText.setText("Request cancelled.");
-                }
-            }
-        }
-
 }
 
 
