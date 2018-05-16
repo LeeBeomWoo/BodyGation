@@ -77,9 +77,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (walk_Btn.isChecked){
-                    launch(UI) {
-                        graphSet(1)
-                    }
+                    launch(UI) {graphSet(1)}
                 }
             }
             R.id.kal_Btn -> {
@@ -246,7 +244,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         return series
     }
     @SuppressLint("SimpleDateFormat")
-  suspend fun graphSet(p:Int){
+ suspend fun graphSet(p:Int){
       val label = SimpleDateFormat("MM/dd")
         when(p){
             0->{//체중
@@ -266,7 +264,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         weight_series = series_dataSet()
                         weight_Label = label_dataSet()
                     }
-                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(weight_series, getString(R.string.weight))
                         set1.setColors(R.color.weightcolor)
                         val barData = BarData(set1)
@@ -274,9 +271,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
                         graph.setData(barData)
-                        graph.getData().notifyDataChanged()
-                        graph.notifyDataSetChanged() }
-                    job_UI.join()
                     }
             }
             1->{//걷기
@@ -296,18 +290,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         walk_series = series_dataSet()
                         walk_Label = label_dataSet()
                     }
-                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(walk_series, getString(R.string.walk))
                         set1.setColors(R.color.walkcolor)
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                        graph.setData(barData)
-                        graph.getData().notifyDataChanged()
-                        graph.notifyDataSetChanged()}
-                    job_UI.join()
-                    }
+                        graph.setData(barData)}
             }
             2-> {//칼로리
                 if (mListener!!.kcalResponse == null) {
@@ -339,7 +328,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         kcal_series = kcalseries_dataSet()
                         kcal_Label = label_dataSet()
                     }
-                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                         set1.setColors(R.color.kcalcolor)
                         val barData = BarData(set1)
@@ -347,10 +335,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(kcal_Label.toTypedArray()))
                         graph.setData(barData)
-                        graph.getData().notifyDataChanged();
-                        graph.notifyDataSetChanged();}
-                    job_UI.join()
-                    }
+                }
             }
             3->{//체지방비율
                 if(mListener!!.fatResponse == null){
@@ -369,18 +354,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         fat_series = series_dataSet()
                         fat_Label = label_dataSet()
                     }
-                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                         set1.setColors(R.color.fatcolor)
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(fat_Label.toTypedArray()))
-                        graph.setData(barData)
-                        graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()}
-                    job_UI.join()
-                    }
+                        graph.setData(barData)}
             }
             4->{//골격근
                 if(mListener!!.muscleResponse == null){
@@ -399,18 +379,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         muscle_series = series_dataSet()
                         muscle_Label = label_dataSet()
                     }
-                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                         set1.setColors(R.color.musclecolor)
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(muscle_Label.toTypedArray()))
-                        graph.setData(barData)
-                        graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()}
-                    job_UI.join()
-                    }
+                        graph.setData(barData)}
             }
             5->{//BMI
                 if(mListener!!.bmiResponse == null){
@@ -429,20 +404,17 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         bmi_series = series_dataSet()
                         bmi_Label = label_dataSet()
                     }
-                    val job_UI= launch(UI) {
                         val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                         set1.setColors(R.color.bmicolor)
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(bmi_Label.toTypedArray()))
-                        graph.setData(barData)
-                        graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()}
-                    job_UI.join()
-                    }
+                        graph.setData(barData)}
                 }
         }
+        graph.data.notifyDataChanged()
+        graph.notifyDataSetChanged()
         graph.invalidate()
     }
     @SuppressLint("SimpleDateFormat")
