@@ -75,7 +75,7 @@ import kotlin.collections.ArrayList
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction {
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction {
 
 
     private val PREF_ACCOUNT_NAME = "accountName"
@@ -480,7 +480,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
                 .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
                 .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build()
         mFitnessClient.connect()
@@ -537,7 +536,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     if (!mFitnessClient.isConnecting() && !mFitnessClient.isConnected()) {
                         mFitnessClient.connect();
                     }
-                    registerFitnessDataListener()
                 }
             }
             RC_SIGN_IN ->{
@@ -546,6 +544,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 val dialog = CustomDialogList(this)
                 dialog.setTitle("계정 로그인")
                 dialog.show()
+            }
+            REQUEST_OAUTH_REQUEST_CODE ->{
+                if (resultCode == RESULT_OK){
+                    registerFitnessDataListener()
+                }
             }
         }
     }
@@ -619,11 +622,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
            }
        })
     }
-    override fun onConnected(p0: Bundle?) {
-        Log.i(TAG, "onConnected")
-        //Google Fit Client에 연결되었습니다.
-        registerFitnessDataListener()
-    }
 
     override fun onDataPoint(dataPoint: DataPoint) {
         Log.i(TAG, "onDataPoint")
@@ -633,10 +631,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-    override fun onConnectionSuspended(cause: Int) {
-        Log.i(TAG, "onConnectionSuspended")
-        // The connection has been interrupted. Wait until onConnected() is called.
-    }
 
     @SuppressLint("RestrictedApi")
     fun registerFitnessDataListener() = launch(CommonPool){

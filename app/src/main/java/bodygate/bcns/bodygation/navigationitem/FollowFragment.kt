@@ -275,11 +275,9 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         }
         if(car_img.isChecked){
             query.add("차")
-            query.add("자동차")
         }
         if(work_img.isChecked){
             query.add("직장")
-            query.add("사무실")
         }
         if(hip_img.isChecked){
             query.add("엉덩이")
