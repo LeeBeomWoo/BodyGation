@@ -286,8 +286,8 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         }
         if(upperarm_img.isChecked){
             query.add("팔")
-            query.add("상완근")
-           query.add("전완근")
+            query.add("상완")
+           query.add("전완")
             query.add("손목")
         }
         if(lowerleg_img.isChecked){
@@ -340,6 +340,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         super.onAttach(context)
         if (context is OnFollowInteraction) {
             mListener = context
+            mListener!!.visableFragment = TAG
         } else {
             throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
@@ -362,6 +363,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     interface OnFollowInteraction {
         // TODO: Update argument type and name
         fun OnFollowInteraction()
+        var visableFragment:String
         suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
     }
 

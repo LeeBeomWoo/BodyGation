@@ -23,7 +23,7 @@ import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import bodygate.bcns.bodygation.R.id.navigation_follow
+import bodygate.bcns.bodygation.R.id.*
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
 import bodygate.bcns.bodygation.youtube.YoutubeApi
@@ -79,11 +79,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
 
     private val PREF_ACCOUNT_NAME = "accountName"
-    private var mOutputText: TextView? = null;
     val REQUEST_ACCOUNT_PICKER = 1000
-    val REQUEST_AUTHORIZATION = 1001
     val REQUEST_GOOGLE_PLAY_SERVICES = 1002
-    val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
     private var authInProgress = false
     lateinit var mFitnessClient: GoogleApiClient
     private val REQUEST_OAUTH = 1001
@@ -105,6 +102,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var pPb:ProgressDialog? = null
     var nPb:ProgressDialog? = null
     var cPb:ProgressDialog? = null
+    override var visableFragment = ""
     private var doubleBackToExitPressedOnce: Boolean = false
     override val context:Context = this
     override var data: MutableList<YoutubeResponse.Items>
@@ -246,16 +244,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
     }
-    override fun moveBack(q:Fragment) {
-        when(q){
-            YouTubeResult.newInstance() -> {
-                supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
-                        .commit()
-            }
-        }
-    }
     override fun describeContents(): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -334,10 +322,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 return@OnNavigationItemSelectedListener true
             }*/
             R.id.navigation_follow -> {
-                supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
-                        .commit()
+                if(data.isNotEmpty()){
+                    OnFollowInteraction()
+                }else{
+                    supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
+                            .commit()
+                }
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_infome -> {
@@ -353,36 +345,64 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
-        if (doubleBackToExitPressedOnce) {
-            moveTaskToBack(true)
-            android.os.Process.killProcess(android.os.Process.myPid())
-            System.exit(1)
-            return
-        }else{
-            doubleBackToExitPressedOnce = true
-        }
         // Do something
-        if (navigation.selectedItemId != navigation_follow) {
-            navigation.selectedItemId = navigation_follow
-            Log.i(TAG,"onBackPressed 1")
-        } else {
-            Log.i(TAG,"onBackPressed 2")
-            val builder = AlertDialog.Builder(this)
-            if (title != null) builder.setTitle(title)
-            builder.setMessage("프로그램을 종료하시겠습니까?")
-            builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
-                override fun onClick(dialog: DialogInterface?, which: Int) {
-                    android.os.Process.killProcess(android.os.Process.myPid())
+        when(navigation.selectedItemId){
+            navigation_follow->{
+                if(visableFragment == "YouTubeResult" ){
+                    data.clear()
+                    supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
+                            .commit()
+                }else {
+                    if (doubleBackToExitPressedOnce) {
+                        moveTaskToBack(true)
+                        android.os.Process.killProcess(android.os.Process.myPid())
+                        System.exit(1)
+                        return
+                    }else{
+                        val builder = AlertDialog.Builder(this)
+                        if (title != null) builder.setTitle(title)
+                        builder.setMessage("프로그램을 종료하시겠습니까?")
+                        builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
+                            override fun onClick(dialog: DialogInterface?, which: Int) {
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            }
+                        })
+                        builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
+                            override fun onClick(dialog: DialogInterface?, which: Int) {
+                                doubleBackToExitPressedOnce = false
+                                dialog!!.dismiss()
+                            }
+                        }
+                        )
+                        builder.show()
+                        doubleBackToExitPressedOnce = true
+                    }
                 }
-            })
-            builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
-                override fun onClick(dialog: DialogInterface?, which: Int) {
-                    dialog!!.dismiss()
-                }
-
             }
-            )
-            builder.show()
+            navigation_goal->{
+                doubleBackToExitPressedOnce = false
+                if(data.isNotEmpty()){
+                    OnFollowInteraction()
+                }else{
+                    supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
+                            .commit()
+                }
+            }
+            navigation_infome->{
+                doubleBackToExitPressedOnce = false
+                if(data.isNotEmpty()){
+                    OnFollowInteraction()
+                }else{
+                    supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
+                            .commit()
+                }
+            }
         }
     }
     constructor(parcel: Parcel) : this() {
@@ -451,9 +471,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         } else {
-            supportFragmentManager.beginTransaction()
-                    .add(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
-                    .commit()
+            if(data.isNotEmpty()){
+                OnFollowInteraction()
+            }else{
+                supportFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
+                        .commit()
+        }
             navigation.selectedItemId = navigation_follow
         }
         val fitnessOptions = FitnessOptions.builder()
@@ -896,84 +921,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         EasyPermissions.onRequestPermissionsResult(
                 requestCode, permissions, grantResults, this);
-    }
-
-    /**
-     * Callback for when a permission is granted using the EasyPermissions
-     * library.
-     * @param requestCode The request code associated with the requested
-     *         permission
-     * @param list The requested permission list. Never null.
-     */
-    @Override
-    public fun onPermissionsGranted(requestCode: Int, list: List<String>) {
-        // Do nothing.
-    }
-
-    /**
-     * Callback for when a permission is denied using the EasyPermissions
-     * library.
-     * @param requestCode The request code associated with the requested
-     *         permission
-     * @param list The requested permission list. Never null.
-     */
-    @Override
-    public fun onPermissionsDenied(requestCode: Int, list: List<String>) {
-        // Do nothing.
-    }
-
-    /**
-     * Checks whether the device currently has a network connection.
-     * @return true if the device has a network connection, false otherwise.
-     */
-    private fun isDeviceOnline(): Boolean {
-        val connMgr: ConnectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkInfo = connMgr.getActiveNetworkInfo();
-        return (networkInfo != null && networkInfo.isConnected());
-    }
-
-    /**
-     * Check that Google Play services APK is installed and up to date.
-     * @return true if Google Play Services is available and up to
-     *     date on this device; false otherwise.
-     */
-    private fun isGooglePlayServicesAvailable(): Boolean {
-        val apiAvailability =
-                GoogleApiAvailability.getInstance();
-        val connectionStatusCode =
-                apiAvailability.isGooglePlayServicesAvailable(this);
-        return connectionStatusCode == ConnectionResult.SUCCESS;
-    }
-
-    /**
-     * Attempt to resolve a missing, out-of-date, invalid or disabled Google
-     * Play Services installation via a user dialog, if possible.
-     */
-    private fun acquireGooglePlayServices() {
-        val apiAvailability =
-                GoogleApiAvailability.getInstance();
-        val connectionStatusCode =
-                apiAvailability.isGooglePlayServicesAvailable(this);
-        if (apiAvailability.isUserResolvableError(connectionStatusCode)) {
-            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
-        }
-    }
-
-
-    /**
-     * Display an error dialog showing that Google Play Services is missing
-     * or out of date.
-     * @param connectionStatusCode code describing the presence (or lack of)
-     *     Google Play Services on this device.
-     */
-    fun showGooglePlayServicesAvailabilityErrorDialog(
-            connectionStatusCode: Int) {
-        val apiAvailability = GoogleApiAvailability.getInstance();
-        val dialog = apiAvailability.getErrorDialog(
-                this,
-                connectionStatusCode,
-                REQUEST_GOOGLE_PLAY_SERVICES);
-        dialog.show();
     }
 }
 

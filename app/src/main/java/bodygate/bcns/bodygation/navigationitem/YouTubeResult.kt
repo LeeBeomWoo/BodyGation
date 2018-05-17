@@ -27,17 +27,9 @@ import javax.security.auth.Subject
 
 class YouTubeResult : Fragment() {
     // TODO: Rename and change types of parameters
-    val TAG = "YouTubeResult_"
-    private var mParam1: MutableList<String> = ArrayList<String>()
+    val TAG = "YouTubeResult"
 
     private var mListener: OnYoutubeResultInteraction? = null
-    private val PROPERTIES_FILENAME = "youtube.properties"
-
-    /** Global instance of the HTTP transport.  */
-    private val HTTP_TRANSPORT = NetHttpTransport()
-    /** Global instance of the JSON factory.  */
-    private val JSON_FACTORY = JacksonFactory()
-    val topic = Topics()
     /** Global instance of the max number of videos we want returned (50 = upper limit per page).  */
 
     /** Global instance of Youtube object to make all API requests.  */
@@ -67,6 +59,7 @@ class YouTubeResult : Fragment() {
         super.onAttach(context)
         if (context is OnYoutubeResultInteraction) {
             mListener = context
+            mListener!!.visableFragment = TAG
         } else {
             throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
@@ -92,11 +85,11 @@ class YouTubeResult : Fragment() {
      */
     interface OnYoutubeResultInteraction {
         fun OnYoutubeResultInteraction()
-        fun moveBack(q:Fragment)
         suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
         fun getpage():String
         var data: MutableList<YoutubeResponse.Items>
         val context:Context
+        var visableFragment:String
     }
 
     companion object {

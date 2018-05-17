@@ -35,6 +35,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
+import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -151,6 +153,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     val value:MutableList<Double> =  ArrayList()
     val kcalvalue:MutableList<Double> =  ArrayList()
     val horizonValue:MutableList<Date> =  ArrayList()
+    val kcal_horizonValue:MutableList<Date> =  ArrayList()
     var weight_Label:MutableList<String> =  ArrayList()
     var kcal_Label:MutableList<String> =  ArrayList()
     var walk_Label:MutableList<String> =  ArrayList()
@@ -164,6 +167,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     var fat_series: MutableList<BarEntry> = ArrayList()
     var bmi_series: MutableList<BarEntry> = ArrayList()
     var kcal_series: MutableList<BarEntry> = ArrayList()
+    var kcalB_series: MutableList<BarEntry> = ArrayList()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i(TAG, "onCreate")
@@ -176,7 +180,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_for_me, container, false)
     }
-
+    fun getKcalLabel(bk:MutableList<String>, k:MutableList<String>):List<String>{
+        val result = (bk + k).distinct()
+        return  result
+    }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         mListener!!.OnForMeInteraction()
@@ -221,15 +228,17 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         }
         return series
     }
-    fun kcalseries_dataSet():MutableList<BarEntry>{
+    @SuppressLint("SimpleDateFormat")
+    fun kcalseries_dataSet(f:MutableList<Date>, v:MutableList<Double>, k:Int):MutableList<BarEntry>{
         val series: MutableList<BarEntry> = ArrayList()
-        val x = value.size-1
-        for (a: Int in 0..x) {
+        val label = SimpleDateFormat("MM/dd")
+        for (a: Int in 0..k) {
             //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
-            series.add(BarEntry(a.toFloat(), (kcalvalue.get(a)-value.get(a)).toFloat()))
-            Log.i("kcalseries_dataSet", (kcalvalue.get(a)-value.get(a)).toString())
-            Log.i("kcalseries_value", value.get(a).toString())
-            Log.i("kcalseries_kcalvalue", kcalvalue.get(a).toString())
+            if(kcal_Label.contains(label.format(f[a]))){
+                series.add(BarEntry(a.toFloat(), v.get(a).toFloat()))
+            }else{
+                series.add(BarEntry(a.toFloat(), 0f))
+            }
         }
         return series
     }
@@ -244,8 +253,16 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         return series
     }
     @SuppressLint("SimpleDateFormat")
+    fun kcal_label_dataSet():MutableList<String> {
+        val label = SimpleDateFormat("MM/dd")
+        val series: MutableList<String> = ArrayList()
+        val x = kcalvalue.size - 1
+        for (a: Int in 0..x) {
+            series.add(label.format(kcal_horizonValue[a]))
+        }
+        return series
+    }
  suspend fun graphSet(p:Int){
-      val label = SimpleDateFormat("MM/dd")
         when(p){
             0->{//체중
                 if(mListener!!.readResponse == null){
@@ -254,7 +271,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
-                        graph.data.notifyDataChanged()
                     }
                     if(weight_series.isEmpty()){
                         val job = launch {
@@ -264,13 +280,13 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         weight_series = series_dataSet()
                         weight_Label = label_dataSet()
                     }
-                        val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                        set1.setColors(R.color.weightcolor)
-                        val barData = BarData(set1)
-                        val xAxis = graph.xAxis
-                        xAxis.setGranularity(1f)
-                        xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
-                        graph.setData(barData)
+                    val set1 = BarDataSet(weight_series, getString(R.string.weight))
+                    set1.setColors(R.color.weightcolor)
+                    val barData = BarData(set1)
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
+                    graph.setData(barData)
                     }
             }
             1->{//걷기
@@ -280,7 +296,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
-                        graph.data.notifyDataChanged()
                     }
                     if(walk_series.isEmpty()) {
                         val job = launch {
@@ -290,22 +305,24 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         walk_series = series_dataSet()
                         walk_Label = label_dataSet()
                     }
-                        val set1 = BarDataSet(walk_series, getString(R.string.walk))
-                        set1.setColors(R.color.walkcolor)
-                        val barData = BarData(set1)
-                        val xAxis = graph.xAxis
-                        xAxis.setGranularity(1f)
-                        xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                        graph.setData(barData)}
+                    val set1 = BarDataSet(walk_series, getString(R.string.walk))
+                    set1.setColors(R.color.walkcolor)
+                    val barData = BarData(set1)
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                    graph.setData(barData)
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                }
             }
             2-> {//칼로리
                 if (mListener!!.kcalResponse == null) {
                     Log.i(TAG, "칼로리 없음")
                 } else {
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
+                    if (graph.data != null &&
+                            graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
-                        graph.data.notifyDataChanged()
                     }
                     if(kcal_series.isEmpty()) {
                         val job = launch {
@@ -313,28 +330,33 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         }
                         job.join()
                         val job_second = launch {
-                        var a = 0
-                        for (dataSet: DataSet in mListener!!.BkcalResponse!!.dataSets) {
-                            for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints) {
-                                if (label.format(horizonValue[a]) == label.format(Date(dp.getTimestamp(TimeUnit.MILLISECONDS)))) {
-                                    value.add(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble())
-                                    a++
+                            kcal_horizonValue.clear()
+                            for (dataSet: DataSet in mListener!!.BkcalResponse!!.getDataSets()) {
+                                for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
+                                    kcalvalue.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
+                                    kcal_horizonValue.add(Date(dp.getTimestamp(TimeUnit.MICROSECONDS)))
                                 }
-                                Log.i("printData_" + "칼로리", "value : " + dp.getValue(dp.getDataType().fields.get(0)).toString())
                             }
                         }
-                        }
                         job_second.join()
-                        kcal_series = kcalseries_dataSet()
-                        kcal_Label = label_dataSet()
+                        val job_third = launch {
+                            kcal_Label = getKcalLabel(kcal_label_dataSet(), label_dataSet()).toMutableList()
+                            kcalB_series = kcalseries_dataSet(kcal_horizonValue, kcalvalue, kcal_Label.size-1)
+                            kcal_series = kcalseries_dataSet(horizonValue, value, kcal_Label.size-1)
+                        }
+                        job_third.join()
                     }
-                        val set1 = BarDataSet(kcal_series, getString(R.string.calore))
-                        set1.setColors(R.color.kcalcolor)
-                        val barData = BarData(set1)
-                        val xAxis = graph.xAxis
-                        xAxis.setGranularity(1f)
-                        xAxis.setValueFormatter(MyXAxisValueFormatter(kcal_Label.toTypedArray()))
-                        graph.setData(barData)
+                    val set1 = BarDataSet(kcal_series, getString(R.string.calore))
+                    set1.setColors(R.color.kcalcolor)
+                    val set2 = BarDataSet(kcalB_series, getString(R.string.calore))
+                    set2.setColors(R.color.kcalbcolor)
+                    val barData = BarData(set1, set2)
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(kcal_Label.toTypedArray()))
+                    graph.setData(barData)
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
                 }
             }
             3->{//체지방비율
@@ -344,9 +366,8 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
-                        graph.data.notifyDataChanged()
                     }
-                    if(fat_series.isEmpty()) {
+                    if (fat_series.isEmpty()) {
                         val job = launch {
                             printData(mListener!!.fatResponse!!, p)
                         }
@@ -354,13 +375,16 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         fat_series = series_dataSet()
                         fat_Label = label_dataSet()
                     }
-                        val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
-                        set1.setColors(R.color.fatcolor)
-                        val barData = BarData(set1)
-                        val xAxis = graph.xAxis
-                        xAxis.setGranularity(1f)
-                        xAxis.setValueFormatter(MyXAxisValueFormatter(fat_Label.toTypedArray()))
-                        graph.setData(barData)}
+                    val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
+                    set1.setColors(R.color.fatcolor)
+                    val barData = BarData(set1)
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(fat_Label.toTypedArray()))
+                    graph.setData(barData)
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                }
             }
             4->{//골격근
                 if(mListener!!.muscleResponse == null){
@@ -369,7 +393,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
-                        graph.data.notifyDataChanged()
                     }
                     if(muscle_series.isEmpty()) {
                         val job = launch {
@@ -385,7 +408,10 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(muscle_Label.toTypedArray()))
-                        graph.setData(barData)}
+                        graph.setData(barData)
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                }
             }
             5->{//BMI
                 if(mListener!!.bmiResponse == null){
@@ -394,7 +420,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
-                        graph.data.notifyDataChanged()
                     }
                     if(bmi_series.isEmpty()) {
                         val job = launch {
@@ -410,11 +435,12 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(bmi_Label.toTypedArray()))
-                        graph.setData(barData)}
+                        graph.setData(barData)
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                }
                 }
         }
-        graph.data.notifyDataChanged()
-        graph.notifyDataSetChanged()
         graph.invalidate()
     }
     @SuppressLint("SimpleDateFormat")
@@ -458,7 +484,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 val set = bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!
                 for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints) {
                     if (bucket.getEndTime(TimeUnit.MILLISECONDS) > 0) {
-                        if (dp.getValue(Field.FIELD_STEPS).asInt() > 10) {
+                        if (dp.getValue(Field.FIELD_STEPS).asFloat() > 10) {
                             Log.i("printData_" + "걷기", "\tTimestamp: " + label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
                             Log.i("printData_" + "걷기", "\tgetValue: " + dp.getValue(Field.FIELD_STEPS).toString())
                             horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
@@ -473,6 +499,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     Log.i("printData_" + "칼로리k", "\tTimestamp: " + label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
                     horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
                     kcalvalue.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
+                    // value.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
                     Log.i("printData_" + "칼로리k", "kcalvalue : " + dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble().toString())
                 }
                 Log.i("printData_" + "칼로리", "kcalvalue : " + kcalvalue.size.toString())

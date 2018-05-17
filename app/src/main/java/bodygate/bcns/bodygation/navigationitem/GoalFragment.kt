@@ -90,13 +90,6 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         return inflater.inflate(R.layout.fragment_goal, container, false)
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        if (mListener != null) {
-            mListener!!.OnGoalInteractionListener(uri)
-        }
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is OnGoalInteractionListener) {
@@ -112,20 +105,20 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         girl_RBtn.setOnCheckedChangeListener(this)
         upload_Btn.setOnClickListener(object :View.OnClickListener{
             override fun onClick(v: View?) {
-                if(my_bodyfat_txtB.text.isEmpty()){
+                if(my_bodyfat_txtB.text.isNotEmpty() && my_musclemass_txtB.text.isNotEmpty()){
+                    mListener!!.makePersonalData()
+                }else if(goal_height_txtB.text.isEmpty()) {
+                    Toast.makeText(this@GoalFragment.context, "신장을 입력하여 주세요", Toast.LENGTH_SHORT).show()
+                    goal_height_txtB.setFocusable(true)
+                }else if(my_weight_txtB.text.isEmpty()) {
+                    Toast.makeText(this@GoalFragment.context, "체중을 입력하여 주세요", Toast.LENGTH_SHORT).show()
+                    my_weight_txtB.setFocusable(true)
+                }else if(my_bodyfat_txtB.text.isEmpty()){
                     Toast.makeText(this@GoalFragment.context, "체지방률을 측정하여 작성하여 주세요", Toast.LENGTH_SHORT).show()
                     my_bodyfat_txtB.setFocusable(true)
                 }else if(my_musclemass_txtB.text.isEmpty()){
                     Toast.makeText(this@GoalFragment.context, "골격근량을 측정하여 작성하여 주세요", Toast.LENGTH_SHORT).show()
                     my_musclemass_txtB.setFocusable(true)
-                }else if(my_weight_txtB.text.isEmpty()) {
-                        Toast.makeText(this@GoalFragment.context, "체중을 입력하여 주세요", Toast.LENGTH_SHORT).show()
-                        my_weight_txtB.setFocusable(true)
-                    }else if(goal_height_txtB.text.isEmpty()) {
-                        Toast.makeText(this@GoalFragment.context, "신장을 입력하여 주세요", Toast.LENGTH_SHORT).show()
-                        goal_height_txtB.setFocusable(true)
-                    }else if(my_bodyfat_txtB.text.isNotEmpty() && my_musclemass_txtB.text.isNotEmpty()){
-                    mListener!!.makePersonalData()
                 }
             }
 
