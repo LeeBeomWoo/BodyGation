@@ -234,11 +234,17 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     @SuppressLint("SimpleDateFormat")
     fun kcalseries_dataSet(f:MutableList<Date>, v:MutableList<Double>, k:Int):MutableList<BarEntry>{
         val series: MutableList<BarEntry> = ArrayList()
+        val temp_Label:MutableList<String> =  ArrayList()
         val label = SimpleDateFormat("MM/dd")
+        var s = 0
+        for(b:Int in 0..(f.size-1)){
+            temp_Label.add(label.format(f[b]))
+        }
         for (a: Int in 0..k) {
             //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
-            if(kcal_Label.contains(label.format(f[a]))){
-                series.add(BarEntry(a.toFloat(), v.get(a).toFloat()))
+            if(temp_Label.contains(kcal_Label[a])){
+                series.add(BarEntry(a.toFloat(), v[s].toFloat()))
+                s += 1
             }else{
                 series.add(BarEntry(a.toFloat(), 0f))
             }
@@ -249,7 +255,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     fun label_dataSet():MutableList<String> {
         val label = SimpleDateFormat("MM/dd")
         val series: MutableList<String> = ArrayList()
-        val x = value.size - 1
+        val x = horizonValue.size - 1
         for (a: Int in 0..x) {
             series.add(label.format(horizonValue[a]))
         }
@@ -334,6 +340,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         job.join()
                         val job_second = launch {
                             kcal_horizonValue.clear()
+                            kcalvalue.clear()
                             for (dataSet: DataSet in mListener!!.BkcalResponse!!.getDataSets()) {
                                 for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
                                     kcalvalue.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
@@ -452,7 +459,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         var ia = 0
         if (dataReadResult.getBuckets().size > 0) {
             horizonValue.clear()
-            kcalvalue.clear()
             value.clear()
             Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
             for (bucket: Bucket in dataReadResult.getBuckets()) {
@@ -488,8 +494,6 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints) {
                     if (bucket.getEndTime(TimeUnit.MILLISECONDS) > 0) {
                         if (dp.getValue(Field.FIELD_STEPS).asInt() > 10) {
-                            Log.i("printData_" + "걷기", "\tTimestamp: " + label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
-                            Log.i("printData_" + "걷기", "\tgetValue: " + dp.getValue(Field.FIELD_STEPS).toString())
                             horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
                             value.add(dp.getValue(Field.FIELD_STEPS).asInt().toDouble())
                         }
@@ -499,23 +503,16 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
             2 -> {//칼로리
                 val set = bucket.getDataSet(DataType.AGGREGATE_CALORIES_EXPENDED)!!
                  for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints) {
-                    Log.i("printData_" + "칼로리k", "\tTimestamp: " + label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
                     horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                    kcalvalue.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
+                     value.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
                     // value.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
-                    Log.i("printData_" + "칼로리k", "kcalvalue : " + dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble().toString())
                 }
-                Log.i("printData_" + "칼로리", "kcalvalue : " + kcalvalue.size.toString())
-                Log.i("printData_" + "칼로리", "value : " + value.size.toString())
             }
         }
     }
     @SuppressLint("SimpleDateFormat")
     private fun dumpDataSet(dataSet:DataSet) {
-        Log.i("printData", "Data returned for Data type: " + dataSet.getDataType().getName());
         val label = SimpleDateFormat("MM/dd")
-        Log.i("printData", "Data size:" + dataSet.getDataPoints().size.toString())
-        Log.i("printData", "Data set:" + dataSet.toString())
         var ia = 0
 
         for ( dp : com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
@@ -523,17 +520,8 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 horizonValue.add(Date(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                 value.add(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble())
                 ia += 1
-                Log.i("printData_", "Data point:");
-                Log.i("printData_", "\tType: " + dp.getDataType().getName());
-                Log.i("printData_", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
-                Log.i("printData_", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
-                Log.i("printData_", "\tTimestamp: " + label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                Log.i("printData_", "\tValue: " + dp.getValue(dp.getDataType().fields.get(0)).toString());
-                Log.i("printData_", "\tia: " + ia.toString())
             }
         }
-        Log.i("printData_", "\thorizonValue : " + horizonValue.size.toString())
-        Log.i("printData_", "\tvalue : " + value.size.toString())
     }
 
     override fun onAttach(context: Context) {
