@@ -186,7 +186,8 @@
     <string name="failed">유튜브 계정연결에 실패했습니다</string>
     <string name="permission_request">카메라사용에 대한 허가를 요청합니다.</string>
     <string name="walk">걸음 수</string>
-    <string name="calore">소모 칼로리 변화</string>
+    <string name="caloreb">기초대사량</string>
+    <string name="calore">하루 총 소모 칼로리</string>
     <string name="mylist">내가 본 영상</string>
     <string name="myweight">현재 체중:</string>
     <string name="mybmi">현재 BMI :</string>

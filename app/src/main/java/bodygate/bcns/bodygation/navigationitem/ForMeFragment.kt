@@ -181,8 +181,11 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         return inflater.inflate(R.layout.fragment_for_me, container, false)
     }
     fun getKcalLabel(bk:MutableList<String>, k:MutableList<String>):List<String>{
-        val result = (bk + k).distinct()
-        return  result
+        val result = bk.union(k)
+        Log.i("kcalseries_k", k.size.toString())
+        Log.i("kcalseries_bk", bk.size.toString())
+        Log.i("kcalseries_result", result.size.toString())
+        return result.distinct()
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -256,7 +259,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     fun kcal_label_dataSet():MutableList<String> {
         val label = SimpleDateFormat("MM/dd")
         val series: MutableList<String> = ArrayList()
-        val x = kcalvalue.size - 1
+        val x = kcal_horizonValue.size - 1
         for (a: Int in 0..x) {
             series.add(label.format(kcal_horizonValue[a]))
         }
@@ -281,7 +284,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         weight_Label = label_dataSet()
                     }
                     val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                    set1.setColors(R.color.weightcolor)
+                    set1.setColors(Color.rgb(40, 184, 184))
                     val barData = BarData(set1)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -306,7 +309,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         walk_Label = label_dataSet()
                     }
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
-                    set1.setColors(R.color.walkcolor)
+                    set1.setColors(Color.rgb(184, 182, 85))
                     val barData = BarData(set1)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -347,9 +350,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         job_third.join()
                     }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
-                    set1.setColors(R.color.kcalcolor)
-                    val set2 = BarDataSet(kcalB_series, getString(R.string.calore))
-                    set2.setColors(R.color.kcalbcolor)
+                    set1.setColors(Color.rgb(184, 187, 85))
+                    val set2 = BarDataSet(kcalB_series, getString(R.string.caloreb))
+                    set2.setColors(Color.rgb(135, 184, 85))
                     val barData = BarData(set1, set2)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -376,7 +379,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         fat_Label = label_dataSet()
                     }
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
-                    set1.setColors(R.color.fatcolor)
+                    set1.setColors(Color.rgb(180, 70, 184))
                     val barData = BarData(set1)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -403,7 +406,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         muscle_Label = label_dataSet()
                     }
                         val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
-                        set1.setColors(R.color.musclecolor)
+                        set1.setColors(Color.rgb(60, 187, 184))
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
@@ -430,7 +433,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         bmi_Label = label_dataSet()
                     }
                         val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
-                        set1.setColors(R.color.bmicolor)
+                        set1.setColors(Color.rgb(184, 151, 85))
                         val barData = BarData(set1)
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
@@ -484,7 +487,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                 val set = bucket.getDataSet(DataType.AGGREGATE_STEP_COUNT_DELTA)!!
                 for(dp:com.google.android.gms.fitness.data.DataPoint in set.dataPoints) {
                     if (bucket.getEndTime(TimeUnit.MILLISECONDS) > 0) {
-                        if (dp.getValue(Field.FIELD_STEPS).asFloat() > 10) {
+                        if (dp.getValue(Field.FIELD_STEPS).asInt() > 10) {
                             Log.i("printData_" + "걷기", "\tTimestamp: " + label.format(Date(bucket.getEndTime(TimeUnit.MILLISECONDS))))
                             Log.i("printData_" + "걷기", "\tgetValue: " + dp.getValue(Field.FIELD_STEPS).toString())
                             horizonValue.add(Date(bucket.getEndTime(TimeUnit.MILLISECONDS)))
