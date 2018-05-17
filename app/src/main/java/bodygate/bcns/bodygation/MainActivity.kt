@@ -93,7 +93,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var myData:MutableList<YoutubeResponse.Items> = ArrayList()
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
-    private val REQUEST_OAUTH_REQUEST_CODE = 1
+    private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
     var page = ""
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
@@ -460,7 +460,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         Log.d(TAG + "_", "onCreate")
-        configureGoogleSignIn()
+        if(GoogleSignIn.getLastSignedInAccount(this) == null) {
+            configureGoogleSignIn()
+        }
         //mPb = ProgressDialog(this)
        // pPb = ProgressDialog(this)
        // nPb = ProgressDialog(this)
@@ -497,7 +499,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
                 .build()
-
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
                 .addApi(Fitness.CONFIG_API)
@@ -511,7 +512,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
             GoogleSignIn.requestPermissions(
                     this,
-                    REQUEST_OAUTH_REQUEST_CODE,
+                    GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
         }else {
@@ -570,7 +571,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 dialog.setTitle("계정 로그인")
                 dialog.show()
             }
-            REQUEST_OAUTH_REQUEST_CODE ->{
+            GOOGLE_FIT_PERMISSIONS_REQUEST_CODE ->{
                 if (resultCode == RESULT_OK){
                     registerFitnessDataListener()
                 }

@@ -20,8 +20,6 @@ import kotlinx.android.synthetic.main.google_login.*
  * Created by LeeBeomWoo on 2018-03-16.
  */
 class CustomDialogList(context: Context): Dialog(context) {
-
-
     val TAG: String = "CustomDialogList_"
     private val RC_SIGN_IN = 111//google sign in request code
     override fun onCreate(savedInstanceState: Bundle?) {

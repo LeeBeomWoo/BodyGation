@@ -13,12 +13,11 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.CheckableImageButton
 import bodygate.bcns.bodygation.R
+import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IAxisValueFormatter
 import com.github.mikephil.charting.formatter.LargeValueFormatter
 import com.google.android.gms.fitness.data.Bucket
@@ -167,7 +166,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
     var fat_series: MutableList<BarEntry> = ArrayList()
     var bmi_series: MutableList<BarEntry> = ArrayList()
     var kcal_series: MutableList<BarEntry> = ArrayList()
-    var kcalB_series: MutableList<BarEntry> = ArrayList()
+    var kcalB_series: MutableList<Entry> = ArrayList()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i(TAG, "onCreate")
@@ -221,32 +220,53 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         graph.setVisibleXRangeMaximum(5.toFloat())
         graph.setNoDataText("아래 머튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
         graph.setNoDataTextColor(R.color.colorPrimaryDark)
+        graph.setDrawOrder(arrayOf(CombinedChart.DrawOrder.BAR, CombinedChart.DrawOrder.LINE))
     }
    fun series_dataSet():MutableList<BarEntry>{
         val series: MutableList<BarEntry> = ArrayList()
         val x = value.size-1
         for (a: Int in 0..x) {
             //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
-            series.add(BarEntry(a.toFloat(), value.get(a).toFloat()))
+            series.add(a, BarEntry(a.toFloat(), value.get(a).toFloat()))
         }
         return series
     }
     @SuppressLint("SimpleDateFormat")
-    fun kcalseries_dataSet(f:MutableList<Date>, v:MutableList<Double>, k:Int):MutableList<BarEntry>{
+    fun kcalseries_dataSet(f:MutableList<Date>, v:MutableList<Double>, k:Int):MutableList<Entry>{
+        val series: MutableList<Entry> = ArrayList()
+        val temp_Label:MutableList<String> =  ArrayList()
+        val label = SimpleDateFormat("MM/dd")
+        var s = 0
+        for(b:Int in 0..(f.size-1)){
+            temp_Label.add(b, label.format(f[b]))
+        }
+        for (a: Int in 0..k) {
+            //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
+            if(temp_Label.contains(kcal_Label[a])){
+                series.add(a, Entry(a.toFloat(), v[s].toFloat()))
+                s += 1
+            }else{
+                series.add(a, Entry(a.toFloat(), 0f))
+            }
+        }
+        return series
+    }
+    @SuppressLint("SimpleDateFormat")
+    fun kcalseriesB_dataSet(f:MutableList<Date>, v:MutableList<Double>, k:Int):MutableList<BarEntry>{
         val series: MutableList<BarEntry> = ArrayList()
         val temp_Label:MutableList<String> =  ArrayList()
         val label = SimpleDateFormat("MM/dd")
         var s = 0
         for(b:Int in 0..(f.size-1)){
-            temp_Label.add(label.format(f[b]))
+            temp_Label.add(b, label.format(f[b]))
         }
         for (a: Int in 0..k) {
             //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
             if(temp_Label.contains(kcal_Label[a])){
-                series.add(BarEntry(a.toFloat(), v[s].toFloat()))
+                series.add(a, BarEntry(a.toFloat(), v[s].toFloat()))
                 s += 1
             }else{
-                series.add(BarEntry(a.toFloat(), 0f))
+                series.add(a, BarEntry(a.toFloat(), 0f))
             }
         }
         return series
@@ -257,7 +277,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         val series: MutableList<String> = ArrayList()
         val x = horizonValue.size - 1
         for (a: Int in 0..x) {
-            series.add(label.format(horizonValue[a]))
+            series.add(a, label.format(horizonValue[a]))
         }
         return series
     }
@@ -267,7 +287,7 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
         val series: MutableList<String> = ArrayList()
         val x = kcal_horizonValue.size - 1
         for (a: Int in 0..x) {
-            series.add(label.format(kcal_horizonValue[a]))
+            series.add(a, label.format(kcal_horizonValue[a]))
         }
         return series
     }
@@ -295,7 +315,11 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
                     xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
-                    graph.setData(barData)
+                    val data = CombinedData()
+                    data.setData(barData)
+                    graph.setData(data)
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
                     }
             }
             1->{//걷기
@@ -320,7 +344,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
                     xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                    graph.setData(barData)
+                    val data = CombinedData()
+                    data.setData(barData)
+                    graph.setData(data)
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                 }
@@ -352,19 +378,23 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         val job_third = launch {
                             kcal_Label = getKcalLabel(kcal_label_dataSet(), label_dataSet()).toMutableList()
                             kcalB_series = kcalseries_dataSet(kcal_horizonValue, kcalvalue, kcal_Label.size-1)
-                            kcal_series = kcalseries_dataSet(horizonValue, value, kcal_Label.size-1)
+                            kcal_series = kcalseriesB_dataSet(horizonValue, value, kcal_Label.size-1)
                         }
                         job_third.join()
                     }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(184, 187, 85))
-                    val set2 = BarDataSet(kcalB_series, getString(R.string.caloreb))
+                    val set2 = LineDataSet(kcalB_series, getString(R.string.caloreb))
                     set2.setColors(Color.rgb(135, 184, 85))
-                    val barData = BarData(set1, set2)
+                    val barData = BarData(set1)
+                    val lineData = LineData(set2)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
                     xAxis.setValueFormatter(MyXAxisValueFormatter(kcal_Label.toTypedArray()))
-                    graph.setData(barData)
+                    val data = CombinedData()
+                    data.setData(barData)
+                    data.setData(lineData)
+                    graph.setData(data)
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                 }
@@ -391,7 +421,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
                     xAxis.setValueFormatter(MyXAxisValueFormatter(fat_Label.toTypedArray()))
-                    graph.setData(barData)
+                    val data = CombinedData()
+                    data.setData(barData)
+                    graph.setData(data)
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                 }
@@ -418,7 +450,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(muscle_Label.toTypedArray()))
-                        graph.setData(barData)
+                    val data = CombinedData()
+                    data.setData(barData)
+                    graph.setData(data)
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                 }
@@ -445,7 +479,9 @@ class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.
                         val xAxis = graph.xAxis
                         xAxis.setGranularity(1f)
                         xAxis.setValueFormatter(MyXAxisValueFormatter(bmi_Label.toTypedArray()))
-                        graph.setData(barData)
+                    val data = CombinedData()
+                    data.setData(barData)
+                    graph.setData(data)
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                 }
