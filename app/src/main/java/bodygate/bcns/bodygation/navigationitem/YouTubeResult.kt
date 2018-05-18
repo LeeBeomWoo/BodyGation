@@ -52,6 +52,7 @@ class YouTubeResult : Fragment() {
         pop_linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL)
         result_list.setLayoutManager(pop_linearLayoutManager)
         result_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.data, mListener!!.context))
+        mListener!!.visableFragment = TAG
     }
     // TODO: Rename method, update argument and hook method into UI event
 
@@ -59,7 +60,6 @@ class YouTubeResult : Fragment() {
         super.onAttach(context)
         if (context is OnYoutubeResultInteraction) {
             mListener = context
-            mListener!!.visableFragment = TAG
         } else {
             throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }

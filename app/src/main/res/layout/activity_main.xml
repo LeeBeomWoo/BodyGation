@@ -7,17 +7,20 @@
     android:layout_height="match_parent"
     tools:context="bodygate.bcns.bodygation.MainActivity">
 
-    <FrameLayout
-        android:id="@+id/root_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        <FrameLayout
+            android:id="@+id/root_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:behavior_overlapTop="78dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/navigation"
-        android:layout_gravity="bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        app:layout_behavior=".BottomNavigationBehavior"
+        android:layout_gravity="bottom"
+        android:background="#deeecb"
+        app:layout_behavior="bodygate.bcns.bodygation.support.BottomNavigationBehavior"
         app:menu="@menu/navigation" />
 
 </android.support.design.widget.CoordinatorLayout>

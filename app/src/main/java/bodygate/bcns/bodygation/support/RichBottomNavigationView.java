@@ -1,4 +1,4 @@
-package bodygate.bcns.bodygation;
+package bodygate.bcns.bodygation.support;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -21,6 +21,8 @@ import android.support.v7.view.menu.MenuView;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
+
+import bodygate.bcns.bodygation.R;
 
 import static android.widget.AdapterView.INVALID_POSITION;
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <color name="colorPrimary">#8ab855</color>
+    <color name="colorPrimary">#8ab659</color>
     <color name="colorPrimaryDark">#385a11</color>
     <color name="colorAccent">#ffc840</color>
     <color name="bodynavigationbar">#345e35</color>
@@ -13,4 +13,6 @@
     <color name="bmicolor">#b89755</color>
     <color name="kcalcolor">#b85755</color>
     <color name="kcalbcolor">#87b855</color>
+    <color name="background_material_light">#f4f7f1</color>
+    <color name="bottomback">#c3e29f</color>
 </resources>

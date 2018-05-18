@@ -5,13 +5,12 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
-import android.os.HandlerThread
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import bodygate.bcns.bodygation.CheckableImageButton
+import bodygate.bcns.bodygation.support.CheckableImageButton
 import bodygate.bcns.bodygation.R
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.AxisBase
@@ -19,23 +18,18 @@ import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IAxisValueFormatter
-import com.github.mikephil.charting.formatter.LargeValueFormatter
 import com.google.android.gms.fitness.data.Bucket
 import com.google.android.gms.fitness.data.DataSet
 import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.result.DataReadResponse
 import kotlinx.android.synthetic.main.fragment_for_me.*
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
-import kotlin.math.max
-import kotlin.math.min
 
 
 /**
@@ -46,7 +40,7 @@ import kotlin.math.min
  * Use the [ForMeFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class ForMeFragment : Fragment(), bodygate.bcns.bodygation.CheckableImageButton.OnCheckedChangeListener {
+class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     override fun onCheckedChanged(button: CheckableImageButton?, check: Boolean) {
         when (button!!.id) {
             R.id.weight_Btn -> {

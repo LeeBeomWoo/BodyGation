@@ -3,34 +3,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="bodygate.bcns.bodygation">
 
-    <permission android:name="FITNESS_ACTIVITY_READ_WRITE" />
-    <permission android:name="FITNESS_BODY_READ_WRITE" />
-    <permission android:name="FITNESS_LOCATION_READ_WRITE" />
-    <permission android:name="FITNESS_NUTRITION_READ_WRITE" />
-    <permission android:name="ACCESS_FINE_LOCATION" />
-    <permission android:name="BODY_SENSORS" />
-    <permission android:name="ACCESS_NETWORK_STATE" />
-    <permission android:name="ACCESS_WIFI_STATE" />
     <permission android:name="ACCOUNT_MANAGER" />
-    <permission android:name="CAMERA" />
-    <permission android:name="GET_TASKS" />
-    <permission android:name="WRITE_SETTING"/>
 
+    <uses-permission android:name="android.permission.FITNESS_ACTIVITY_READ_WRITE"/>
+    <uses-permission android:name="android.permission.FITNESS_BODY_READ_WRITE"/>
+    <uses-permission android:name="android.permission.FITNESS_LOCATION_READ_WRITE"/>
+    <uses-permission android:name="android.permission.FITNESS_NUTRITION_READ_WRITE"/>
+    <uses-permission android:name="android.permission.FITNESS_BODY_READ_WRITE"/>
+
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!-- wifi 연결을 확인함 -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <!-- wifi 체인지를 확인함 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- 네트웍이 연결된것을 확인할수 있게함 -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- 인터넷을 사용함 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- 인터넷을 사용함 -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
-    <uses-permission android:name="android.permission.WRITE_SETTING" />
 
     <uses-feature
         android:name="android.hardware.camera2.full"
@@ -92,8 +85,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ItemActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
+            android:name=".ItemActivity"/>
     </application>
 
 </manifest>

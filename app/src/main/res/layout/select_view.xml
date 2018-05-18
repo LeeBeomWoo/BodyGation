@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    tools:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="bodygate.bcns.bodygation.navigationitem.FollowFragment">
 
     <LinearLayout
@@ -43,7 +44,7 @@
                 android:orientation="vertical">
 
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/stretching_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -70,7 +71,7 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/muscle_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -121,7 +122,7 @@
                 android:orientation="horizontal"
                 android:padding="2dp">
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/shoulder_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -133,7 +134,7 @@
                     android:checkable="true"
                     app:srcCompat="@drawable/main_shoulder_selector" />
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/upback_body_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -155,7 +156,7 @@
                 android:orientation="horizontal"
                 android:padding="2dp">
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/upperarm_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -167,7 +168,7 @@
                     android:checkable="true"
                     app:srcCompat="@drawable/main_upperarm_selector" />
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/upfront_abs_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -179,7 +180,7 @@
                     android:checkable="true"
                     app:srcCompat="@drawable/main_abs_selector" />
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/chest_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -200,7 +201,7 @@
                 android:orientation="horizontal"
                 android:padding="2dp">
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/upleg_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -212,7 +213,7 @@
                     android:scaleType="fitCenter"
                     app:srcCompat="@drawable/main_upperleg_selector" />
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/lowerleg_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -224,7 +225,7 @@
                     android:scaleType="fitCenter"
                     app:srcCompat="@drawable/main_lowerleg_selector" />
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/hip_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -278,7 +279,7 @@
                     android:text="@string/house"
                     android:textAlignment="center" />
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/home_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -306,7 +307,7 @@
                     android:text="@string/car"
                     android:textAlignment="center" />
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/car_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"
@@ -334,7 +335,7 @@
                     android:text="@string/office"
                     android:textAlignment="center" />
 
-                <bodygate.bcns.bodygation.CheckableImageButton
+                <bodygate.bcns.bodygation.support.CheckableImageButton
                     android:id="@+id/work_img"
                     android:layout_width="90dp"
                     android:layout_height="90dp"

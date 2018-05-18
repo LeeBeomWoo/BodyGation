@@ -1,4 +1,4 @@
-package bodygate.bcns.bodygation;
+package bodygate.bcns.bodygation.support;
 
 
 import android.content.Context;

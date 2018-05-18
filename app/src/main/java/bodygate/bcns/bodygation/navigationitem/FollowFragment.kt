@@ -2,26 +2,15 @@ package bodygate.bcns.bodygation.navigationitem
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
-import android.support.design.widget.CheckableImageButton
 import android.support.v4.app.Fragment
-import android.util.ArrayMap
 import android.util.Log
-import android.util.StateSet
-import android.util.StateSet.WILD_CARD
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import bodygate.bcns.bodygation.R
-import bodygate.bcns.bodygation.youtube.Search
-import bodygate.bcns.bodygation.youtube.YoutubeResponse
-import io.reactivex.Observable
 import kotlinx.android.synthetic.main.select_view.*
 import kotlinx.coroutines.experimental.runBlocking
-import retrofit2.Call
-import retrofit2.Response
 
 
 /**
@@ -32,8 +21,8 @@ import retrofit2.Response
  * Use the [FollowFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygation.CheckableImageButton.OnCheckedChangeListener {
-    override fun onCheckedChanged(button: bodygate.bcns.bodygation.CheckableImageButton?, check: Boolean) {
+class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygation.support.CheckableImageButton.OnCheckedChangeListener {
+    override fun onCheckedChanged(button: bodygate.bcns.bodygation.support.CheckableImageButton?, check: Boolean) {
         when (button!!.id) {
             R.id.stretching_img -> consume {
                 Log.i(TAG, "stretching_img")
@@ -266,6 +255,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         chest_img.setOnCheckedChangeListener(this)
         muscle_img.setOnCheckedChangeListener(this)
         stretching_img.setOnCheckedChangeListener(this)
+        mListener!!.visableFragment = TAG
     }
     fun search(): ArrayList<String> {
         val query:MutableList<String> = ArrayList()
@@ -340,7 +330,6 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         super.onAttach(context)
         if (context is OnFollowInteraction) {
             mListener = context
-            mListener!!.visableFragment = TAG
         } else {
             throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }

@@ -20,24 +20,7 @@
         android:layout_marginTop="10dp"
         app:buttonSize="wide" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="@string/custom_sign_in_button"
-        android:textColor="@color/colorPrimary"
-        android:textSize="14sp" />
-
     <!-- custom google sign in button -->
-    <Button
-        android:id="@+id/custom_sign_in_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@color/colorPrimary"
-        android:onClick="customGoogleSignIn"
-        android:text="@string/sign_in"
-        android:textColor="@android:color/white" />
 
     <!-- image view to show user profile image -->
     <ImageView

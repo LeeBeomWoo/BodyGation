@@ -1,4 +1,4 @@
-package bodygate.bcns.bodygation;
+package bodygate.bcns.bodygation.support;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -6,7 +6,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.widget.Checkable;
-import android.widget.ImageButton;
 
 /**
  * Created by LeeBeomWoo on 2018-03-22.

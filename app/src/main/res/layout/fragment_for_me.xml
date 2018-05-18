@@ -93,7 +93,7 @@
             app:layout_constraintStart_toStartOf="@+id/bfp_Btn"
             app:layout_constraintTop_toBottomOf="@+id/bfp_Btn" />
 
-        <bodygate.bcns.bodygation.CheckableImageButton
+        <bodygate.bcns.bodygation.support.CheckableImageButton
             android:id="@+id/weight_Btn"
             android:layout_width="0dp"
             android:layout_height="85dp"
@@ -105,7 +105,7 @@
             app:layout_constraintStart_toStartOf="@+id/weight_lbl"
             app:layout_constraintTop_toBottomOf="@+id/weight_lbl" />
 
-        <bodygate.bcns.bodygation.CheckableImageButton
+        <bodygate.bcns.bodygation.support.CheckableImageButton
             android:id="@+id/walk_Btn"
             android:layout_width="0dp"
             android:layout_height="85dp"
@@ -117,7 +117,7 @@
             app:layout_constraintStart_toStartOf="@+id/walk_lbl"
             app:layout_constraintTop_toBottomOf="@+id/walk_lbl" />
 
-        <bodygate.bcns.bodygation.CheckableImageButton
+        <bodygate.bcns.bodygation.support.CheckableImageButton
             android:id="@+id/kal_Btn"
             android:layout_width="0dp"
             android:layout_height="85dp"
@@ -129,7 +129,7 @@
             app:layout_constraintStart_toStartOf="@+id/kal_lbl"
             app:layout_constraintTop_toBottomOf="@+id/kal_lbl" />
 
-        <bodygate.bcns.bodygation.CheckableImageButton
+        <bodygate.bcns.bodygation.support.CheckableImageButton
             android:id="@+id/muscle_Btn"
             android:layout_width="0dp"
             android:layout_height="85dp"
@@ -141,7 +141,7 @@
             app:layout_constraintStart_toStartOf="@+id/mucsle_lbl"
             app:layout_constraintTop_toBottomOf="@+id/mucsle_lbl" />
 
-        <bodygate.bcns.bodygation.CheckableImageButton
+        <bodygate.bcns.bodygation.support.CheckableImageButton
             android:id="@+id/bmi_Btn"
             android:layout_width="0dp"
             android:layout_height="85dp"
@@ -153,7 +153,7 @@
             app:layout_constraintStart_toStartOf="@+id/bmi_lbl"
             app:layout_constraintTop_toBottomOf="@+id/bmi_lbl" />
 
-        <bodygate.bcns.bodygation.CheckableImageButton
+        <bodygate.bcns.bodygation.support.CheckableImageButton
             android:id="@+id/bfp_Btn"
             android:layout_width="0dp"
             android:layout_height="85dp"
