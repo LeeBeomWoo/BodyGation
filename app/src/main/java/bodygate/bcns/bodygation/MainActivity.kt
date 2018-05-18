@@ -7,21 +7,18 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentSender
-import android.net.ConnectivityManager
 import android.net.Uri
-import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
+import android.provider.Settings
 import android.support.annotation.NonNull
 import android.support.design.widget.BottomNavigationView
-import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.text.TextUtils
 import android.util.Log
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.R.id.*
 import bodygate.bcns.bodygation.dummy.DummyContent
@@ -33,7 +30,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.ResultCallback
@@ -48,12 +44,10 @@ import com.google.android.gms.fitness.request.DataTypeCreateRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.fitness.result.DataTypeResult
-import com.google.android.gms.tasks.*
-import com.google.api.client.extensions.android.http.AndroidHttp
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Tasks
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTubeScopes
 import com.squareup.picasso.Picasso
@@ -67,7 +61,6 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.Response
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -463,6 +456,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if(GoogleSignIn.getLastSignedInAccount(this) == null) {
             configureGoogleSignIn()
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.System.canWrite(this)) {
+            } else {
+                Toast.makeText(this, "해당 권한은 카메라 구동시 화면의 고정을 위하여 필요한 것입니다.", Toast.LENGTH_SHORT).show();
+                val intent = Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + this.getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        }
+
         //mPb = ProgressDialog(this)
        // pPb = ProgressDialog(this)
        // nPb = ProgressDialog(this)
@@ -657,7 +661,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-
+    override fun onResume() {
+        super.onResume()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.System.canWrite(this)) {
+            }
+        }
+    }
     @SuppressLint("RestrictedApi")
     fun registerFitnessDataListener() = launch(CommonPool){
         val cal = Calendar.getInstance()

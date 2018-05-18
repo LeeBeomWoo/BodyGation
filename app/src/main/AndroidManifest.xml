@@ -14,6 +14,7 @@
     <permission android:name="ACCOUNT_MANAGER" />
     <permission android:name="CAMERA" />
     <permission android:name="GET_TASKS" />
+    <permission android:name="WRITE_SETTING"/>
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- wifi 연결을 확인함 -->
@@ -29,6 +30,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SETTING" />
 
     <uses-feature
         android:name="android.hardware.camera2.full"

@@ -27,7 +27,7 @@ android {
         applicationId "bodygate.bcns.bodygation"
         minSdkVersion 23
         targetSdkVersion 27
-        versionCode 7
+        versionCode 8
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
