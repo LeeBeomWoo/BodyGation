@@ -7,12 +7,11 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
-import android.provider.Settings
 import android.support.annotation.NonNull
 import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AlertDialog
@@ -25,6 +24,8 @@ import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
 import bodygate.bcns.bodygation.youtube.YoutubeApi
 import bodygate.bcns.bodygation.youtube.YoutubeResponse
+import com.aurelhubert.ahbottomnavigation.AHBottomNavigation
+import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -32,7 +33,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.common.api.ResultCallback
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.Fitness.ConfigApi
@@ -40,16 +40,20 @@ import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.FitnessStatusCodes
 import com.google.android.gms.fitness.data.*
 import com.google.android.gms.fitness.request.DataReadRequest
-import com.google.android.gms.fitness.request.DataTypeCreateRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
-import com.google.android.gms.fitness.result.DataTypeResult
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.Tasks
+import com.google.android.gms.tasks.*
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.HttpRequest
+import com.google.api.client.http.HttpRequestInitializer
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.ExponentialBackOff
+import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.YouTubeScopes
+import com.google.api.services.youtube.model.SearchListResponse
+import com.google.api.services.youtube.model.SearchResult
+import com.google.common.io.BaseEncoding
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_follow.*
@@ -61,6 +65,12 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.Response
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
+import java.lang.Exception
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -68,22 +78,23 @@ import kotlin.collections.ArrayList
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, GoogleApiClient.OnConnectionFailedListener, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction {
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction {
+    override fun describeContents(): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
 
     private val PREF_ACCOUNT_NAME = "accountName"
     val REQUEST_ACCOUNT_PICKER = 1000
-    val REQUEST_GOOGLE_PLAY_SERVICES = 1002
     private var authInProgress = false
-    lateinit var mFitnessClient: GoogleApiClient
     private val REQUEST_OAUTH = 1001
     val ID: String? = null
     val PW: String? = null
     val TAG: String = "MainActivity_"
-    var preData:MutableList<YoutubeResponse.Items> = ArrayList()
-    var popData:MutableList<YoutubeResponse.Items> = ArrayList()
-    var newData:MutableList<YoutubeResponse.Items> = ArrayList()
-    var myData:MutableList<YoutubeResponse.Items> = ArrayList()
+    var preData:MutableList<SearchResult> = ArrayList()
+    var popData:MutableList<SearchResult> = ArrayList()
+    var newData:MutableList<SearchResult> = ArrayList()
+    var myData:MutableList<SearchResult> = ArrayList()
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
@@ -98,7 +109,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var visableFragment = ""
     private var doubleBackToExitPressedOnce: Boolean = false
     override val context:Context = this
-    override var data: MutableList<YoutubeResponse.Items>
+    override var data: MutableList<SearchResult>
         get() = preData
         set(value) {}
     override var kcalResponse: DataReadResponse? = null
@@ -162,11 +173,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-    fun getData(response: Response<YoutubeResponse>, section:Int) {
-        val body = response.body()
+    fun getData(response: SearchListResponse, section:Int) {
         Log.i(TAG, "getData")
-        if (body != null) {
-            val items = body.items
+            val items = response.items
             when (section) {
                 0 -> {//선택형
                     Log.i("getData", "선택형")
@@ -202,43 +211,37 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
             launch(UI) {stopProgress(section)}
-        }
     }
-    suspend fun addData(response: Response<YoutubeResponse>, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
+    suspend fun addData(response: SearchListResponse, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
         Log.i(TAG, "addData")
-        val body = response.body()
-        Log.i(TAG + "request", response.raw().request().url().toString())
-        Log.i(TAG + "response", response.body().toString())
-        if (body != null) {
-            val items = body.items
-            when (section) {
-                0 -> {//선택형
-                    preData.addAll(items)
+            val body = response.items
+            if (body != null) {
+                when (section) {
+                    0 -> {//선택형
+                        preData.addAll(body)
+                    }
+                    1 -> {//새로 올라온 영상
+                        newData.addAll(body)
+                    }
+                    2 -> {//인기많은 영상
+                        popData.addAll(body)
+                    }
+                    3 -> {//내가 본 영상
+                        myData.addAll(body)
+                    }
                 }
-                1 -> {//새로 올라온 영상
-                    newData.addAll(items)
-                }
-                2 -> {//인기많은 영상
-                    popData.addAll(items)
-                }
-                3 -> {//내가 본 영상
-                    myData.addAll(items)
-                }
-            }
-            if(body.nextPageToken != null) {
-                val apiService = YoutubeApi.create()
-                page = body.nextPageToken
-                val youtubeResponseCall = apiService.nextVideo("snippet", max_result, q, "KR",  searchType, page, order, api_Key,"2d")
-                launch { addData( youtubeResponseCall.execute(), section, q, api_Key,  max_result, searchType, order)
-                }
+                if (response.nextPageToken != null) {
+                    val apiService = YoutubeApi.create()
+                    page = response.nextPageToken
+                    launch {
+                        addData(response, section, q, api_Key, max_result, searchType, order)
+                    }
 
-            }else{
-                launch(UI){getData(response, section)}
+
+                } else {
+                    launch(UI) { getData(response, section) }
+                }
             }
-        }
-    }
-    override fun describeContents(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun OnYoutubeResultInteraction(){
@@ -250,13 +253,41 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun OnGoalInteractionListener(uri: Uri) {
     }
-
+    @SuppressLint("PackageManagerGetSignatures")
+    private fun getSHA1(packageName:String):String? {
+        try
+        {
+            val signatures = context.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES).signatures
+            for (signature in signatures)
+            {
+                val md:MessageDigest
+                md = MessageDigest.getInstance("SHA-1")
+                Log.i(TAG, md.toString())
+                md.update(signature.toByteArray())
+                return BaseEncoding.base16().encode(md.digest())
+            }
+        }
+        catch (e:PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+        }
+        catch (e: NoSuchAlgorithmException) {
+            e.printStackTrace()
+        }
+        return null
+    }
     suspend override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int) {
         Log.i(TAG, "getDatas")
+       val youTube = YouTube.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance(), object: HttpRequestInitializer {
+           @Throws(IOException::class)
+           override fun initialize(request:HttpRequest) {
+               val SHA1 = getSHA1(packageName)
+               request.getHeaders().set("X-Android-Package", packageName)
+               request.getHeaders().set("X-Android-Cert", SHA1)
+           }
+        }).setApplicationName(packageName).build()
         val searchType = "video"
         val a = q.replace("[", "");
         val b = a.replace("]", "")
-        val apiService = YoutubeApi.create()
         var order = ""
         when(section){
             0->{//선택형
@@ -274,8 +305,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
         launch(UI) { startProgress(section) }
         Log.i("getData", order)
-        val youtubeResponseCall = apiService.searchVideo("snippet", max_result, b, "KR",  searchType, order, api_Key, "2d")
-        launch {addData( youtubeResponseCall.execute(), section, q, api_Key,  max_result, searchType, order)}
+        val query = youTube.search().list("id, snippet")
+        query.setKey(api_Key)
+        query.setType("video")
+        query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url)")
+        val bReader = BufferedReader(InputStreamReader(b.byteInputStream()))
+        val inputQuery = bReader.readLine()
+        query.setQ(inputQuery)
+        query.setMaxResults(max_result.toLong())
+        launch {addData( query.execute(), section, q, api_Key,  max_result, searchType, order)}
     }
     override fun OnFollowInteraction() {
         Log.i(TAG, "OnFollowInteraction")
@@ -297,53 +335,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     fun nextpage():String{
         return page
     }
-    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
-        when (item.itemId) {
-        //해당 페이지로 이동
-            R.id.navigation_goal -> {
-                supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "rageComicList")
-                        .commit()
-                return@OnNavigationItemSelectedListener true
-            }
-        /**R.id.navigation_home -> {
-        supportFragmentManager
-        .beginTransaction()
-        .replace(R.id.root_layout, MovieFragment.newInstance(), "rageComicList")
-        .commit()
-        return@OnNavigationItemSelectedListener true
-        }*/
-            R.id.navigation_follow -> {
-                if(data.isNotEmpty()){
-                    OnFollowInteraction()
-                }else{
-                    supportFragmentManager
-                            .beginTransaction()
-                            .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
-                            .commit()
-                }
-                return@OnNavigationItemSelectedListener true
-            }
-            R.id.navigation_infome -> {
-                supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
-                        .commit()
-                return@OnNavigationItemSelectedListener true
-            }
-        }
-        false
-    }
 
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
         // Do something
-        when(navigation.selectedItemId){
-            navigation_follow->{
+        when(navigation.currentItem){
+            1->{
                 if(visableFragment == "YouTubeResult" ){
                     data.clear()
-                    navigation.selectedItemId = navigation_follow
+                    navigation.setCurrentItem(1)
                 }else {
                     if (doubleBackToExitPressedOnce) {
                         moveTaskToBack(true)
@@ -371,20 +371,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
             }
-            navigation_goal->{
+           0->{
                 doubleBackToExitPressedOnce = false
                 if(data.isNotEmpty()){
                     OnFollowInteraction()
                 }else{
-                    navigation.selectedItemId = navigation_follow
+                    navigation.setCurrentItem(1)
                 }
             }
-            navigation_infome->{
+           2->{
                 doubleBackToExitPressedOnce = false
                 if(data.isNotEmpty()){
                     OnFollowInteraction()
                 }else{
-                    navigation.selectedItemId = navigation_follow
+                    navigation.setCurrentItem(1)
                 }
             }
         }
@@ -431,7 +431,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         cPb = ProgressDialog(this)
         mCredential = GoogleAccountCredential.usingOAuth2(
                 getApplicationContext(), Arrays.asList(SCOPES))
-                .setBackOff(ExponentialBackOff());
+                .setBackOff(ExponentialBackOff())
+        if(GoogleSignIn.getLastSignedInAccount(this) == null){
+            doGoogleSignIn()
+        }else{
+            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
+        }
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         } else {
@@ -443,7 +448,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
                         .commit()
             }
-            navigation.selectedItemId = navigation_follow
+            navigation.setCurrentItem(1)
         }
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
@@ -461,18 +466,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
                 .build()
-        mFitnessClient = GoogleApiClient.Builder(this)
-                .addApi(Fitness.HISTORY_API)
-                .addApi(Fitness.CONFIG_API)
-                .addScope(Scope(Scopes.FITNESS_LOCATION_READ))
-                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .addOnConnectionFailedListener(this)
-                .build()
-        mFitnessClient.connect()
         if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
             GoogleSignIn.requestPermissions(
                     this,
@@ -482,7 +475,48 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }else {
             registerFitnessDataListener()
         }
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+        val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.ic_dashboard_black_24dp))
+        val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.ic_directions_run_black_24dp))
+        val item3 = AHBottomNavigationItem(getString(R.string.title_infome), getDrawable(R.drawable.ic_person_black_24dp))
+        navigation.addItem(item1)
+        navigation.addItem(item2)
+        navigation.addItem(item3)
+        navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
+            override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
+                when (item) {
+                //해당 페이지로 이동
+                    0 -> {
+                        supportFragmentManager
+                                .beginTransaction()
+                                .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "rageComicList")
+                                .commit()
+                        return false
+                    }
+                    1 -> {
+                        if(data.isNotEmpty()){
+                            OnFollowInteraction()
+                        }else{
+                            supportFragmentManager
+                                    .beginTransaction()
+                                    .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
+                                    .commit()
+                        }
+                        return false
+                    }
+                    2 -> {
+                        supportFragmentManager
+                                .beginTransaction()
+                                .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
+                                .commit()
+                        return false
+                    }
+                }
+                return false
+            }
+
+        })
+        navigation.setBehaviorTranslationEnabled(true)
+        navigation.setTranslucentNavigationEnabled(true)
     }
 
     private fun buildGoogleSignInClient(): GoogleSignInClient {
@@ -505,15 +539,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, "Connecting...")
         val account = GoogleSignIn.getLastSignedInAccount(this)
         //update the UI if user has already sign in with the google for this app
-        mFitnessClient.connect()
         //getProfileInformation(account)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        if (mFitnessClient.isConnected()) {
-            mFitnessClient.disconnect()
-        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
@@ -529,15 +555,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         editor.putString(PREF_ACCOUNT_NAME, accountName);
                         editor.apply();
                         mCredential!!.setSelectedAccountName(accountName)
-                    }
-                }
-            }
-            REQUEST_OAUTH -> {
-                authInProgress = false;
-                if (resultCode == RESULT_OK) {
-                    // Make sure the app is not already connected or attempting to connect
-                    if (!mFitnessClient.isConnecting() && !mFitnessClient.isConnected()) {
-                        mFitnessClient.connect();
                     }
                 }
             }
@@ -562,7 +579,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         cal.time = now
         val nowTime = cal.timeInMillis
         val pendingResult_muscle = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).readDataType("bodygate.bcns.bodygation.muscle")
-        pendingResult_muscle.addOnSuccessListener(object : OnSuccessListener<DataType> {
+        pendingResult_muscle
+                .addOnSuccessListener(object : OnSuccessListener<DataType> {
             override fun onSuccess(p0: DataType) {
                 Log.i("pendingResult", p0.toString())
                 val source = DataSource.Builder()
@@ -582,6 +600,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 launch(coroutineContext) { Tasks.await(response) }
             }
         })
+                .addOnFailureListener(object : OnFailureListener{
+                    override fun onFailure(p0: Exception) {
+                        Log.i(TAG, p0.toString())
+
+                    }
+
+                })
         val pendingResult_fat = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).readDataType("bodygate.bcns.bodygation.fat")
         pendingResult_fat.addOnSuccessListener(object : OnSuccessListener<DataType> {
             override fun onSuccess(p0: DataType) {
@@ -603,6 +628,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 launch(coroutineContext) { Tasks.await(response) }
             }
         })
+                .addOnFailureListener(object : OnFailureListener{
+                    override fun onFailure(p0: Exception) {
+                        Log.i(TAG, p0.toString())
+
+                    }
+
+                })
         val pendingResult_bmi = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).readDataType("bodygate.bcns.bodygation.bmi")
         pendingResult_bmi.addOnSuccessListener(object : OnSuccessListener<DataType> {
             override fun onSuccess(p0: DataType) {
@@ -624,6 +656,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 launch(coroutineContext) { Tasks.await(response) }
             }
         })
+                .addOnFailureListener(object : OnFailureListener{
+                    override fun onFailure(p0: Exception) {
+                        Log.i(TAG, p0.toString())
+
+                    }
+
+                })
     }
 
     override fun onDataPoint(dataPoint: DataPoint) {
@@ -646,6 +685,37 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, "Range Start: " + startTime.toString())
         Log.i(TAG, "Range End: " + endTime.toString())
         val task = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
+        val mFitnessClient = GoogleApiClient.Builder(this@MainActivity)
+                .addApi(Fitness.HISTORY_API)
+                .addApi(Fitness.CONFIG_API)
+                .addScope(Scope(Scopes.FITNESS_LOCATION_READ))
+                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                .addOnConnectionFailedListener(object: OnFailureListener, GoogleApiClient.OnConnectionFailedListener {
+                    override fun onConnectionFailed(p0: ConnectionResult) {
+                        Log.i(TAG, "onConnectionFailed")
+                        // Error while connecting. Try to resolve using the pending intent returned.
+                        Log.i(TAG, "onConnectionFailed" + ":" + p0.toString())
+                        if (p0.getErrorCode() == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
+                            try {
+                                p0.startResolutionForResult(this@MainActivity, REQUEST_OAUTH);
+                            } catch (e: IntentSender.SendIntentException) {
+                                Log.i(TAG, "onConnectionFailed" + ":" + e.toString())
+                            }
+                        }
+                    }
+
+                    override fun onFailure(p0: Exception) {
+                        Log.i(TAG, "onFailure")
+                        // Error while connecting. Try to resolve using the pending intent returned.
+                        Log.i(TAG, "onFailure" + ":" + p0.toString())
+                    }
+                })
+                .build()
+        mFitnessClient.connect()
         val pendingResult_bmi = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.bmi")
         val pendingResult_muscle = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.muscle")
         val pendingResult_fat = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.fat")
@@ -712,20 +782,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             BkcalResponse = Tasks.await(response_dc)}.join()
     }
 
-
-    override fun onConnectionFailed(result: ConnectionResult) {
-        Log.i(TAG, "onConnectionFailed")
-        // Error while connecting. Try to resolve using the pending intent returned.
-        Log.i(TAG, "onConnectionFailed" + ":" + result.toString())
-        if (result.getErrorCode() == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
-            try {
-                result.startResolutionForResult(this, REQUEST_OAUTH);
-            } catch (e: IntentSender.SendIntentException) {
-                Log.i(TAG, "onConnectionFailed" + ":" + e.toString())
-            }
-        }
-    }
-
     /**
      * method to handle google sign in result
      *
@@ -759,19 +815,19 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val personPhoto = acct.getPhotoUrl()
 
             //show the user details
-            user_details_label.setText("ID : " + personId + "\nDisplay Name : " + personName + "\nFull Name : " + personGivenName + " " + personFamilyName + "\nEmail : " + personEmail);
+          //  user_details_label.setText("ID : " + personId + "\nDisplay Name : " + personName + "\nFull Name : " + personGivenName + " " + personFamilyName + "\nEmail : " + personEmail);
 
             //show the user profile pic
-            Picasso.get().load(personPhoto).fit().placeholder(R.mipmap.ic_launcher_round).into(user_profile_image_view);
+         //   Picasso.get().load(personPhoto).fit().placeholder(R.mipmap.ic_launcher_round).into(user_profile_image_view);
 
             //change the text of Custom Sign in button to sign out
 
             //show the label and image view
-            user_details_label.setVisibility(View.VISIBLE);
-            user_profile_image_view.setVisibility(View.VISIBLE);
+          //  user_details_label.setVisibility(View.VISIBLE);
+          //  user_profile_image_view.setVisibility(View.VISIBLE);
         } else {
-            user_details_label.setVisibility(View.GONE);
-            user_profile_image_view.setVisibility(View.GONE);
+          //  user_details_label.setVisibility(View.GONE);
+          //  user_profile_image_view.setVisibility(View.GONE);
         }
     }
 

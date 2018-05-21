@@ -16,6 +16,7 @@ import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.services.youtube.model.SearchResult
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.fragment_follow.*
 import javax.security.auth.Subject
@@ -87,7 +88,7 @@ class YouTubeResult : Fragment() {
         fun OnYoutubeResultInteraction()
         suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
         fun getpage():String
-        var data: MutableList<YoutubeResponse.Items>
+        var data: MutableList<SearchResult>
         val context:Context
         var visableFragment:String
     }

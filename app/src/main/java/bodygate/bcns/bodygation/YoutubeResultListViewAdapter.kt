@@ -17,21 +17,22 @@ import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubeThumbnailLoader
 import com.google.android.youtube.player.YouTubeThumbnailView
+import com.google.api.services.youtube.model.SearchResult
 
 /**
  * [RecyclerView.Adapter] that can display a [DummyItem] and makes a call to the
  * specified [OnListFragmentInteractionListener].
  * TODO: Replace the implementation with code for your data type.
  */
-class YoutubeResultListViewAdapter(var mValues: MutableList<YoutubeResponse.Items>, val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
+class YoutubeResultListViewAdapter(var mValues: MutableList<SearchResult>, val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
 
     private val UNINITIALIZED = 1
     private val INITIALIZING = 2
     private val INITIALIZED = 3
     private val blackColor = Color.parseColor("#FF000000")
     private val transparentColor = Color.parseColor("#00000000")
-    var dataitem = YoutubeResponse.Items()
-    var datalist:MutableList<YoutubeResponse.Items> = ArrayList()
+    var dataitem = SearchResult()
+    var datalist:MutableList<SearchResult> = ArrayList()
     val TAG = "YoutubeListViewAdapter_"
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         Log.i(TAG, "onCreateViewHolder")
@@ -40,7 +41,7 @@ class YoutubeResultListViewAdapter(var mValues: MutableList<YoutubeResponse.Item
         return ViewHolder(view)
     }
 
-    fun setLkItems(bdItems1: List<YoutubeResponse.Items>) {
+    fun setLkItems(bdItems1: List<SearchResult>) {
         mValues.addAll(bdItems1)
         this.notifyItemInserted(mValues.size - 1)
     }
@@ -70,11 +71,6 @@ class YoutubeResultListViewAdapter(var mValues: MutableList<YoutubeResponse.Item
             }
 
         })
-        Log.i(TAG, "categoryId :" + mValues[position].snippet!!.categoryId + "        "
-        + "channelId :" + mValues[position].snippet!!.channelId + "        "
-                + "channelTitle :" + mValues[position].snippet!!.channelTitle + "        "
-                + "title :" + mValues[position].snippet!!.title + "        "
-                + "description :" + mValues[position].snippet!!.description)
     }
     override fun getItemCount(): Int {
             return mValues.size
@@ -91,7 +87,7 @@ class YoutubeResultListViewAdapter(var mValues: MutableList<YoutubeResponse.Item
         val ivYtLogo: ImageView
         val tvTitle: TextView
         val tvDetaile: TextView
-        var mItem: YoutubeResponse.Items? = null
+        var mItem:SearchResult? = null
 
         init {
             ytThubnailView = itemView.findViewById<View>(R.id.yt_thumbnail) as YouTubeThumbnailView

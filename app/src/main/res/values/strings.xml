@@ -140,7 +140,7 @@
     <string name="title_notifications">알림</string>
     <string name="title_setting">설정</string>
     <string name="title_infome">나의 경로</string>
-    <string name="title_goal">목적지</string>
+    <string name="title_goal">달성 목표</string>
     <string name="desweight">목표 체중 :</string>
     <string name="desbmi">목표 BMI :</string>
     <string name="masbodyfat">목표 체지방량 :</string>
@@ -162,9 +162,8 @@
     <string name="bodyfat">체지방 변화</string>
     <string name="musclemass">골격근량 변화</string>
     <string name="fitheghit">아쉽게도 키는 목표를 잡을 수가 없네요</string>
-    <string name="server_client_id">742529529643-r530klr2se7g6g9h9klrv5hm5hhf4r06.apps.googleusercontent.com</string>
-    <string name="web_client_id">742529529643-oopjntngcuhnunhqi4aa6o0geokhia64.apps.googleusercontent.com</string>
-    <string name="API_key">AIzaSyBVobo_AuzdUl9zIAAANnGMlJ_waexilY0</string>
+    <string name="server_client_id">669763084628-5jkkgdltc64jm7n2iunsdhnibruc3813.apps.googleusercontent.com</string>
+    <string name="API_key">AIzaSyCtYgMR9n4Es0u5sLqGGuasDcMO_P0qhV0</string>
     <string name="default_sign_in_button">구글 계정과 연동 합니다.</string>
     <string name="custom_sign_in_button">다른 구글 계정으로 연동합니다.</string>
     <string name="sign_in">로그인</string>

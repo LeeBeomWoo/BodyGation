@@ -11,16 +11,13 @@
             android:id="@+id/root_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:behavior_overlapTop="78dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-    <android.support.design.widget.BottomNavigationView
+            app:behavior_overlapTop="78dp" />
+    <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
         android:id="@+id/navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
-        android:background="#deeecb"
-        app:layout_behavior="bodygate.bcns.bodygation.support.BottomNavigationBehavior"
-        app:menu="@menu/navigation" />
+        android:background="#deeecb"/>
 
 </android.support.design.widget.CoordinatorLayout>

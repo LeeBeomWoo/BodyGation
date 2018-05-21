@@ -6,7 +6,7 @@
         <item name="android:colorForeground">@color/foreground_material_light</item>
     </style>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -14,5 +14,8 @@
         <item name="android:navigationBarColor">@color/bodynavigationbar</item>
         <item name="android:colorBackground">@color/background_material_light</item>
     </style>
-
+    <style name="MyTheme.TranslucentNavigation" parent="Bodygator">
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:fitsSystemWindows">true</item>
+    </style>
 </resources>

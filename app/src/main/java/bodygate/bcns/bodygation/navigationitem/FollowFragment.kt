@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
 import kotlinx.android.synthetic.main.select_view.*
+import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 
 
@@ -319,7 +320,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         return query as ArrayList<String>
     }
     // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: ArrayList<String>) = runBlocking{
+    fun onButtonPressed(uri: ArrayList<String>) = launch{
         if (mListener != null) {
             mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 5, true, 0)
             mListener!!.OnFollowInteraction()
