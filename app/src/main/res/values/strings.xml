@@ -149,12 +149,12 @@
     <string name="weight_musclemass">내 체중의 평균 골격근량 :</string>
     <string name="dessubcutaneousfat">목표 피하지방 :</string>
     <string name="desvisceralfat">목표 내장지방 :</string>
-    <string name="fitweight">당신의 적정 체중은</string>
-    <string name="fitbmi">당신의 적정 BMI는</string>
-    <string name="fitbodyfat">당신의 적정 체지방은</string>
-    <string name="fitmusclemass">당신의 적정 골격근량은</string>
-    <string name="fitsubcutaneousfat">당신의 적정 피하지방은</string>
-    <string name="fitvisceralfat">당신의 적정 내장지방은</string>
+    <string name="fitweight">당신의 적정\n체중은</string>
+    <string name="fitbmi">당신의 적정\nBMI는</string>
+    <string name="fitbodyfat">당신의 적정\n체지방은</string>
+    <string name="fitmusclemass">당신의 적정\n골격근량은</string>
+    <string name="fitsubcutaneousfat">당신의\n적정 피하지방은</string>
+    <string name="fitvisceralfat">당신의 적정\n내장지방은</string>
     <string name="movie">자료보기</string>
     <string name="pop_week">주간 인기 영상</string>
     <string name="new_week">새로 올라온 영상</string>
@@ -198,4 +198,6 @@
     <string name="woman">여성</string>
     <string name="man">남성</string>
     <string name="mainbodyfat">표준체지방률 :</string>
+    <string name="prev">Previous</string>
+    <string name="next">Next</string>
 </resources>

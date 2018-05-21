@@ -5,19 +5,21 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background"
     tools:context="bodygate.bcns.bodygation.MainActivity">
 
-        <FrameLayout
-            android:id="@+id/root_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:behavior_overlapTop="78dp" />
+    <FrameLayout
+        android:id="@+id/root_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:behavior_overlapTop="78dp" />
+
     <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
         android:id="@+id/navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
-        android:background="#deeecb"/>
+        android:background="#deeecb" />
 
 </android.support.design.widget.CoordinatorLayout>
