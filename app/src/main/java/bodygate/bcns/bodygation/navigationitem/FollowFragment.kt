@@ -257,6 +257,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         muscle_img.setOnCheckedChangeListener(this)
         stretching_img.setOnCheckedChangeListener(this)
         mListener!!.visableFragment = TAG
+
     }
     fun search(): ArrayList<String> {
         val query:MutableList<String> = ArrayList()
@@ -319,10 +320,10 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         }
         return query as ArrayList<String>
     }
-    // TODO: Rename method, update argument and hook method into UI event
+
     fun onButtonPressed(uri: ArrayList<String>) = launch{
         if (mListener != null) {
-            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 5, true, 0)
+            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 40, true, 0)
             mListener!!.OnFollowInteraction()
         }
     }

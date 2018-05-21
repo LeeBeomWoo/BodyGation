@@ -106,6 +106,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var pPb:ProgressDialog? = null
     var nPb:ProgressDialog? = null
     var cPb:ProgressDialog? = null
+    var bPage = 0
     override var visableFragment = ""
     private var doubleBackToExitPressedOnce: Boolean = false
     override val context:Context = this
@@ -173,77 +174,109 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-    fun getData(response: SearchListResponse, section:Int) {
+    fun getData(section:Int) {
         Log.i(TAG, "getData")
-            val items = response.items
             when (section) {
                 0 -> {//선택형
                     Log.i("getData", "선택형")
-                    preData.addAll(items)
                     if(preData.size >0 ) {
-                        val radapter = YoutubeResultListViewAdapter(preData, this@MainActivity)
+                        val radapter = YoutubeResultListViewAdapter(preData, this)
                         result_list.setAdapter(radapter)
                     }
                 }
                 1 -> {//새로 올라온 영상
                     Log.i("getData", "새로 올라온 영상")
-                    newData.addAll(items)
                     if(newData.size >0 ) {
-                        val nadapter = YoutubeResultListViewAdapter(newData, this@MainActivity)
+                        val nadapter = YoutubeResultListViewAdapter(newData, this)
                         new_list.setAdapter(nadapter)
                     }
                 }
                 2 -> {//인기많은 영상
                     Log.i("getData", "인기많은 영상")
-                    popData.addAll(items)
                     if(popData.size >0 ) {
-                        val padapter = YoutubeResultListViewAdapter(popData, this@MainActivity)
+                        val padapter = YoutubeResultListViewAdapter(popData, this)
                         pop_list.setAdapter(padapter)
                     }
                 }
                 3 -> {//내가 본 영상
                     Log.i("getData", "내가 본 영상")
-                    myData.addAll(items)
                     if(myData.size >0 ) {
-                        val madapter = YoutubeResultListViewAdapter(myData, this@MainActivity)
+                        val madapter = YoutubeResultListViewAdapter(myData, this)
                         my_list.setAdapter(madapter)
                     }
                 }
             }
-            launch(UI) {stopProgress(section)}
+            stopProgress(section)
     }
-    suspend fun addData(response: SearchListResponse, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
-        Log.i(TAG, "addData")
-            val body = response.items
-            if (body != null) {
-                when (section) {
-                    0 -> {//선택형
-                        preData.addAll(body)
-                    }
-                    1 -> {//새로 올라온 영상
-                        newData.addAll(body)
-                    }
-                    2 -> {//인기많은 영상
-                        popData.addAll(body)
-                    }
-                    3 -> {//내가 본 영상
-                        myData.addAll(body)
-                    }
+   fun addData(response: SearchListResponse, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
+       Log.i(TAG, "addData")
+       val body = response.items
+       if (body != null) {
+           when (section) {
+               0 -> {//선택형
+                   preData.addAll(body)
+               }
+               1 -> {//새로 올라온 영상
+                   newData.addAll(body)
+               }
+               2 -> {//인기많은 영상
+                   popData.addAll(body)
+               }
+               3 -> {//내가 본 영상
+                   myData.addAll(body)
+               }
+           }
+       }
+       while (body.iterator().hasNext())
+       {
+
+       }
+       Log.i(TAG, "totalResults" + response.pageInfo.totalResults.toString())
+       Log.i(TAG, "nextPageToken" + response.nextPageToken.toString())
+       Log.i(TAG, "pageInfo" + response.pageInfo.toString())
+           for (i: Int in 1..response.pageInfo.totalResults) {
+               getNetxtPage(response.nextPageToken, q, api_Key, max_result, searchType, order, section)
+           }
+               launch(UI) { getData(section) }
+       }
+
+
+    fun getNetxtPage(page:String, q: String, api_Key: String, max_result: Int, searchType:String, order:String, section:Int){
+        val youTube = YouTube.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance(), object: HttpRequestInitializer {
+            @Throws(IOException::class)
+            override fun initialize(request:HttpRequest) {
+                val SHA1 = getSHA1(packageName)
+                request.getHeaders().set("X-Android-Package", packageName)
+                request.getHeaders().set("X-Android-Cert", SHA1)
+            }
+        }).setApplicationName(packageName).build()
+        val query = youTube.search().list("id, snippet")
+        query.setKey(api_Key)
+        query.setType("video")
+        query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url), nextPageToken, pageInfo")
+        query.setQ(q)
+        query.setPageToken(page)
+        query.setOrder(order)
+        query.setType(searchType)
+        query.setMaxResults(max_result.toLong())
+        val body = query.execute().items
+        if (body != null) {
+            when (section) {
+                0 -> {//선택형
+                    preData.addAll(body)
                 }
-                if (response.nextPageToken != null) {
-                    val apiService = YoutubeApi.create()
-                    page = response.nextPageToken
-                    launch {
-                        addData(response, section, q, api_Key, max_result, searchType, order)
-                    }
-
-
-                } else {
-                    launch(UI) { getData(response, section) }
+                1 -> {//새로 올라온 영상
+                    newData.addAll(body)
+                }
+                2 -> {//인기많은 영상
+                    popData.addAll(body)
+                }
+                3 -> {//내가 본 영상
+                    myData.addAll(body)
                 }
             }
+        }
     }
-
     override fun OnYoutubeResultInteraction(){
 
     }
@@ -303,17 +336,19 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 order = "relevance"
             }
         }
-        launch(UI) { startProgress(section) }
+        launch(UI){startProgress(section)}
         Log.i("getData", order)
         val query = youTube.search().list("id, snippet")
         query.setKey(api_Key)
         query.setType("video")
-        query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url)")
+        query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url), nextPageToken, pageInfo")
         val bReader = BufferedReader(InputStreamReader(b.byteInputStream()))
         val inputQuery = bReader.readLine()
         query.setQ(inputQuery)
         query.setMaxResults(max_result.toLong())
-        launch {addData( query.execute(), section, q, api_Key,  max_result, searchType, order)}
+        query.setOrder(order)
+        query.setType(searchType)
+        launch {addData( query.execute(), section, inputQuery, api_Key,  max_result, searchType, order)}.join()
     }
     override fun OnFollowInteraction() {
         Log.i(TAG, "OnFollowInteraction")
@@ -339,7 +374,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
         // Do something
-        when(navigation.currentItem){
+        when(bPage){
             1->{
                 if(visableFragment == "YouTubeResult" ){
                     data.clear()
@@ -486,6 +521,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 when (item) {
                 //해당 페이지로 이동
                     0 -> {
+                        bPage = 0
                         supportFragmentManager
                                 .beginTransaction()
                                 .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "rageComicList")
@@ -493,6 +529,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         return false
                     }
                     1 -> {
+                        bPage = 1
                         if(data.isNotEmpty()){
                             OnFollowInteraction()
                         }else{
@@ -504,6 +541,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         return false
                     }
                     2 -> {
+                        bPage = 2
                         supportFragmentManager
                                 .beginTransaction()
                                 .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
