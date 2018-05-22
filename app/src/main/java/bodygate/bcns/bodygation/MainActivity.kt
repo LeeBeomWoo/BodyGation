@@ -14,12 +14,12 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.support.annotation.NonNull
 import android.support.design.widget.BottomNavigationView
+import bodygate.bcns.bodygation.R
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import bodygate.bcns.bodygation.R.id.*
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
 import bodygate.bcns.bodygation.youtube.YoutubeApi

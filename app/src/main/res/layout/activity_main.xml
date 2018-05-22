@@ -8,11 +8,15 @@
     android:background="@drawable/background"
     tools:context="bodygate.bcns.bodygation.MainActivity">
 
+    <include
+        layout="@layout/toolbar_custom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <FrameLayout
         android:id="@+id/root_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:behavior_overlapTop="78dp" />
+        android:layout_height="match_parent" />
 
     <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
         android:id="@+id/navigation"
@@ -20,6 +24,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
-        android:background="#deeecb" />
+        android:background="@color/bottom_back" />
 
 </android.support.design.widget.CoordinatorLayout>

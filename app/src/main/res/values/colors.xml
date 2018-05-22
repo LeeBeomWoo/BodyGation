@@ -16,4 +16,5 @@
     <color name="background_material_light">#f4f7f1</color>
     <color name="bottomback">#c3e29f</color>
     <color name="main_text_color">#fffede</color>
+    <color name="bottom_back">#8941c0c1</color>
 </resources>
