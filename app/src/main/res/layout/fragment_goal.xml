@@ -1,4 +1,4 @@
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -16,7 +16,6 @@
             android:layout_width="match_parent"
             android:layout_height="430dp"
             android:layout_marginBottom="5dp"
-            android:layout_weight="1.5"
             android:background="@drawable/background_half"
             android:orientation="vertical"
             android:padding="5dp">
@@ -117,23 +116,24 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:background="@color/colorBottomNavigationActiveColored"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/weight_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1.7"
-                android:orientation="vertical">
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/goal_weight_fitlbl"
                     android:layout_width="match_parent"
-                    android:layout_height="25dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginBottom="2dp"
                     android:layout_marginLeft="3dp"
-                    android:layout_weight="1"
+                    android:layout_weight="2"
                     android:paddingStart="3dp"
                     android:singleLine="false"
                     android:text="@string/fitweight"
@@ -141,58 +141,7 @@
                     android:textColor="@color/colorPrimary"
                     android:textSize="12sp" />
 
-                <TextView
-                    android:id="@+id/goal_bmi_fit_lbl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:layout_marginLeft="3dp"
-                    android:layout_weight="1"
-                    android:paddingStart="3dp"
-                    android:singleLine="false"
-                    android:text="@string/fitbmi"
-                    android:textAlignment="center"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/goal_bodyfat_fit_lbl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:layout_marginLeft="3dp"
-                    android:layout_weight="1"
-                    android:paddingStart="3dp"
-                    android:singleLine="false"
-                    android:text="@string/fitbodyfat"
-                    android:textAlignment="center"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/goal_musclemass_fit_lbl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="5dp"
-                    android:layout_marginLeft="3dp"
-                    android:layout_weight="1"
-                    android:paddingStart="3dp"
-                    android:singleLine="false"
-                    android:text="@string/fitmusclemass"
-                    android:textAlignment="center"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
                 <LinearLayout
-                    android:id="@+id/goal_weight_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="5dp"
@@ -201,42 +150,57 @@
                     android:orientation="horizontal"
                     android:padding="5dp">
 
-                    <LinearLayout
+                    <TextView
+                        android:id="@+id/my_weight_lbl"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginBottom="5dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="2"
+                        android:paddingEnd="5dp"
+                        android:paddingLeft="3dp"
+                        android:text="@string/desweight"
+                        android:textAlignment="viewEnd"
+                        android:textColor="@android:color/background_light"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/goal_weight_txtB"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_margin="2dp"
                         android:layout_weight="1"
-                        android:orientation="horizontal">
+                        android:autoText="false"
+                        android:ems="10"
+                        android:inputType="number"
+                        android:textAlignment="textStart"
+                        android:textColor="@android:color/background_light"
+                        android:textSize="12sp" />
 
-                        <TextView
-                            android:id="@+id/my_weight_lbl"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1.7"
-                            android:paddingEnd="5dp"
-                            android:paddingLeft="3dp"
-                            android:text="@string/myweight"
-                            android:textAlignment="viewEnd"
-                            android:textColor="@android:color/background_light"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:id="@+id/goal_weight_txtB"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="2dp"
-                            android:layout_marginTop="2dp"
-                            android:layout_weight="1"
-                            android:autoText="false"
-                            android:ems="10"
-                            android:inputType="none|number"
-                            android:paddingStart="30dp"
-                            android:textAlignment="textStart"
-                            android:textColor="@android:color/background_light"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
                 </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/bmi_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/goal_bmi_fit_lbl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="3dp"
+                    android:layout_weight="2"
+                    android:paddingStart="3dp"
+                    android:singleLine="false"
+                    android:text="@string/fitbmi"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:id="@+id/goal_bmi_layout"
@@ -259,7 +223,8 @@
                             android:id="@+id/my_bmi_lbl"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1.8"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="2"
                             android:paddingEnd="5dp"
                             android:paddingLeft="3dp"
                             android:text="@string/mybmi"
@@ -270,23 +235,33 @@
                         <EditText
                             android:id="@+id/my_bmi_txtB"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
                             android:layout_marginBottom="2dp"
                             android:layout_marginTop="2dp"
-                            android:layout_weight="1.5"
+                            android:layout_weight="1"
                             android:autoText="false"
                             android:ems="10"
-                            android:inputType="none|number"
-                            android:paddingStart="30dp"
+                            android:inputType="number"
+                            android:paddingStart="10dp"
                             android:textAlignment="textStart"
                             android:textColor="@android:color/background_light"
-                            android:textSize="14sp" />
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/goal_bmi_lbl"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1.8"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="2"
                             android:paddingEnd="5dp"
                             android:paddingLeft="3dp"
                             android:text="@string/desbmi"
@@ -297,21 +272,44 @@
                         <TextView
                             android:id="@+id/goal_bmi_txtB"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
                             android:layout_marginBottom="2dp"
                             android:layout_marginTop="2dp"
-                            android:layout_weight="1.5"
+                            android:layout_weight="1"
                             android:autoText="false"
                             android:ems="10"
                             android:inputType="number"
                             android:paddingStart="10dp"
                             android:textAlignment="textStart"
                             android:textColor="@android:color/background_light"
-                            android:textSize="14sp" />
-
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                 </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/fat_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/goal_bodyfat_fit_lbl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="3dp"
+                    android:layout_weight="2"
+                    android:paddingStart="3dp"
+                    android:singleLine="false"
+                    android:text="@string/fitbodyfat"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:id="@+id/goal_bodyfat_layout"
@@ -325,7 +323,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_marginBottom="5dp"
                         android:layout_weight="1"
                         android:orientation="horizontal">
@@ -334,7 +332,8 @@
                             android:id="@+id/my_bodyfat_lbl"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1.8"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="2"
                             android:paddingEnd="5dp"
                             android:paddingLeft="3dp"
                             android:text="@string/mybodyfat"
@@ -345,23 +344,33 @@
                         <EditText
                             android:id="@+id/my_bodyfat_txtB"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
                             android:layout_marginBottom="2dp"
                             android:layout_marginTop="2dp"
-                            android:layout_weight="1.5"
+                            android:layout_weight="1"
                             android:autoText="false"
                             android:ems="10"
                             android:inputType="none|number"
                             android:paddingStart="30dp"
                             android:textAlignment="textStart"
                             android:textColor="@android:color/background_light"
-                            android:textSize="14sp" />
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/goal_bodyfat_lbl"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1.8"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="2"
                             android:text="@string/mainbodyfat"
                             android:textAlignment="viewEnd"
                             android:textColor="@android:color/background_light"
@@ -370,21 +379,44 @@
                         <TextView
                             android:id="@+id/goal_bodyfat_txtB"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
                             android:layout_marginBottom="2dp"
                             android:layout_marginTop="2dp"
-                            android:layout_weight="1.5"
+                            android:layout_weight="1"
                             android:autoText="false"
                             android:ems="10"
                             android:inputType="number"
                             android:paddingStart="10dp"
                             android:textAlignment="center"
                             android:textColor="@android:color/background_light"
-                            android:textSize="14sp" />
-
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                 </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/muscle_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/goal_musclemass_fit_lbl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="3dp"
+                    android:layout_weight="2"
+                    android:paddingStart="3dp"
+                    android:singleLine="false"
+                    android:text="@string/fitmusclemass"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="12sp" />
 
                 <LinearLayout
                     android:id="@+id/goal_musclemass_layout"
@@ -398,49 +430,14 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:paddingBottom="5dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_marginBottom="5dp"
-                            android:layout_weight="1"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/goal_musclemass_lbl"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:paddingEnd="5dp"
-                                android:paddingLeft="3dp"
-                                android:text="@string/desmusclemass"
-                                android:textAlignment="viewEnd"
-                                android:textColor="@android:color/background_light" />
-
-                            <TextView
-                                android:id="@+id/goal_musclemass_txtB"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="2dp"
-                                android:layout_marginTop="2dp"
-                                android:layout_weight="1"
-                                android:autoText="false"
-                                android:ems="10"
-                                android:inputType="number"
-                                android:paddingStart="30dp"
-                                android:textAlignment="textStart"
-                                android:textColor="@android:color/background_light"
-                                android:textSize="15sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:layout_marginBottom="5dp"
                             android:layout_weight="1"
                             android:orientation="horizontal">
@@ -449,6 +446,7 @@
                                 android:id="@+id/my_musclemass_lbl"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
                                 android:layout_margin="1dp"
                                 android:layout_weight="1"
                                 android:padding="1dp"
@@ -461,6 +459,7 @@
                                 android:id="@+id/my_musclemass_txtB"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
                                 android:layout_margin="1dp"
                                 android:layout_weight="1"
                                 android:autoText="false"
@@ -469,12 +468,59 @@
                                 android:padding="1dp"
                                 android:textAlignment="textStart"
                                 android:textColor="@android:color/background_light"
-                                android:textSize="15sp" />
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/goal_musclemass_lbl"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_weight="1"
+                                android:paddingEnd="5dp"
+                                android:paddingLeft="3dp"
+                                android:text="@string/desmusclemass"
+                                android:textAlignment="viewEnd"
+                                android:textColor="@android:color/background_light"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/goal_musclemass_txtB"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginBottom="2dp"
+                                android:layout_marginTop="2dp"
+                                android:layout_weight="1"
+                                android:autoText="false"
+                                android:ems="10"
+                                android:inputType="number"
+                                android:paddingStart="30dp"
+                                android:textAlignment="textStart"
+                                android:textColor="@android:color/background_light"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
 
                             <TextView
                                 android:id="@+id/goal_weight_musclemass_lbl"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
                                 android:layout_margin="1dp"
                                 android:layout_weight="1"
                                 android:padding="1dp"
@@ -487,6 +533,7 @@
                                 android:id="@+id/goal_weight_musclemass_txtB"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
                                 android:layout_margin="1dp"
                                 android:layout_marginBottom="2dp"
                                 android:layout_marginTop="2dp"
@@ -498,8 +545,7 @@
                                 android:paddingStart="30dp"
                                 android:textAlignment="textStart"
                                 android:textColor="@android:color/background_light"
-                                android:textSize="15sp" />
-
+                                android:textSize="12sp" />
                         </LinearLayout>
 
                     </LinearLayout>
@@ -524,4 +570,4 @@
             android:textStyle="bold" />
 
     </LinearLayout>
-</android.support.v4.widget.NestedScrollView>
+</ScrollView>

@@ -17,9 +17,11 @@ import android.support.annotation.NonNull
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.widget.Toast
 import bodygate.bcns.bodygation.R.id.profile_Image
+import bodygate.bcns.bodygation.R.layout.toolbar_custom
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation
@@ -438,6 +440,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         mGoogleSignInClient = buildGoogleSignInClient()
+        setSupportActionBar(custom_toolBar as Toolbar?)
         Log.d(TAG + "_", "onCreate")
         //mPb = ProgressDialog(this)
         // pPb = ProgressDialog(this)
@@ -495,7 +498,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         navigation.addItem(item1)
         navigation.addItem(item2)
         navigation.addItem(item3)
-        navigation.setTitleState(AHBottomNavigation.TitleState.ALWAYS_SHOW)
+        navigation.setTitleState(AHBottomNavigation.TitleState.SHOW_WHEN_ACTIVE)
         navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
             override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
                 when (item) {
@@ -577,11 +580,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
             RC_SIGN_IN ->{
-                val task = GoogleSignIn.getSignedInAccountFromIntent(data);
-                getProfileInformation(task.result);
-                val dialog = CustomDialogList(this)
-                dialog.setTitle("계정 로그인")
-                dialog.show()
+                registerFitnessDataListener()
             }
             GOOGLE_FIT_PERMISSIONS_REQUEST_CODE ->{
                 if (resultCode == RESULT_OK){
