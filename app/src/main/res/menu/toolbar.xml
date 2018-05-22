@@ -2,11 +2,11 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="menu"
+        android:id="@+id/menu_menu"
         android:icon="@drawable/ic_menu_black_24dp"
-        android:title="menu" />
+        android:title="@string/menu" />
     <item
         android:id="@+id/home_menu"
         android:icon="@drawable/ic_home_gray_24dp"
-        android:title="home" />
+        android:title="@string/home" />
 </menu>

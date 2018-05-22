@@ -92,7 +92,7 @@
                     android:textColor="@color/colorPrimary" />
 
                 <EditText
-                    android:id="@+id/my_weight_txtB2"
+                    android:id="@+id/my_weight_txtB"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="2dp"
@@ -220,8 +220,8 @@
                             android:textColor="@android:color/background_light"
                             android:textSize="12sp" />
 
-                        <EditText
-                            android:id="@+id/my_weight_txtB"
+                        <TextView
+                            android:id="@+id/goal_weight_txtB"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="2dp"

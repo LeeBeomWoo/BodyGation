@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -193,6 +194,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         graph.setPinchZoom(true)
         graph.setDrawBarShadow(false)
         graph.setDrawGridBackground(false)
+       // profile_Image.setImageURI(Uri.parse(mParam1))
         val l = graph.getLegend()
         l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM)
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT)
@@ -593,7 +595,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     companion object {
         // TODO: Rename parameter arguments, choose names that match
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-        private val ARG_PARAM1 = "param1"
+        private val ARG_PARAM1 = "img"
         val TAG = "newInstance_"
         /**
          * Use this factory method to create a new instance of

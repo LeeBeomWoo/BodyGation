@@ -8,24 +8,23 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
 import android.support.annotation.NonNull
-import android.support.design.widget.BottomNavigationView
-import bodygate.bcns.bodygation.R
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
 import android.widget.Toast
+import bodygate.bcns.bodygation.R.id.profile_Image
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
-import bodygate.bcns.bodygation.youtube.YoutubeApi
-import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem
+import com.aurelhubert.ahbottomnavigation.notification.AHNotification
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -42,7 +41,9 @@ import com.google.android.gms.fitness.data.*
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
-import com.google.android.gms.tasks.*
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Tasks
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
@@ -57,14 +58,13 @@ import com.google.common.io.BaseEncoding
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_follow.*
+import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.android.synthetic.main.fragment_goal.*
 import kotlinx.android.synthetic.main.fragment_movie.*
-import kotlinx.android.synthetic.main.google_login.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import pub.devrel.easypermissions.EasyPermissions
-import retrofit2.Response
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -98,6 +98,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val AUTH_PENDING = "auth_state_pending"
     private val RC_SIGN_IN = 111//google sign in request code
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
+    var personUrl:Uri? = null
     var page = ""
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
@@ -120,6 +121,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var fatResponse: DataReadResponse? = null
     override var bmiResponse: DataReadResponse? = null
     override var BkcalResponse: DataReadResponse? = null
+    var radapter: YoutubeResultListViewAdapter? = null
+    var nadapter : YoutubeResultListViewAdapter? = null
+    var padapter: YoutubeResultListViewAdapter? = null
+    var madapter: YoutubeResultListViewAdapter? = null
     fun stopProgress(i:Int) {
         when(i) {
             3-> if (mPb!!.isShowing) {
@@ -174,70 +179,33 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-    fun getData(section:Int) {
-        Log.i(TAG, "getData")
-            when (section) {
-                0 -> {//선택형
-                    Log.i("getData", "선택형")
-                    if(preData.size >0 ) {
-                        val radapter = YoutubeResultListViewAdapter(preData, this)
-                        result_list.setAdapter(radapter)
-                    }
-                }
-                1 -> {//새로 올라온 영상
-                    Log.i("getData", "새로 올라온 영상")
-                    if(newData.size >0 ) {
-                        val nadapter = YoutubeResultListViewAdapter(newData, this)
-                        new_list.setAdapter(nadapter)
-                    }
-                }
-                2 -> {//인기많은 영상
-                    Log.i("getData", "인기많은 영상")
-                    if(popData.size >0 ) {
-                        val padapter = YoutubeResultListViewAdapter(popData, this)
-                        pop_list.setAdapter(padapter)
-                    }
-                }
-                3 -> {//내가 본 영상
-                    Log.i("getData", "내가 본 영상")
-                    if(myData.size >0 ) {
-                        val madapter = YoutubeResultListViewAdapter(myData, this)
-                        my_list.setAdapter(madapter)
-                    }
-                }
-            }
-            stopProgress(section)
-    }
-   fun addData(response: SearchListResponse, section:Int, q: String, api_Key: String, max_result: Int, searchType:String, order:String) {
+   fun addData(response: SearchListResponse, section:Int) {
        Log.i(TAG, "addData")
        val body = response.items
        if (body != null) {
            when (section) {
                0 -> {//선택형
-                   preData.addAll(body)
+                   launch(UI) { padapter = YoutubeResultListViewAdapter(body, this@MainActivity)
+                   result_list.setAdapter(padapter)
+                       stopProgress(section)}
                }
                1 -> {//새로 올라온 영상
-                   newData.addAll(body)
+                       launch(UI) { nadapter = YoutubeResultListViewAdapter(body, this@MainActivity)
+                   result_list.setAdapter(nadapter)
+                           stopProgress(section)}
                }
                2 -> {//인기많은 영상
-                   popData.addAll(body)
+                           launch(UI) { radapter = YoutubeResultListViewAdapter(body, this@MainActivity)
+                   result_list.setAdapter(radapter)
+                               stopProgress(section)}
                }
                3 -> {//내가 본 영상
-                   myData.addAll(body)
+                               launch(UI) {madapter = YoutubeResultListViewAdapter(body, this@MainActivity)
+                   result_list.setAdapter(madapter)
+                                   stopProgress(section)}
                }
            }
        }
-       while (body.iterator().hasNext())
-       {
-
-       }
-       Log.i(TAG, "totalResults" + response.pageInfo.totalResults.toString())
-       Log.i(TAG, "nextPageToken" + response.nextPageToken.toString())
-       Log.i(TAG, "pageInfo" + response.pageInfo.toString())
-           for (i: Int in 1..response.pageInfo.totalResults) {
-               getNetxtPage(response.nextPageToken, q, api_Key, max_result, searchType, order, section)
-           }
-               launch(UI) { getData(section) }
        }
 
 
@@ -260,19 +228,30 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         query.setType(searchType)
         query.setMaxResults(max_result.toLong())
         val body = query.execute().items
-        if (body != null) {
-            when (section) {
-                0 -> {//선택형
-                    preData.addAll(body)
+
+        when (section) {
+            0 -> {//선택형
+                Log.i("getData", "선택형")
+                if(body.size >0 ) {
+                    launch(UI) { padapter!!.setLkItems(body)}
                 }
-                1 -> {//새로 올라온 영상
-                    newData.addAll(body)
+            }
+            1 -> {//새로 올라온 영상
+                Log.i("getData", "새로 올라온 영상")
+                if(body.size >0 ) {
+                    launch(UI) { nadapter!!.setLkItems(body)}
                 }
-                2 -> {//인기많은 영상
-                    popData.addAll(body)
+            }
+            2 -> {//인기많은 영상
+                Log.i("getData", "인기많은 영상")
+                if(body.size >0 ) {
+                    launch(UI) {  radapter!!.setLkItems(body)}
                 }
-                3 -> {//내가 본 영상
-                    myData.addAll(body)
+            }
+            3 -> {//내가 본 영상
+                Log.i("getData", "내가 본 영상")
+                if(body.size >0 ) {
+                    launch(UI) {madapter!!.setLkItems(body)}
                 }
             }
         }
@@ -348,7 +327,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         query.setMaxResults(max_result.toLong())
         query.setOrder(order)
         query.setType(searchType)
-        launch {addData( query.execute(), section, inputQuery, api_Key,  max_result, searchType, order)}.join()
+        launch {addData( query.execute(), section)}.join()
     }
     override fun OnFollowInteraction() {
         Log.i(TAG, "OnFollowInteraction")
@@ -454,7 +433,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         startActivityForResult(signInIntent, RC_SIGN_IN)//pass the declared request code here
     }
 
-    @SuppressLint("RestrictedApi")
+    @SuppressLint("RestrictedApi", "PrivateResource")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -516,6 +495,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         navigation.addItem(item1)
         navigation.addItem(item2)
         navigation.addItem(item3)
+        navigation.setTitleState(AHBottomNavigation.TitleState.ALWAYS_SHOW)
         navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
             override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
                 when (item) {
@@ -544,7 +524,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         bPage = 2
                         supportFragmentManager
                                 .beginTransaction()
-                                .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
+                              // .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl?.toString()), "rageComicList")
+                                  .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
                                 .commit()
                         return false
                     }
@@ -553,7 +534,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
 
         })
-        navigation.setBehaviorTranslationEnabled(true)
         navigation.setTranslucentNavigationEnabled(true)
     }
 
@@ -850,22 +830,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val personId = acct.getId()
 
             //user profile pic
-            val personPhoto = acct.getPhotoUrl()
-
-            //show the user details
-          //  user_details_label.setText("ID : " + personId + "\nDisplay Name : " + personName + "\nFull Name : " + personGivenName + " " + personFamilyName + "\nEmail : " + personEmail);
-
-            //show the user profile pic
-         //   Picasso.get().load(personPhoto).fit().placeholder(R.mipmap.ic_launcher_round).into(user_profile_image_view);
-
-            //change the text of Custom Sign in button to sign out
-
-            //show the label and image view
-          //  user_details_label.setVisibility(View.VISIBLE);
-          //  user_profile_image_view.setVisibility(View.VISIBLE);
-        } else {
-          //  user_details_label.setVisibility(View.GONE);
-          //  user_profile_image_view.setVisibility(View.GONE);
+            personUrl = acct.photoUrl
+            Log.i("profile", personName + "\t" + acct.photoUrl.toString())
         }
     }
 

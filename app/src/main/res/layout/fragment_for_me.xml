@@ -21,8 +21,7 @@
             android:layout_height="120dp"
             android:layout_gravity="center"
             android:layout_margin="2dp"
-            android:src="@drawable/logo"
-            app:civ_border_width="2dp" />
+            android:src="@drawable/logo" />
 
         <TextView
             android:id="@+id/main_lbl"
@@ -91,10 +90,11 @@
         android:orientation="horizontal">
 
 
-        <Button
-            android:id="@+id/bmi_lbl"
+        <bodygate.bcns.bodygation.support.CheckableImageButton
+            android:id="@+id/bmi_Btn"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@drawable/backline"
             android:text="@string/bmi"
@@ -102,10 +102,11 @@
             android:textColor="@color/colorPrimary"
             android:textSize="18sp" />
 
-        <Button
-            android:id="@+id/weight_lbl"
+        <bodygate.bcns.bodygation.support.CheckableImageButton
+            android:id="@+id/weight_Btn"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@drawable/backline"
             android:text="@string/weight"
@@ -120,10 +121,11 @@
         android:layout_weight="1.0"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/mucsle_lbl"
+        <bodygate.bcns.bodygation.support.CheckableImageButton
+            android:id="@+id/muscle_Btn"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@drawable/backline"
             android:text="@string/musclemass"
@@ -131,10 +133,11 @@
             android:textColor="@color/colorPrimary"
             android:textSize="18sp" />
 
-        <Button
-            android:id="@+id/bfp_lbl"
+        <bodygate.bcns.bodygation.support.CheckableImageButton
+            android:id="@+id/bfp_Btn"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@drawable/backline"
             android:text="@string/bodyfat"
@@ -149,10 +152,11 @@
         android:layout_weight="1.0"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/kal_lbl"
+        <bodygate.bcns.bodygation.support.CheckableImageButton
+            android:id="@+id/kal_Btn"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@drawable/backline"
             android:text="@string/calore"
@@ -160,10 +164,11 @@
             android:textColor="@color/colorPrimary"
             android:textSize="18sp" />
 
-        <Button
-            android:id="@+id/walk_lbl"
+        <bodygate.bcns.bodygation.support.CheckableImageButton
+            android:id="@+id/walk_Btn"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="2dp"
             android:layout_weight="1"
             android:background="@drawable/backline"
             android:text="@string/walk"
