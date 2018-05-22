@@ -139,11 +139,12 @@
                     android:text="@string/fitweight"
                     android:textAlignment="center"
                     android:textColor="@color/colorPrimary"
-                    android:textSize="12sp" />
+                    android:textSize="15sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
                     android:layout_marginBottom="5dp"
                     android:layout_weight="1"
                     android:background="@drawable/backfill"
@@ -200,7 +201,7 @@
                     android:text="@string/fitbmi"
                     android:textAlignment="center"
                     android:textColor="@color/colorPrimary"
-                    android:textSize="12sp" />
+                    android:textSize="15sp" />
 
                 <LinearLayout
                     android:id="@+id/goal_bmi_layout"
@@ -309,7 +310,7 @@
                     android:text="@string/fitbodyfat"
                     android:textAlignment="center"
                     android:textColor="@color/colorPrimary"
-                    android:textSize="12sp" />
+                    android:textSize="15sp" />
 
                 <LinearLayout
                     android:id="@+id/goal_bodyfat_layout"
@@ -416,7 +417,7 @@
                     android:text="@string/fitmusclemass"
                     android:textAlignment="center"
                     android:textColor="@color/colorPrimary"
-                    android:textSize="12sp" />
+                    android:textSize="15sp" />
 
                 <LinearLayout
                     android:id="@+id/goal_musclemass_layout"
