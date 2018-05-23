@@ -19,6 +19,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.model.SearchResult
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.fragment_follow.*
+import kotlinx.coroutines.experimental.launch
 import javax.security.auth.Subject
 
 
@@ -29,7 +30,8 @@ import javax.security.auth.Subject
 class YouTubeResult : Fragment() {
     // TODO: Rename and change types of parameters
     val TAG = "YouTubeResult"
-
+    private var mParam1: String? = null
+    var adapter:YoutubeResultListViewAdapter? = null
     private var mListener: OnYoutubeResultInteraction? = null
     /** Global instance of the max number of videos we want returned (50 = upper limit per page).  */
 
@@ -37,6 +39,9 @@ class YouTubeResult : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i(TAG, "onCreate")
         super.onCreate(savedInstanceState)
+        if (arguments != null) {
+            mParam1 = arguments!!.getString(ARG_PARAM1)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -52,7 +57,9 @@ class YouTubeResult : Fragment() {
         val pop_linearLayoutManager = LinearLayoutManager(context)
         pop_linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL)
         result_list.setLayoutManager(pop_linearLayoutManager)
-        result_list.setAdapter(YoutubeResultListViewAdapter(mListener!!.data, mListener!!.context))
+        launch { mListener!!.getDatas("snippet", mParam1.toString(), getString(R.string.API_key), 40, true, 0)}
+        adapter = YoutubeResultListViewAdapter(mListener!!.data, mListener!!.context)
+        result_list.setAdapter(adapter)
         mListener!!.visableFragment = TAG
     }
     // TODO: Rename method, update argument and hook method into UI event
@@ -106,9 +113,10 @@ class YouTubeResult : Fragment() {
          * @return A new instance of fragment HomeFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(): YouTubeResult {
+        fun newInstance(param1: String?): YouTubeResult {
             val fragment = YouTubeResult()
             val args = Bundle()
+            args.putString(ARG_PARAM1, param1)
             fragment.arguments = args
             return fragment
         }

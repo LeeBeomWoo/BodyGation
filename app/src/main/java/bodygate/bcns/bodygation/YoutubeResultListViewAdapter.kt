@@ -24,7 +24,7 @@ import com.google.api.services.youtube.model.SearchResult
  * specified [OnListFragmentInteractionListener].
  * TODO: Replace the implementation with code for your data type.
  */
-class YoutubeResultListViewAdapter(var mValues: MutableList<SearchResult>, val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
+class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
 
     private val UNINITIALIZED = 1
     private val INITIALIZING = 2

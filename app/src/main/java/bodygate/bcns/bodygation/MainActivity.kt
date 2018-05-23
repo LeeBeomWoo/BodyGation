@@ -85,7 +85,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-
     private val PREF_ACCOUNT_NAME = "accountName"
     val REQUEST_ACCOUNT_PICKER = 1000
     private var authInProgress = false
@@ -113,6 +112,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var visableFragment = ""
     private var doubleBackToExitPressedOnce: Boolean = false
     override val context:Context = this
+    var sendquery:ArrayList<String>? = null
     override var data: MutableList<SearchResult>
         get() = preData
         set(value) {}
@@ -125,7 +125,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var BkcalResponse: DataReadResponse? = null
     var radapter: YoutubeResultListViewAdapter? = null
     var nadapter : YoutubeResultListViewAdapter? = null
-    var padapter: YoutubeResultListViewAdapter? = null
+    override var padapter: YoutubeResultListViewAdapter? = null
     var madapter: YoutubeResultListViewAdapter? = null
     fun stopProgress(i:Int) {
         when(i) {
@@ -184,30 +184,35 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
    fun addData(response: SearchListResponse, section:Int) {
        Log.i(TAG, "addData")
        val body = response.items
-       if (body != null) {
-           when (section) {
-               0 -> {//선택형
-                   launch(UI) { padapter = YoutubeResultListViewAdapter(body, this@MainActivity)
-                   result_list.setAdapter(padapter)
-                       stopProgress(section)}
-               }
-               1 -> {//새로 올라온 영상
-                       launch(UI) { nadapter = YoutubeResultListViewAdapter(body, this@MainActivity)
-                   result_list.setAdapter(nadapter)
-                           stopProgress(section)}
-               }
-               2 -> {//인기많은 영상
-                           launch(UI) { radapter = YoutubeResultListViewAdapter(body, this@MainActivity)
-                   result_list.setAdapter(radapter)
-                               stopProgress(section)}
-               }
-               3 -> {//내가 본 영상
-                               launch(UI) {madapter = YoutubeResultListViewAdapter(body, this@MainActivity)
-                   result_list.setAdapter(madapter)
-                                   stopProgress(section)}
+       Log.i("query", body.toString())
+       data = body
+       /**
+       if(result_list.isActivated) {
+           if (body != null) {
+               when (section) {
+                   0 -> {//선택형
+                       launch(UI) {
+                           data = body
+                       }
+                   }
+                   1 -> {//새로 올라온 영상
+                       launch(UI) {
+                           data = body
+                       }
+                   }
+                   2 -> {//인기많은 영상
+                       launch(UI) {
+                           data = body
+                       }
+                   }
+                   3 -> {//내가 본 영상
+                       launch(UI) {
+                           data = body
+                       }
+                   }
                }
            }
-       }
+       }*/
        }
 
 
@@ -230,7 +235,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         query.setType(searchType)
         query.setMaxResults(max_result.toLong())
         val body = query.execute().items
-
+        Log.i("query", body.toString())
         when (section) {
             0 -> {//선택형
                 Log.i("getData", "선택형")
@@ -330,13 +335,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         query.setOrder(order)
         query.setType(searchType)
         launch {addData( query.execute(), section)}.join()
+        launch(UI){ stopProgress(section)}
     }
-    override fun OnFollowInteraction() {
+    override fun OnFollowInteraction(q: ArrayList<String>?) {
         Log.i(TAG, "OnFollowInteraction")
         supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.root_layout, YouTubeResult.newInstance(), "rageComicList")
+                .replace(R.id.root_layout, YouTubeResult.newInstance(q.toString()), "rageComicList")
                 .commit()
+        sendquery = q
     }
 
     override fun OnForMeInteraction() {
@@ -389,16 +396,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
            0->{
                 doubleBackToExitPressedOnce = false
-                if(data.isNotEmpty()){
-                    OnFollowInteraction()
+                if(sendquery != null){
+                    OnFollowInteraction(null)
                 }else{
                     navigation.setCurrentItem(1)
                 }
             }
            2->{
                 doubleBackToExitPressedOnce = false
-                if(data.isNotEmpty()){
-                    OnFollowInteraction()
+               if(sendquery != null){
+                    OnFollowInteraction(null)
                 }else{
                     navigation.setCurrentItem(1)
                 }
@@ -457,8 +464,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         } else {
-            if(data.isNotEmpty()){
-                OnFollowInteraction()
+            if(sendquery != null){
+                OnFollowInteraction(sendquery)
             }else{
                 supportFragmentManager
                         .beginTransaction()
@@ -513,8 +520,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                     1 -> {
                         bPage = 1
-                        if(data.isNotEmpty()){
-                            OnFollowInteraction()
+                        if(sendquery != null){
+                            OnFollowInteraction(sendquery)
                         }else{
                             supportFragmentManager
                                     .beginTransaction()
@@ -830,7 +837,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
             //user profile pic
             personUrl = acct.photoUrl
-            Log.i("profile", personName + "\t" + acct.photoUrl.toString())
+            Log.i("profile", personName + "\t" + acct.photoUrl.toString() + "\t" + personGivenName +"\t" + personEmail +"\t" + personId)
         }
     }
 

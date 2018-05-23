@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import kotlinx.android.synthetic.main.select_view.*
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
@@ -323,8 +324,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
 
     fun onButtonPressed(uri: ArrayList<String>) = launch{
         if (mListener != null) {
-            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 40, true, 0)
-            mListener!!.OnFollowInteraction()
+            mListener!!.OnFollowInteraction(uri)
         }
     }
 
@@ -353,8 +353,9 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
      */
     interface OnFollowInteraction {
         // TODO: Update argument type and name
-        fun OnFollowInteraction()
+        fun OnFollowInteraction(q: ArrayList<String>?)
         var visableFragment:String
+        var padapter: YoutubeResultListViewAdapter?
         suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
     }
 
