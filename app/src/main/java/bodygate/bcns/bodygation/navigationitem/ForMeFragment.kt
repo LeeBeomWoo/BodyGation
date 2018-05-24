@@ -24,9 +24,12 @@ import com.google.android.gms.fitness.data.DataSet
 import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.result.DataReadResponse
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_for_me.*
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -155,6 +158,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     var muscle_Label:MutableList<String> =  ArrayList()
     var bmi_Label:MutableList<String> =  ArrayList()
     val TAG = "ForMeFragment_"
+    var last_position = 0
+    var current_position = 0
     var weight_series: MutableList<BarEntry> = ArrayList()
     var muscle_series: MutableList<BarEntry> = ArrayList()
     var walk_series: MutableList<BarEntry> = ArrayList()
@@ -179,6 +184,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         Log.i("kcalseries_k", k.size.toString())
         Log.i("kcalseries_bk", bk.size.toString())
         Log.i("kcalseries_result", result.size.toString())
+        last_position = result.distinct().size-1
         return result.distinct()
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -213,10 +219,36 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         xAxis.setTextColor(Color.DKGRAY);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(false);
+        if(mParam1 !=  null){
+            Picasso.get().load(Uri.parse(mParam1)).fit().into(profile_Image)
+        }else{
+            Picasso.get().load(R.mipmap.toolbarlogo_round).fit().into(profile_Image)
+        }
         graph.setVisibleXRangeMaximum(5.toFloat())
-        graph.setNoDataText("아래 머튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
+        graph.setNoDataText("위 버튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
         graph.setNoDataTextColor(R.color.colorPrimaryDark)
         graph.setDrawOrder(arrayOf(CombinedChart.DrawOrder.BAR, CombinedChart.DrawOrder.LINE))
+        pre_Btn.setOnClickListener(object
+            :View.OnClickListener{
+            override fun onClick(v: View?) {
+                if(current_position >0 && current_position < last_position+1 && graph.combinedData.dataSetCount >0) {
+                    current_position -= 1
+                    main_lbl.text = graph.getXAxis().mEntries[current_position].toString()
+                    cal_lbl.text = graph.getAxisRight().getFormattedLabel(current_position)
+                }
+            }
+
+        })
+        next_Btn.setOnClickListener(object
+            :View.OnClickListener{
+            override fun onClick(v: View?) {
+                if(current_position >0 && current_position < last_position+1&& graph.combinedData.dataSetCount >0) {
+                    current_position += 1
+                    main_lbl.text = graph.getXAxis().mEntries[current_position].toString()
+                }
+            }
+
+        })
     }
    fun series_dataSet():MutableList<BarEntry>{
         val series: MutableList<BarEntry> = ArrayList()
@@ -271,8 +303,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     fun label_dataSet():MutableList<String> {
         val label = SimpleDateFormat("MM/dd")
         val series: MutableList<String> = ArrayList()
-        val x = horizonValue.size - 1
-        for (a: Int in 0..x) {
+        last_position = horizonValue.size - 1
+        for (a: Int in 0..last_position) {
             series.add(a, label.format(horizonValue[a]))
         }
         return series
@@ -483,7 +515,10 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 }
                 }
         }
-        graph.invalidate()
+        graph.invalidate()/*
+     current_position = last_position
+     main_lbl.text = graph.getXAxis().mEntries[last_position].toString()
+     cal_lbl.text = graph.getAxisRight().getFormattedLabel(last_position)*/
     }
     @SuppressLint("SimpleDateFormat")
     fun printData(dataReadResult: DataReadResponse, i:Int) {

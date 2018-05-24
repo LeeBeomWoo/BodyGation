@@ -322,10 +322,12 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         return query as ArrayList<String>
     }
 
-    fun onButtonPressed(uri: ArrayList<String>) = launch{
+    fun onButtonPressed(uri: ArrayList<String>)= runBlocking{
         if (mListener != null) {
-            mListener!!.OnFollowInteraction(uri)
-        }
+            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 5, true, 0)}
+            Log.i("test", "네번째")
+            mListener!!.OnFollowInteraction(uri, 0)
+            Log.i("test", "여섯번째")
     }
 
     override fun onAttach(context: Context) {
@@ -353,9 +355,8 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
      */
     interface OnFollowInteraction {
         // TODO: Update argument type and name
-        fun OnFollowInteraction(q: ArrayList<String>?)
+        fun OnFollowInteraction(q: ArrayList<String>?, s:Int)
         var visableFragment:String
-        var padapter: YoutubeResultListViewAdapter?
         suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
     }
 

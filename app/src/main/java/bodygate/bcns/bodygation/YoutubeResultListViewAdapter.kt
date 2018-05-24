@@ -12,18 +12,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import bodygate.bcns.bodygation.dummy.DummyContent.DummyItem
-import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubeThumbnailLoader
 import com.google.android.youtube.player.YouTubeThumbnailView
 import com.google.api.services.youtube.model.SearchResult
 
-/**
- * [RecyclerView.Adapter] that can display a [DummyItem] and makes a call to the
- * specified [OnListFragmentInteractionListener].
- * TODO: Replace the implementation with code for your data type.
- */
 class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
 
     private val UNINITIALIZED = 1
@@ -109,7 +102,7 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
                     ytThubnailView.setTag(R.id.thumbnailloader, p1);
                     p1!!.setOnThumbnailLoadedListener(object : YouTubeThumbnailLoader.OnThumbnailLoadedListener {
                         override fun onThumbnailLoaded(p0: YouTubeThumbnailView?, p1: String?) {
-                            val currentVideoId = ytThubnailView.getTag (R.id.videoid);
+                            val currentVideoId = ytThubnailView.getTag (R.id.videoid)
                             if (currentVideoId.equals(p1)) {
                                 ivYtLogo.setBackgroundColor(transparentColor);
                             } else {

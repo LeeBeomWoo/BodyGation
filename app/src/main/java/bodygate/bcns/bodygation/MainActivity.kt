@@ -14,19 +14,18 @@ import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
 import android.support.annotation.NonNull
-import android.support.v4.content.ContextCompat
+import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.util.Log
+import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
-import bodygate.bcns.bodygation.R.id.profile_Image
-import bodygate.bcns.bodygation.R.layout.toolbar_custom
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem
-import com.aurelhubert.ahbottomnavigation.notification.AHNotification
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -57,15 +56,14 @@ import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.SearchListResponse
 import com.google.api.services.youtube.model.SearchResult
 import com.google.common.io.BaseEncoding
-import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_follow.*
-import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.android.synthetic.main.fragment_goal.*
-import kotlinx.android.synthetic.main.fragment_movie.*
+import kotlinx.android.synthetic.main.toolbar_custom.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.BufferedReader
 import java.io.IOException
@@ -101,6 +99,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
     var personUrl:Uri? = null
     var page = ""
+    var totalpage = 100
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
@@ -108,14 +107,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var pPb:ProgressDialog? = null
     var nPb:ProgressDialog? = null
     var cPb:ProgressDialog? = null
-    var bPage = 0
     override var visableFragment = ""
     private var doubleBackToExitPressedOnce: Boolean = false
     override val context:Context = this
-    var sendquery:ArrayList<String>? = null
-    override var data: MutableList<SearchResult>
-        get() = preData
-        set(value) {}
+    override var sendquery:ArrayList<String>? = null
+    override var data: MutableList<SearchResult> = arrayListOf()
     override var kcalResponse: DataReadResponse? = null
     override var walkResponse: DataReadResponse? = null
     override var readResponse: DataReadResponse? = null
@@ -123,11 +119,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var fatResponse: DataReadResponse? = null
     override var bmiResponse: DataReadResponse? = null
     override var BkcalResponse: DataReadResponse? = null
-    var radapter: YoutubeResultListViewAdapter? = null
-    var nadapter : YoutubeResultListViewAdapter? = null
-    override var padapter: YoutubeResultListViewAdapter? = null
-    var madapter: YoutubeResultListViewAdapter? = null
-    fun stopProgress(i:Int) {
+    override fun stopProgress(i:Int) {
         when(i) {
             3-> if (mPb!!.isShowing) {
                 Log.i(TAG, "stopProgress")
@@ -181,42 +173,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-   fun addData(response: SearchListResponse, section:Int) {
+  fun addData(response: SearchListResponse, section:Int) {
        Log.i(TAG, "addData")
+      Log.i("test", "second")
        val body = response.items
        Log.i("query", body.toString())
+       Log.i("response", response.toString())
+       page = response.nextPageToken
+       totalpage = response.pageInfo.totalResults
        data = body
-       /**
-       if(result_list.isActivated) {
-           if (body != null) {
-               when (section) {
-                   0 -> {//선택형
-                       launch(UI) {
-                           data = body
-                       }
-                   }
-                   1 -> {//새로 올라온 영상
-                       launch(UI) {
-                           data = body
-                       }
-                   }
-                   2 -> {//인기많은 영상
-                       launch(UI) {
-                           data = body
-                       }
-                   }
-                   3 -> {//내가 본 영상
-                       launch(UI) {
-                           data = body
-                       }
-                   }
-               }
-           }
-       }*/
+      Log.i("data", data.toString())
        }
 
 
-    fun getNetxtPage(page:String, q: String, api_Key: String, max_result: Int, searchType:String, order:String, section:Int){
+    suspend override fun getNetxtPage( q: String, api_Key: String, max_result: Int, more:Boolean, section:Int){
         val youTube = YouTube.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance(), object: HttpRequestInitializer {
             @Throws(IOException::class)
             override fun initialize(request:HttpRequest) {
@@ -225,43 +195,35 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 request.getHeaders().set("X-Android-Cert", SHA1)
             }
         }).setApplicationName(packageName).build()
+        var order = ""
+        when(section){
+            0->{//선택형
+                order = "relevance"
+            }
+            1 -> {//새로 올라온 영상
+                order = "date"
+            }
+            2 ->{//인기많은 영상
+                order = "rating"
+            }
+            3->{//내가 본 영상
+                order = "relevance"
+            }
+        }
         val query = youTube.search().list("id, snippet")
         query.setKey(api_Key)
         query.setType("video")
+        if(page != null)
+            query.setPageToken(page)
         query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url), nextPageToken, pageInfo")
         query.setQ(q)
-        query.setPageToken(page)
         query.setOrder(order)
-        query.setType(searchType)
         query.setMaxResults(max_result.toLong())
-        val body = query.execute().items
-        Log.i("query", body.toString())
-        when (section) {
-            0 -> {//선택형
-                Log.i("getData", "선택형")
-                if(body.size >0 ) {
-                    launch(UI) { padapter!!.setLkItems(body)}
-                }
-            }
-            1 -> {//새로 올라온 영상
-                Log.i("getData", "새로 올라온 영상")
-                if(body.size >0 ) {
-                    launch(UI) { nadapter!!.setLkItems(body)}
-                }
-            }
-            2 -> {//인기많은 영상
-                Log.i("getData", "인기많은 영상")
-                if(body.size >0 ) {
-                    launch(UI) {  radapter!!.setLkItems(body)}
-                }
-            }
-            3 -> {//내가 본 영상
-                Log.i("getData", "내가 본 영상")
-                if(body.size >0 ) {
-                    launch(UI) {madapter!!.setLkItems(body)}
-                }
-            }
-        }
+        launch(CommonPool) {
+            val body = query.execute()
+            page = body.nextPageToken
+            totalpage = body.pageInfo.totalResults
+            data = body.items }.join()
     }
     override fun OnYoutubeResultInteraction(){
 
@@ -294,8 +256,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
         return null
     }
-    suspend override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int) {
+   suspend override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int) {
         Log.i(TAG, "getDatas")
+       launch(UI){startProgress(section)}
        val youTube = YouTube.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance(), object: HttpRequestInitializer {
            @Throws(IOException::class)
            override fun initialize(request:HttpRequest) {
@@ -322,8 +285,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 order = "relevance"
             }
         }
-        launch(UI){startProgress(section)}
-        Log.i("getData", order)
         val query = youTube.search().list("id, snippet")
         query.setKey(api_Key)
         query.setType("video")
@@ -334,16 +295,18 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         query.setMaxResults(max_result.toLong())
         query.setOrder(order)
         query.setType(searchType)
-        launch {addData( query.execute(), section)}.join()
-        launch(UI){ stopProgress(section)}
+       Log.i("test", "first")
+        launch(CommonPool) {addData( query.execute(), section)}.join()
+       Log.i("test", "third")
     }
-    override fun OnFollowInteraction(q: ArrayList<String>?) {
+    override fun OnFollowInteraction(q: ArrayList<String>?, s:Int) {
         Log.i(TAG, "OnFollowInteraction")
-        supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.root_layout, YouTubeResult.newInstance(q.toString()), "rageComicList")
-                .commit()
-        sendquery = q
+        Log.i("test", "다섯번 째")
+            sendquery = q
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.root_layout, YouTubeResult.newInstance(), "rageComicList")
+                    .commit()
     }
 
     override fun OnForMeInteraction() {
@@ -361,12 +324,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
+
         // Do something
-        when(bPage){
-            1->{
+        when(bottom_navigation.currentItem){
+            1 ->{
                 if(visableFragment == "YouTubeResult" ){
+                    sendquery = null
                     data.clear()
-                    navigation.setCurrentItem(1)
+                    bottom_navigation.setCurrentItem(1)
                 }else {
                     if (doubleBackToExitPressedOnce) {
                         moveTaskToBack(true)
@@ -394,21 +359,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
             }
-           0->{
+            0 ->{
                 doubleBackToExitPressedOnce = false
-                if(sendquery != null){
-                    OnFollowInteraction(null)
-                }else{
-                    navigation.setCurrentItem(1)
-                }
+                    bottom_navigation.currentItem = 1
             }
-           2->{
+           2 ->{
                 doubleBackToExitPressedOnce = false
-               if(sendquery != null){
-                    OnFollowInteraction(null)
-                }else{
-                    navigation.setCurrentItem(1)
-                }
+                    bottom_navigation.currentItem = 1
             }
         }
     }
@@ -447,7 +404,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         mGoogleSignInClient = buildGoogleSignInClient()
-        setSupportActionBar(custom_toolBar as Toolbar?)
         Log.d(TAG + "_", "onCreate")
         //mPb = ProgressDialog(this)
         // pPb = ProgressDialog(this)
@@ -461,19 +417,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }else{
             getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
         }
-        if (savedInstanceState != null) {
-            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
-        } else {
-            if(sendquery != null){
-                OnFollowInteraction(sendquery)
-            }else{
-                supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
-                        .commit()
-            }
-            navigation.setCurrentItem(1)
-        }
+        if (savedInstanceState != null)
+            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING)
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_WRITE)
@@ -496,55 +441,70 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
-        }else {
-            registerFitnessDataListener()
-        }
-        val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.ic_dashboard_black_24dp))
-        val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.ic_directions_run_black_24dp))
-        val item3 = AHBottomNavigationItem(getString(R.string.title_infome), getDrawable(R.drawable.ic_person_black_24dp))
-        navigation.addItem(item1)
-        navigation.addItem(item2)
-        navigation.addItem(item3)
-        navigation.setTitleState(AHBottomNavigation.TitleState.SHOW_WHEN_ACTIVE)
-        navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
+        }// Create items
+        registerFitnessDataListener()
+        val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
+        val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
+        val item3 = AHBottomNavigationItem(getString(R.string.title_infome), getDrawable(R.drawable.select_formemenu))
+        bottom_navigation.addItem(item1)
+        bottom_navigation.addItem(item2)
+        bottom_navigation.addItem(item3)
+        bottom_navigation.setDefaultBackgroundColor(Color.parseColor("#FFFFFFFF"))
+        bottom_navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
             override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
                 when (item) {
                 //해당 페이지로 이동
                     0 -> {
-                        bPage = 0
                         supportFragmentManager
                                 .beginTransaction()
                                 .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "rageComicList")
                                 .commit()
-                        return false
+                        return true
                     }
                     1 -> {
-                        bPage = 1
                         if(sendquery != null){
-                            OnFollowInteraction(sendquery)
+                            OnFollowInteraction(sendquery, 0)
                         }else{
                             supportFragmentManager
                                     .beginTransaction()
                                     .replace(R.id.root_layout, FollowFragment.newInstance(ID, PW), "rageComicList")
                                     .commit()
                         }
-                        return false
+                        return true
                     }
                     2 -> {
-                        bPage = 2
-                        supportFragmentManager
-                                .beginTransaction()
-                              // .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl?.toString()), "rageComicList")
-                                  .replace(R.id.root_layout, ForMeFragment.newInstance(ID), "rageComicList")
-                                .commit()
-                        return false
+                            supportFragmentManager
+                                    .beginTransaction()
+                                    .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()), "rageComicList")
+                                    .commit()
+                        return true
                     }
                 }
                 return false
             }
 
         })
-        navigation.setTranslucentNavigationEnabled(true)
+        bottom_navigation.setTitleState(AHBottomNavigation.TitleState.SHOW_WHEN_ACTIVE)
+        bottom_navigation.setCurrentItem(1)
+        bottom_navigation.setForceTint(true)
+        bottom_navigation.setAccentColor(Color.parseColor("#41c0c1"));
+        bottom_navigation.setInactiveColor(Color.parseColor("#696969"));
+        bottom_navigation.setTranslucentNavigationEnabled(true)
+        toolbarhome.setOnClickListener(object :View.OnClickListener{
+            override fun onClick(v: View?) {
+                if(sendquery != null)
+                sendquery = null
+                data.clear()
+                bottom_navigation.setCurrentItem(1)
+            }
+
+        })
+        toolbarmenu.setOnClickListener(object : View.OnClickListener {
+            override fun onClick(v: View?) {
+                //팝업메뉴
+            }
+
+        })
     }
 
     private fun buildGoogleSignInClient(): GoogleSignInClient {
@@ -587,11 +547,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
             RC_SIGN_IN ->{
-                registerFitnessDataListener()
+                 registerFitnessDataListener()
             }
             GOOGLE_FIT_PERMISSIONS_REQUEST_CODE ->{
                 if (resultCode == RESULT_OK){
-                    registerFitnessDataListener()
+                   registerFitnessDataListener()
                 }
             }
         }
@@ -697,8 +657,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-    @SuppressLint("RestrictedApi")
-    fun registerFitnessDataListener() = launch(CommonPool){
+  fun registerFitnessDataListener()= launch(CommonPool) {
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -708,14 +667,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val startTime = cal.timeInMillis
         Log.i(TAG, "Range Start: " + startTime.toString())
         Log.i(TAG, "Range End: " + endTime.toString())
-        val task = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
         val mFitnessClient = GoogleApiClient.Builder(this@MainActivity)
                 .addApi(Fitness.HISTORY_API)
                 .addApi(Fitness.CONFIG_API)
-                .addScope(Scope(Scopes.FITNESS_LOCATION_READ))
                 .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
                 .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
                 .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
                 .addOnConnectionFailedListener(object: OnFailureListener, GoogleApiClient.OnConnectionFailedListener {
@@ -723,11 +678,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         Log.i(TAG, "onConnectionFailed")
                         // Error while connecting. Try to resolve using the pending intent returned.
                         Log.i(TAG, "onConnectionFailed" + ":" + p0.toString())
+                        Log.i(TAG, "onConnectionFailed" + ":" + p0.errorMessage.toString())
+                        Log.i(TAG, "onConnectionFailed" + ":" + p0.errorCode.toString())
                         if (p0.getErrorCode() == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
                             try {
                                 p0.startResolutionForResult(this@MainActivity, REQUEST_OAUTH);
                             } catch (e: IntentSender.SendIntentException) {
-                                Log.i(TAG, "onConnectionFailed" + ":" + e.toString())
+                                Log.i(TAG, "onConnectionFailed_catch" + ":" + e.toString())
                             }
                         }
                     }
@@ -745,7 +702,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val pendingResult_fat = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.fat")
         launch(CommonPool) {
             val taype = pendingResult_bmi.await().dataType
-            val response_second = Fitness.getHistoryClient(this@MainActivity, task!!)
+            val response_second = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                 .readData(DataReadRequest.Builder()
                         .read(taype)
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
@@ -754,7 +711,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }.join()
         launch(CommonPool) {
             val taype = pendingResult_muscle.await().dataType
-            val response_second = Fitness.getHistoryClient(this@MainActivity, task!!)
+            val response_second = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(DataReadRequest.Builder()
                             .read(taype)
                             .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
@@ -763,7 +720,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }.join()
         launch(CommonPool) {
             val taype = pendingResult_fat.await().dataType
-            val response_second = Fitness.getHistoryClient(this@MainActivity, task!!)
+            val response_second = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(DataReadRequest.Builder()
                             .read(taype)
                             .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
@@ -771,7 +728,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             fatResponse = Tasks.await(response_second)
         }.join()
         launch(CommonPool) {
-            val response = Fitness.getHistoryClient(this@MainActivity, task!!)
+            val response = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(DataReadRequest.Builder()
                             .read(DataType.TYPE_WEIGHT)
                             .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
@@ -784,7 +741,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .bucketByTime(1, TimeUnit.DAYS)
                     .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                     .build()
-            val sss = Fitness.getHistoryClient(this@MainActivity, task!!)
+            val sss = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(response_ds)
             walkResponse = Tasks.await(sss)
         }.join()
@@ -794,11 +751,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .bucketByTime(1, TimeUnit.DAYS)
                     .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                     .build()
-            val ccc = Fitness.getHistoryClient(this@MainActivity, task!!)
+            val ccc = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(response_dc)
             kcalResponse = Tasks.await(ccc) }.join()
         launch(CommonPool) {
-            val response_dc =  Fitness.getHistoryClient(this@MainActivity, task!!)
+            val response_dc =  Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(DataReadRequest.Builder()
                             .read(DataType.TYPE_BASAL_METABOLIC_RATE)
                             .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
@@ -837,7 +794,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
             //user profile pic
             personUrl = acct.photoUrl
-            Log.i("profile", personName + "\t" + acct.photoUrl.toString() + "\t" + personGivenName +"\t" + personEmail +"\t" + personId)
+            Log.i("profile", personName + "\t" + acct.photoUrl.toString() + "\t" + personGivenName +"\t" + personEmail +"\t" + personId + "\t" + acct.toString())
         }
     }
 

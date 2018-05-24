@@ -16,7 +16,7 @@
             android:layout_centerHorizontal="false"
             android:layout_centerVertical="true"
             android:layout_margin="2dp"
-            app:srcCompat="@mipmap/toolbarlogo" />
+            app:srcCompat="@mipmap/toolbarlogo_round" />
 
         <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/toolbarhome"

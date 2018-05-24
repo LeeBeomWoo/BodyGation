@@ -25,7 +25,6 @@ import android.view.ViewGroup;
 import bodygate.bcns.bodygation.R;
 
 import static android.widget.AdapterView.INVALID_POSITION;
-
 /**
  * Created by Nikola on 10/31/2016.
  */

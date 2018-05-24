@@ -11,16 +11,9 @@ import android.view.View
 import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
-import bodygate.bcns.bodygation.youtube.Topics
-import bodygate.bcns.bodygation.youtube.YoutubeResponse
-import com.google.android.youtube.player.YouTubePlayerSupportFragment
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.model.SearchResult
-import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.fragment_follow.*
-import kotlinx.coroutines.experimental.launch
-import javax.security.auth.Subject
+import kotlinx.coroutines.experimental.runBlocking
 
 
 /**
@@ -39,9 +32,6 @@ class YouTubeResult : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i(TAG, "onCreate")
         super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            mParam1 = arguments!!.getString(ARG_PARAM1)
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -54,15 +44,33 @@ class YouTubeResult : Fragment() {
         super.onActivityCreated(savedInstanceState)
         Log.i(TAG, "onActivityCreated")
         // Set the adapter
-        val pop_linearLayoutManager = LinearLayoutManager(context)
+        val pop_linearLayoutManager = LinearLayoutManager(mListener!!.context)
         pop_linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL)
-        result_list.setLayoutManager(pop_linearLayoutManager)
-        launch { mListener!!.getDatas("snippet", mParam1.toString(), getString(R.string.API_key), 40, true, 0)}
+        result_list.layoutManager = pop_linearLayoutManager
         adapter = YoutubeResultListViewAdapter(mListener!!.data, mListener!!.context)
         result_list.setAdapter(adapter)
+        result_list.addOnScrollListener(object : RecyclerView.OnScrollListener(){
+            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (result_list.isActivated)
+                    return
+                val visibleItemCount = pop_linearLayoutManager.getChildCount()
+                val totalItemCount = pop_linearLayoutManager.getItemCount()
+                val pastVisibleItems = pop_linearLayoutManager.findFirstVisibleItemPosition()
+                if (pastVisibleItems + visibleItemCount >= totalItemCount) {
+                    //End of list
+                    runBlocking{mListener!!.getNetxtPage(mListener!!.sendquery.toString(), getString(R.string.API_key), 5,true,0)}
+                    adapter!!.setLkItems(mListener!!.data)
+                    result_list.adapter.notifyItemInserted(totalItemCount)
+                    mListener!!.stopProgress(0)
+                }
+            }
+        })
         mListener!!.visableFragment = TAG
+        mListener!!.stopProgress(0)
+        Log.i(TAG, result_list.adapter.itemCount.toString())
+        Log.i(TAG, "onActivityCreated_final")
     }
-    // TODO: Rename method, update argument and hook method into UI event
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -98,6 +106,9 @@ class YouTubeResult : Fragment() {
         var data: MutableList<SearchResult>
         val context:Context
         var visableFragment:String
+        var sendquery:ArrayList<String>?
+        suspend fun getNetxtPage(q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
+        fun stopProgress(i:Int)
     }
 
     companion object {
@@ -113,10 +124,9 @@ class YouTubeResult : Fragment() {
          * @return A new instance of fragment HomeFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(param1: String?): YouTubeResult {
+        fun newInstance(): YouTubeResult {
             val fragment = YouTubeResult()
             val args = Bundle()
-            args.putString(ARG_PARAM1, param1)
             fragment.arguments = args
             return fragment
         }

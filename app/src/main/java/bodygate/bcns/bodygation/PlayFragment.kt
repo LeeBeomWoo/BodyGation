@@ -253,6 +253,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private var mPreviewBuilder: CaptureRequest.Builder? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
         }
@@ -273,12 +274,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        Log.i(TAG, "onActivityCreated")
         onConfigurationChanged(getActivity()!!.getResources().getConfiguration());
         startBackgroundThread();
         ButtonImageSetUp();
         viewSet()
         startPreview();
-        alpha_control.setMax(100);
+        alpha_control.setMax(100)
         youtube_layout.setWebChromeClient(WebChromeClient());
         youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND);
         youtube_layout.setWebViewClient(WebViewClient());
@@ -298,6 +300,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
+        Log.i(TAG, "onCreateView")
         // Inflate the layout for this fragment
         if (!hasPermissionsGranted(VIDEO_PERMISSIONS)) {
             requestVideoPermissions();
@@ -310,6 +313,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
 
     override fun onAttach(context: Context) {
+        Log.i(TAG, "onAttach")
         super.onAttach(context)
         if (context is OnFragmentInteractionListener) {
             listener = context
@@ -320,6 +324,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     override fun onDetach() {
         super.onDetach()
+        Log.d(TAG, "onDetach")
         listener = null
     }
 
@@ -392,6 +397,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     override fun onConfigurationChanged(newConfig: Configuration) {
             super.onConfigurationChanged(newConfig);
+        Log.i(TAG, "onConfigurationChanged")
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             PortrainSet();
             if (AutoView != null && AutoView!!.isAvailable()) {
@@ -572,7 +578,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
 
-    public fun reopenCamera() {
+    fun reopenCamera() {
         if (AutoView.isAvailable()) {
             openCamera(AutoView.getWidth(), AutoView.getHeight());
         } else {
@@ -863,7 +869,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         val dir = context.getExternalFilesDir( null);
         return (if (dir == null) "" else (Environment.getExternalStorageDirectory().toString() + "/" + Environment.DIRECTORY_MOVIES + "/")) + "ViewBody_" + System.currentTimeMillis() + ".mp4"
     }
- fun startRecordingVideo() {
+
+    fun startRecordingVideo() {
         if (null == mCameraDevice || !AutoView.isAvailable() || null == mPreviewSize) {
             return;
         }
