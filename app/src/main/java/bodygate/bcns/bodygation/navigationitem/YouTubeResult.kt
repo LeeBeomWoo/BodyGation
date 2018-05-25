@@ -59,10 +59,12 @@ class YouTubeResult : Fragment() {
                 val pastVisibleItems = pop_linearLayoutManager.findFirstVisibleItemPosition()
                 if (pastVisibleItems + visibleItemCount >= totalItemCount) {
                     //End of list
+                    if(mListener!!.totalpage > 0){
                     runBlocking{mListener!!.getNetxtPage(mListener!!.sendquery.toString(), getString(R.string.API_key), 5,true,0)}
                     adapter!!.setLkItems(mListener!!.data)
                     result_list.adapter.notifyItemInserted(totalItemCount)
                     mListener!!.stopProgress(0)
+                    }
                 }
             }
         })
@@ -106,6 +108,7 @@ class YouTubeResult : Fragment() {
         var data: MutableList<SearchResult>
         val context:Context
         var visableFragment:String
+        var totalpage:Int
         var sendquery:ArrayList<String>?
         suspend fun getNetxtPage(q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
         fun stopProgress(i:Int)

@@ -14,7 +14,7 @@ android {
     }
     signingConfigs {
         config {
-            keyAlias 'bordygation'
+            keyAlias 'bodygation.'
             keyPassword 'dlqjadn1482**'
             storePassword 'dlqjadn1482**'
             //D:/BCNS/APK/BodyGation.jks
@@ -27,7 +27,7 @@ android {
         applicationId "bodygate.bcns.bodygation"
         minSdkVersion 23
         targetSdkVersion 27
-        versionCode 8
+        versionCode 9
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

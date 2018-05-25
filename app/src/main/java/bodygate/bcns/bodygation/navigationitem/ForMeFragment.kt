@@ -45,6 +45,41 @@ import kotlin.collections.ArrayList
  * create an instance of this fragment.
  */
 class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
+    private var mParam1: String? = null
+    private var mListener: OnForMeInteraction? = null
+    val value:MutableList<Double> =  ArrayList()
+    val horizonValue:MutableList<Date> =  ArrayList()
+    var weight_Label:MutableList<String> =  ArrayList()
+    var kcal_Label:MutableList<String> =  ArrayList()
+    var walk_Label:MutableList<String> =  ArrayList()
+    var fat_Label:MutableList<String> =  ArrayList()
+    var muscle_Label:MutableList<String> =  ArrayList()
+    var bmi_Label:MutableList<String> =  ArrayList()
+    val TAG = "ForMeFragment_"
+    var last_position = 0
+    var current_position = 0
+    var section = 0
+    var weight_series: MutableList<BarEntry> = ArrayList()
+    var muscle_series: MutableList<BarEntry> = ArrayList()
+    var walk_series: MutableList<BarEntry> = ArrayList()
+    var fat_series: MutableList<BarEntry> = ArrayList()
+    var bmi_series: MutableList<BarEntry> = ArrayList()
+    var kcal_series: MutableList<BarEntry> = ArrayList()
+    var display_label:MutableList<String> =  ArrayList()
+    var display_series: MutableList<String> = ArrayList()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.i(TAG, "onCreate")
+        if (arguments != null) {
+            mParam1 = arguments!!.getString(ARG_PARAM1)
+        }
+    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        Log.i(TAG, "onCreateView")
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_for_me, container, false)
+    }
     override fun onCheckedChanged(button: CheckableImageButton?, check: Boolean) {
         when (button!!.id) {
             R.id.weight_Btn -> {
@@ -145,48 +180,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             }
         }
     }
-    private var mParam1: String? = null
-    private var mListener: OnForMeInteraction? = null
-    val value:MutableList<Double> =  ArrayList()
-    val kcalvalue:MutableList<Double> =  ArrayList()
-    val horizonValue:MutableList<Date> =  ArrayList()
-    val kcal_horizonValue:MutableList<Date> =  ArrayList()
-    var weight_Label:MutableList<String> =  ArrayList()
-    var kcal_Label:MutableList<String> =  ArrayList()
-    var walk_Label:MutableList<String> =  ArrayList()
-    var fat_Label:MutableList<String> =  ArrayList()
-    var muscle_Label:MutableList<String> =  ArrayList()
-    var bmi_Label:MutableList<String> =  ArrayList()
-    val TAG = "ForMeFragment_"
-    var last_position = 0
-    var current_position = 0
-    var weight_series: MutableList<BarEntry> = ArrayList()
-    var muscle_series: MutableList<BarEntry> = ArrayList()
-    var walk_series: MutableList<BarEntry> = ArrayList()
-    var fat_series: MutableList<BarEntry> = ArrayList()
-    var bmi_series: MutableList<BarEntry> = ArrayList()
-    var kcal_series: MutableList<BarEntry> = ArrayList()
-    var kcalB_series: MutableList<Entry> = ArrayList()
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.i(TAG, "onCreate")
-        if (arguments != null) {
-            mParam1 = arguments!!.getString(ARG_PARAM1)
-        }
-    }
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.i(TAG, "onCreateView")
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_for_me, container, false)
-    }
-    fun getKcalLabel(bk:MutableList<String>, k:MutableList<String>):List<String>{
-        val result = bk.union(k)
-        Log.i("kcalseries_k", k.size.toString())
-        Log.i("kcalseries_bk", bk.size.toString())
-        Log.i("kcalseries_result", result.size.toString())
-        last_position = result.distinct().size-1
-        return result.distinct()
-    }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         mListener!!.OnForMeInteraction()
@@ -220,9 +213,11 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(false);
         if(mParam1 !=  null){
-            Picasso.get().load(Uri.parse(mParam1)).fit().into(profile_Image)
+            Picasso.get().load(Uri.parse(mParam1))
+                    .placeholder(R.mipmap.toolbarlogo_round)
+                    .error(R.mipmap.toolbarlogo_round).into(profile_Image)
         }else{
-            Picasso.get().load(R.mipmap.toolbarlogo_round).fit().into(profile_Image)
+            Picasso.get().load(R.mipmap.toolbarlogo_round).into(profile_Image)
         }
         graph.setVisibleXRangeMaximum(5.toFloat())
         graph.setNoDataText("위 버튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
@@ -231,10 +226,24 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         pre_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
-                if(current_position >0 && current_position < last_position+1 && graph.combinedData.dataSetCount >0) {
+                Log.i("Button_pre_Btn", current_position.toString() + "\t" +  last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
+                if(current_position >0 && current_position < last_position&& graph.combinedData.dataSetCount >0) {
                     current_position -= 1
-                    main_lbl.text = graph.getXAxis().mEntries[current_position].toString()
-                    cal_lbl.text = graph.getAxisRight().getFormattedLabel(current_position)
+                    cal_lbl.text = display_label.get(current_position)
+                    when(section){
+                        0->{//bmi
+                            main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"}
+                        1->{//체중
+                            main_lbl.text = display_series.get(current_position) + "Kg"}
+                        2->{//골격근
+                            main_lbl.text = display_series.get(current_position) + "Kg"}
+                        3->{//체지방
+                            main_lbl.text = display_series.get(current_position)+ "%"}
+                        4->{//소모칼로리
+                            main_lbl.text = display_series.get(current_position) + "Kcal"}
+                        5->{//걸음수
+                            main_lbl.text = display_series.get(current_position)+ "걸음"}
+                    }
                 }
             }
 
@@ -242,115 +251,77 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         next_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
-                if(current_position >0 && current_position < last_position+1&& graph.combinedData.dataSetCount >0) {
+                Log.i("Button_next_Btn", current_position.toString() + "\t" +  last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
+                if(current_position >0 && current_position < last_position&& graph.combinedData.dataSetCount >0) {
                     current_position += 1
-                    main_lbl.text = graph.getXAxis().mEntries[current_position].toString()
+                    cal_lbl.text = display_label.get(current_position)
+                    when(section){
+                        0->{//bmi
+                            main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"}
+                        1->{//체중
+                            main_lbl.text = display_series.get(current_position) + "Kg"}
+                        2->{//골격근
+                            main_lbl.text = display_series.get(current_position) + "Kg"}
+                        3->{//체지방
+                            main_lbl.text = display_series.get(current_position)+ "%"}
+                        4->{//소모칼로리
+                            main_lbl.text = display_series.get(current_position) + "Kcal"}
+                        5->{//걸음수
+                            main_lbl.text = display_series.get(current_position)+ "걸음"}
+                    }
                 }
             }
 
         })
     }
-   fun series_dataSet():MutableList<BarEntry>{
-        val series: MutableList<BarEntry> = ArrayList()
-        val x = value.size-1
-        for (a: Int in 0..x) {
-            //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
-            series.add(a, BarEntry(a.toFloat(), value.get(a).toFloat()))
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is OnForMeInteraction) {
+            mListener = context
+        } else {
+            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
-        return series
     }
-    @SuppressLint("SimpleDateFormat")
-    fun kcalseries_dataSet(f:MutableList<Date>, v:MutableList<Double>, k:Int):MutableList<Entry>{
-        val series: MutableList<Entry> = ArrayList()
-        val temp_Label:MutableList<String> =  ArrayList()
-        val label = SimpleDateFormat("MM/dd")
-        var s = 0
-        for(b:Int in 0..(f.size-1)){
-            temp_Label.add(b, label.format(f[b]))
-        }
-        for (a: Int in 0..k) {
-            //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
-            if(temp_Label.contains(kcal_Label[a])){
-                series.add(a, Entry(a.toFloat(), v[s].toFloat()))
-                s += 1
-            }else{
-                series.add(a, Entry(a.toFloat(), 0f))
-            }
-        }
-        return series
+    override fun onDetach() {
+        super.onDetach()
+        mListener = null
     }
-    @SuppressLint("SimpleDateFormat")
-    fun kcalseriesB_dataSet(f:MutableList<Date>, v:MutableList<Double>, k:Int):MutableList<BarEntry>{
-        val series: MutableList<BarEntry> = ArrayList()
-        val temp_Label:MutableList<String> =  ArrayList()
-        val label = SimpleDateFormat("MM/dd")
-        var s = 0
-        for(b:Int in 0..(f.size-1)){
-            temp_Label.add(b, label.format(f[b]))
-        }
-        for (a: Int in 0..k) {
-            //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
-            if(temp_Label.contains(kcal_Label[a])){
-                series.add(a, BarEntry(a.toFloat(), v[s].toFloat()))
-                s += 1
-            }else{
-                series.add(a, BarEntry(a.toFloat(), 0f))
-            }
-        }
-        return series
-    }
-    @SuppressLint("SimpleDateFormat")
-    fun label_dataSet():MutableList<String> {
-        val label = SimpleDateFormat("MM/dd")
-        val series: MutableList<String> = ArrayList()
-        last_position = horizonValue.size - 1
-        for (a: Int in 0..last_position) {
-            series.add(a, label.format(horizonValue[a]))
-        }
-        return series
-    }
-    @SuppressLint("SimpleDateFormat")
-    fun kcal_label_dataSet():MutableList<String> {
-        val label = SimpleDateFormat("MM/dd")
-        val series: MutableList<String> = ArrayList()
-        val x = kcal_horizonValue.size - 1
-        for (a: Int in 0..x) {
-            series.add(a, label.format(kcal_horizonValue[a]))
-        }
-        return series
-    }
- suspend fun graphSet(p:Int){
+
+
+    suspend fun graphSet(p:Int){
         when(p){
             0->{//체중
-                if(mListener!!.readResponse == null){
-                    Log.i(TAG, "체중 없음")
-                }else {
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
-                        graph.data.clearValues()
-                    }
-                    if(weight_series.isEmpty()){
-                        val job = launch {
-                         printData(mListener!!.readResponse!!, p)
+                section = 1
+                        if(mListener!!.readResponse == null){
+                            Log.i(TAG, "체중 없음")
+                        }else {
+                            if (graph.getData() != null &&
+                                    graph.getData().getDataSetCount() > 0) {
+                                graph.data.clearValues()
+                            }
+                            if(weight_series.isEmpty()){
+                                val job = launch {
+                                    printData(mListener!!.readResponse!!, p)
+                                }
+                                job.join()
+                                weight_series = series_dataSet()
+                                weight_Label = label_dataSet()
+                            }
+                            val set1 = BarDataSet(weight_series, getString(R.string.weight))
+                            set1.setColors(Color.rgb(40, 184, 184))
+                            val barData = BarData(set1)
+                            val xAxis = graph.xAxis
+                            xAxis.setGranularity(1f)
+                            xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
+                            val data = CombinedData()
+                            data.setData(barData)
+                            graph.setData(data)
+                            graph.data.notifyDataChanged()
+                            graph.notifyDataSetChanged()
                         }
-                        job.join()
-                        weight_series = series_dataSet()
-                        weight_Label = label_dataSet()
-                    }
-                    val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                    set1.setColors(Color.rgb(40, 184, 184))
-                    val barData = BarData(set1)
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
-                    val data = CombinedData()
-                    data.setData(barData)
-                    graph.setData(data)
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
-                    }
             }
             1->{//걷기
+                section = 5
                 if(mListener!!.walkResponse == null){
                     Log.i(TAG, "걷기 없음")
                 }else {
@@ -380,6 +351,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 }
             }
             2-> {//칼로리
+                section = 4
                 if (mListener!!.kcalResponse == null) {
                     Log.i(TAG, "칼로리 없음")
                 } else {
@@ -392,42 +364,27 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             printData(mListener!!.kcalResponse!!, p)
                         }
                         job.join()
-                        val job_second = launch {
-                            kcal_horizonValue.clear()
-                            kcalvalue.clear()
-                            for (dataSet: DataSet in mListener!!.BkcalResponse!!.getDataSets()) {
-                                for (dp: com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
-                                    kcalvalue.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
-                                    kcal_horizonValue.add(Date(dp.getTimestamp(TimeUnit.MICROSECONDS)))
-                                }
-                            }
-                        }
-                        job_second.join()
                         val job_third = launch {
-                            kcal_Label = getKcalLabel(kcal_label_dataSet(), label_dataSet()).toMutableList()
-                            kcalB_series = kcalseries_dataSet(kcal_horizonValue, kcalvalue, kcal_Label.size-1)
-                            kcal_series = kcalseriesB_dataSet(horizonValue, value, kcal_Label.size-1)
+                            kcal_series = series_dataSet()
+                            kcal_Label = label_dataSet()
                         }
                         job_third.join()
                     }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(184, 187, 85))
-                    val set2 = LineDataSet(kcalB_series, getString(R.string.caloreb))
-                    set2.setColors(Color.rgb(135, 184, 85))
                     val barData = BarData(set1)
-                    val lineData = LineData(set2)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
                     xAxis.setValueFormatter(MyXAxisValueFormatter(kcal_Label.toTypedArray()))
                     val data = CombinedData()
                     data.setData(barData)
-                    data.setData(lineData)
                     graph.setData(data)
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                 }
             }
             3->{//체지방비율
+                section = 3
                 if(mListener!!.fatResponse == null){
                     Log.i(TAG, "체지방비율 없음")
                 }else {
@@ -457,6 +414,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 }
             }
             4->{//골격근
+                section = 2
                 if(mListener!!.muscleResponse == null){
                     Log.i(TAG, "골격근 없음")
                 }else {
@@ -472,12 +430,12 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         muscle_series = series_dataSet()
                         muscle_Label = label_dataSet()
                     }
-                        val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
-                        set1.setColors(Color.rgb(60, 187, 184))
-                        val barData = BarData(set1)
-                        val xAxis = graph.xAxis
-                        xAxis.setGranularity(1f)
-                        xAxis.setValueFormatter(MyXAxisValueFormatter(muscle_Label.toTypedArray()))
+                    val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
+                    set1.setColors(Color.rgb(60, 187, 184))
+                    val barData = BarData(set1)
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(muscle_Label.toTypedArray()))
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
@@ -486,6 +444,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 }
             }
             5->{//BMI
+                section = 0
                 if(mListener!!.bmiResponse == null){
                     Log.i(TAG, "BMI 없음")
                 }else {
@@ -501,25 +460,65 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         bmi_series = series_dataSet()
                         bmi_Label = label_dataSet()
                     }
-                        val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
-                        set1.setColors(Color.rgb(184, 151, 85))
-                        val barData = BarData(set1)
-                        val xAxis = graph.xAxis
-                        xAxis.setGranularity(1f)
-                        xAxis.setValueFormatter(MyXAxisValueFormatter(bmi_Label.toTypedArray()))
+                    val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
+                    set1.setColors(Color.rgb(184, 151, 85))
+                    val barData = BarData(set1)
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(bmi_Label.toTypedArray()))
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                 }
-                }
+            }
         }
-        graph.invalidate()/*
-     current_position = last_position
-     main_lbl.text = graph.getXAxis().mEntries[last_position].toString()
-     cal_lbl.text = graph.getAxisRight().getFormattedLabel(last_position)*/
+        graph.invalidate()
+        current_position = last_position
+        cal_lbl.text = display_label.get(current_position)
+        when(section){
+            0->{//bmi
+                main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"}
+            1->{//체중
+                main_lbl.text = display_series.get(current_position) + "Kg"}
+            2->{//골격근
+                main_lbl.text = display_series.get(current_position) + "Kg"}
+            3->{//체지방
+                main_lbl.text = display_series.get(current_position)+ "%"}
+            4->{//소모칼로리
+                main_lbl.text = display_series.get(current_position) + "Kcal"}
+            5->{//걸음수
+                main_lbl.text = display_series.get(current_position)+ "걸음"}
+        }
     }
+
+
+   fun series_dataSet():MutableList<BarEntry>{
+        val series: MutableList<BarEntry> = ArrayList()
+        val x = value.size-1
+       display_series.clear()
+        for (a: Int in 0..x) {
+            //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
+            series.add(a, BarEntry(a.toFloat(), value.get(a).toFloat()))
+            display_series.add("%.2f".format(value.get(a)))
+        }
+        return series
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    fun label_dataSet():MutableList<String> {
+        val label = SimpleDateFormat("MM/dd")
+        val series: MutableList<String> = ArrayList()
+        last_position = horizonValue.size - 1
+        display_label.clear()
+        for (a: Int in 0..last_position) {
+            series.add(a, label.format(horizonValue[a]))
+            display_label.add(label.format(horizonValue[a]))
+        }
+        return series
+    }
+
     @SuppressLint("SimpleDateFormat")
     fun printData(dataReadResult: DataReadResponse, i:Int) {
         val label = SimpleDateFormat("MM/dd")
@@ -551,6 +550,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             }
         }
     }
+
     @SuppressLint("SimpleDateFormat")
    fun printBucket(bucket:Bucket, i: Int) {
         Log.i("printData", "printBucket")
@@ -577,6 +577,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             }
         }
     }
+
     @SuppressLint("SimpleDateFormat")
     private fun dumpDataSet(dataSet:DataSet) {
         val label = SimpleDateFormat("MM/dd")
@@ -591,19 +592,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         }
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnForMeInteraction) {
-            mListener = context
-        } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
-        }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        mListener = null
-    }
 
     /**
      * This interface must be implemented by activities that contain this
@@ -654,10 +642,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
 }// Required empty public constructor
 
 class MyXAxisValueFormatter(private val mValues: Array<String>) : IAxisValueFormatter {
-
-    /** this is only needed if numbers are returned, else return 0  */
-    val decimalDigits: Int
-        get() = 0
 
     override fun getFormattedValue(value: Float, axis: AxisBase): String {
         // "value" represents the position of the label on the axis (x or y)

@@ -99,7 +99,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
     var personUrl:Uri? = null
     var page = ""
-    var totalpage = 100
+    override var totalpage = 100
     private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
@@ -179,9 +179,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
        val body = response.items
        Log.i("query", body.toString())
        Log.i("response", response.toString())
-       page = response.nextPageToken
-       totalpage = response.pageInfo.totalResults
-       data = body
+      if(response.nextPageToken.isNotEmpty()) {
+          page = response.nextPageToken
+          totalpage = (response.pageInfo.totalResults/5)
+          Log.i("data_page", page)
+          Log.i("data_page", totalpage.toString())
+      }else{
+          page = ""
+      }
+          data = body
       Log.i("data", data.toString())
        }
 
@@ -210,10 +216,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 order = "relevance"
             }
         }
+        totalpage -= 1
+        Log.i("data_page", page)
+        Log.i("data_page", totalpage.toString())
+        if(totalpage > 1){
         val query = youTube.search().list("id, snippet")
         query.setKey(api_Key)
         query.setType("video")
-        if(page != null)
+        if(page != "")
             query.setPageToken(page)
         query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url), nextPageToken, pageInfo")
         query.setQ(q)
@@ -221,9 +231,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         query.setMaxResults(max_result.toLong())
         launch(CommonPool) {
             val body = query.execute()
+            if(body.nextPageToken.isNotEmpty()){
             page = body.nextPageToken
-            totalpage = body.pageInfo.totalResults
+            }else{
+                page = ""
+            }
             data = body.items }.join()
+        }else{
+            data.clear()
+        }
     }
     override fun OnYoutubeResultInteraction(){
 
