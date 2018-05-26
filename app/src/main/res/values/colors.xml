@@ -2,6 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <color name="colorPrimary">#41c0c1</color>
     <color name="colorPrimaryDark">#237071</color>
+    <color name="whiteback">#ffffff</color>
     <color name="colorAccent">#ffc840</color>
     <color name="bodynavigationbar">#0e2a2a</color>
     <color name="nocolor">#00ff0000</color>

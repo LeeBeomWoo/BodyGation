@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import bodygate.bcns.bodygation.support.CheckableImageButton
 import bodygate.bcns.bodygation.R
 import com.github.mikephil.charting.charts.CombinedChart
@@ -44,6 +45,7 @@ import kotlin.collections.ArrayList
  * Use the [ForMeFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
+@SuppressLint("SetTextI18n")
 class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     private var mParam1: String? = null
     private var mListener: OnForMeInteraction? = null
@@ -193,7 +195,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         graph.setPinchZoom(true)
         graph.setDrawBarShadow(false)
         graph.setDrawGridBackground(false)
-       // profile_Image.setImageURI(Uri.parse(mParam1))
         val l = graph.getLegend()
         l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM)
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT)
@@ -222,7 +223,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         graph.setVisibleXRangeMaximum(5.toFloat())
         graph.setNoDataText("위 버튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
         graph.setNoDataTextColor(R.color.colorPrimaryDark)
-        graph.setDrawOrder(arrayOf(CombinedChart.DrawOrder.BAR, CombinedChart.DrawOrder.LINE))
+        graph.setDrawOrder(arrayOf(CombinedChart.DrawOrder.BAR))
+        graph.setBackgroundColor(resources.getColor(R.color.whiteback))
         pre_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
@@ -288,12 +290,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     }
 
 
+    @SuppressLint("SetTextI18n")
     suspend fun graphSet(p:Int){
         when(p){
             0->{//체중
                 section = 1
                         if(mListener!!.readResponse == null){
                             Log.i(TAG, "체중 없음")
+                            Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
                         }else {
                             if (graph.getData() != null &&
                                     graph.getData().getDataSetCount() > 0) {
@@ -308,7 +312,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                                 weight_Label = label_dataSet()
                             }
                             val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                            set1.setColors(Color.rgb(40, 184, 184))
+                            set1.setColors(Color.rgb(65, 192, 193))
                             val barData = BarData(set1)
                             val xAxis = graph.xAxis
                             xAxis.setGranularity(1f)
@@ -316,14 +320,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             val data = CombinedData()
                             data.setData(barData)
                             graph.setData(data)
-                            graph.data.notifyDataChanged()
-                            graph.notifyDataSetChanged()
+                            launch(UI) {
+                                graph.data.notifyDataChanged()
+                                graph.notifyDataSetChanged() }.join()
                         }
             }
             1->{//걷기
                 section = 5
                 if(mListener!!.walkResponse == null){
                     Log.i(TAG, "걷기 없음")
+                    Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
                 }else {
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
@@ -338,7 +344,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         walk_Label = label_dataSet()
                     }
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
-                    set1.setColors(Color.rgb(184, 182, 85))
+                    set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -346,14 +352,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
+                    launch(UI) {
+                        graph.data.notifyDataChanged()
+                        graph.notifyDataSetChanged() }.join()
                 }
             }
             2-> {//칼로리
                 section = 4
                 if (mListener!!.kcalResponse == null) {
                     Log.i(TAG, "칼로리 없음")
+                    Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
                 } else {
                     if (graph.data != null &&
                             graph.data.getDataSetCount() > 0) {
@@ -371,7 +379,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         job_third.join()
                     }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
-                    set1.setColors(Color.rgb(184, 187, 85))
+                    set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -379,14 +387,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
+                    launch(UI) {
+                        graph.data.notifyDataChanged()
+                        graph.notifyDataSetChanged() }.join()
                 }
             }
             3->{//체지방비율
                 section = 3
                 if(mListener!!.fatResponse == null){
                     Log.i(TAG, "체지방비율 없음")
+                    Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
@@ -401,7 +411,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         fat_Label = label_dataSet()
                     }
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
-                    set1.setColors(Color.rgb(180, 70, 184))
+                    set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -409,14 +419,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
+                    launch(UI) {
+                        graph.data.notifyDataChanged()
+                        graph.notifyDataSetChanged() }.join()
                 }
             }
             4->{//골격근
                 section = 2
                 if(mListener!!.muscleResponse == null){
                     Log.i(TAG, "골격근 없음")
+                    Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
@@ -431,7 +443,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         muscle_Label = label_dataSet()
                     }
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
-                    set1.setColors(Color.rgb(60, 187, 184))
+                    set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -439,14 +451,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
+                    launch(UI) {
+                        graph.data.notifyDataChanged()
+                        graph.notifyDataSetChanged() }.join()
                 }
             }
             5->{//BMI
                 section = 0
                 if(mListener!!.bmiResponse == null){
                     Log.i(TAG, "BMI 없음")
+                    Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
@@ -461,7 +475,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         bmi_Label = label_dataSet()
                     }
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
-                    set1.setColors(Color.rgb(184, 151, 85))
+                    set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
                     val xAxis = graph.xAxis
                     xAxis.setGranularity(1f)
@@ -469,27 +483,38 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
+                    launch(UI) {
+                        graph.data.notifyDataChanged()
+                        graph.notifyDataSetChanged() }.join()
                 }
             }
         }
-        graph.invalidate()
-        current_position = last_position
-        cal_lbl.text = display_label.get(current_position)
-        when(section){
-            0->{//bmi
-                main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"}
-            1->{//체중
-                main_lbl.text = display_series.get(current_position) + "Kg"}
-            2->{//골격근
-                main_lbl.text = display_series.get(current_position) + "Kg"}
-            3->{//체지방
-                main_lbl.text = display_series.get(current_position)+ "%"}
-            4->{//소모칼로리
-                main_lbl.text = display_series.get(current_position) + "Kcal"}
-            5->{//걸음수
-                main_lbl.text = display_series.get(current_position)+ "걸음"}
+        if(last_position>0) {
+            launch(UI) {
+            graph.invalidate()
+            current_position = last_position
+            cal_lbl.text = display_label.get(current_position)
+            when (section) {
+                0 -> {//bmi
+                    main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"
+                }
+                1 -> {//체중
+                    main_lbl.text = display_series.get(current_position) + "Kg"
+                }
+                2 -> {//골격근
+                    main_lbl.text = display_series.get(current_position) + "Kg"
+                }
+                3 -> {//체지방
+                    main_lbl.text = display_series.get(current_position) + "%"
+                }
+                4 -> {//소모칼로리
+                    main_lbl.text = display_series.get(current_position) + "Kcal"
+                }
+                5 -> {//걸음수
+                    main_lbl.text = display_series.get(current_position) + "걸음"
+                }
+            }
+            }.join()
         }
     }
 
@@ -606,7 +631,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         // TODO: Update argument type and name
         fun OnForMeInteraction()
         var kcalResponse: DataReadResponse?
-        var BkcalResponse: DataReadResponse?
         var walkResponse: DataReadResponse?
         var readResponse:DataReadResponse?
         var muscleResponse: DataReadResponse?

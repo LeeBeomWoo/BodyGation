@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,13 +7,13 @@
     tools:context="bodygate.bcns.bodygation.navigationitem.ForMeFragment">
 
     <LinearLayout
+        android:id="@+id/first_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="2dp"
-        android:layout_marginTop="3dp"
+        android:layout_height="180dp"
         android:layout_weight="0.95"
         android:background="@drawable/background_half"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_Image"
@@ -24,39 +24,52 @@
             android:layout_marginTop="5dp"
             android:src="@drawable/logo" />
 
-        <LinearLayout
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/linearLayout"
             android:layout_width="match_parent"
-            android:layout_height="65dp"
-            android:orientation="horizontal"
-            android:padding="2dp">
+            android:layout_height="wrap_content">
 
 
             <Button
                 android:id="@+id/pre_Btn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_margin="1dp"
-                android:layout_weight="1"
+                android:layout_width="100dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="32dp"
                 android:background="@drawable/cirfcle"
+                android:gravity="center_vertical"
                 android:text="@string/prev"
                 android:textAlignment="center"
-                android:textColor="@color/colorBottomNavigationActiveColored" />
+                android:textColor="@color/colorBottomNavigationActiveColored"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/next_Btn"
+                android:layout_width="100dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="32dp"
+                android:background="@drawable/cirfcle"
+                android:gravity="center_vertical"
+                android:text="@string/next"
+                android:textAlignment="center"
+                android:textColor="@color/colorBottomNavigationActiveColored"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/main_lbl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="TextView"
-                    android:textAlignment="center"
-                    android:textColor="@color/main_text_color"
-                    android:textSize="24sp" />
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="5dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/next_Btn"
+                app:layout_constraintStart_toEndOf="@+id/pre_Btn"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
                     android:id="@+id/sub_lbl"
@@ -74,28 +87,31 @@
                     android:text="TextView"
                     android:textAlignment="center"
                     android:textColor="@android:color/background_light" />
+
+                <TextView
+                    android:id="@+id/main_lbl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="1dp"
+                    android:text="TextView"
+                    android:textAlignment="center"
+                    android:textColor="@color/main_text_color"
+                    android:textSize="24sp" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/next_Btn"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_margin="1dp"
-                android:layout_weight="1"
-                android:background="@drawable/cirfcle"
-                android:text="@string/next"
-                android:textAlignment="center"
-                android:textColor="@color/colorBottomNavigationActiveColored" />
-        </LinearLayout>
+
+        </android.support.constraint.ConstraintLayout>
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/second_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1.25"
-        android:orientation="horizontal">
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:padding="3dp"
+        app:layout_constraintTop_toBottomOf="@+id/first_layout">
 
 
         <bodygate.bcns.bodygation.support.CheckableImageButton
@@ -124,10 +140,12 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/third_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1.25"
-        android:orientation="horizontal">
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:padding="3dp"
+        app:layout_constraintTop_toBottomOf="@+id/second_layout">
 
         <bodygate.bcns.bodygation.support.CheckableImageButton
             android:id="@+id/muscle_Btn"
@@ -155,10 +173,12 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/forth_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1.25"
-        android:orientation="horizontal">
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:padding="3dp"
+        app:layout_constraintTop_toBottomOf="@+id/third_layout">
 
         <bodygate.bcns.bodygation.support.CheckableImageButton
             android:id="@+id/kal_Btn"
@@ -189,9 +209,12 @@
     <com.github.mikephil.charting.charts.CombinedChart
         android:id="@+id/graph"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="0.7"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="0.75"
         android:background="@color/nocolor"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/forth_layout"
+        tools:layout_editor_absoluteX="0dp" />
 
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>

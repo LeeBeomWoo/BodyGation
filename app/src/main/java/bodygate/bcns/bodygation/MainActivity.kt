@@ -33,6 +33,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.ResultCallback
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.Fitness.ConfigApi
@@ -42,6 +43,7 @@ import com.google.android.gms.fitness.data.*
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.result.DataReadResponse
+import com.google.android.gms.fitness.result.DataTypeResult
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Tasks
@@ -64,6 +66,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
+import org.jetbrains.anko.custom.async
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.BufferedReader
 import java.io.IOException
@@ -118,7 +121,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var muscleResponse: DataReadResponse? = null
     override var fatResponse: DataReadResponse? = null
     override var bmiResponse: DataReadResponse? = null
-    override var BkcalResponse: DataReadResponse? = null
     override fun stopProgress(i:Int) {
         when(i) {
             3-> if (mPb!!.isShowing) {
@@ -457,8 +459,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
+        }else{
+            registerFitnessDataListener()
         }// Create items
-        registerFitnessDataListener()
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
         val item3 = AHBottomNavigationItem(getString(R.string.title_infome), getDrawable(R.drawable.select_formemenu))
@@ -572,7 +575,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
     }
-
     override fun makePersonalData() = launch(CommonPool) {
         val cal = Calendar.getInstance()
         val now = Date()
@@ -713,35 +715,76 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 })
                 .build()
         mFitnessClient.connect()
-        val pendingResult_bmi = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.bmi")
+      val pendingResult_bmi = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.bmi")
         val pendingResult_muscle = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.muscle")
         val pendingResult_fat = ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.fat")
         launch(CommonPool) {
             val taype = pendingResult_bmi.await().dataType
+            if(taype != null){
             val response_second = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                 .readData(DataReadRequest.Builder()
                         .read(taype)
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                         .build())
+                    .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                        override fun onSuccess(p0: DataReadResponse?) {
+                            Log.i(TAG, "bmiResponse_onSuccess")
+                        }
+
+                    })
+                    .addOnFailureListener(object :OnFailureListener{
+                        override fun onFailure(p0: Exception) {
+                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, p0.message.toString())
+                        }
+                    })
                 bmiResponse = Tasks.await(response_second)
+            }
         }.join()
         launch(CommonPool) {
             val taype = pendingResult_muscle.await().dataType
+            if(taype != null){
             val response_second = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(DataReadRequest.Builder()
                             .read(taype)
                             .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                             .build())
-            muscleResponse = Tasks.await(response_second)
+                    .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                        override fun onSuccess(p0: DataReadResponse?) {
+                            Log.i(TAG, "muscleResponse_onSuccess")
+                        }
+
+                    })
+                    .addOnFailureListener(object :OnFailureListener{
+                        override fun onFailure(p0: Exception) {
+                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, p0.message.toString())
+                        }
+                    })
+            muscleResponse = Tasks.await(response_second)}
         }.join()
         launch(CommonPool) {
             val taype = pendingResult_fat.await().dataType
+            if(taype != null){
             val response_second = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(DataReadRequest.Builder()
                             .read(taype)
                             .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                             .build())
+                    .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                        override fun onSuccess(p0: DataReadResponse?) {
+                            Log.i(TAG, "fatResponse_onSuccess")
+                        }
+
+                    })
+                    .addOnFailureListener(object :OnFailureListener{
+                        override fun onFailure(p0: Exception) {
+                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, p0.message.toString())
+                        }
+                    })
             fatResponse = Tasks.await(response_second)
+            }
         }.join()
         launch(CommonPool) {
             val response = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
@@ -749,6 +792,18 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             .read(DataType.TYPE_WEIGHT)
                             .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                             .build())
+                    .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                        override fun onSuccess(p0: DataReadResponse?) {
+                            Log.i(TAG, "bmiResponse_onSuccess")
+                        }
+
+                    })
+                    .addOnFailureListener(object :OnFailureListener{
+                        override fun onFailure(p0: Exception) {
+                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, p0.message.toString())
+                        }
+                    })
             readResponse = Tasks.await(response)
         }.join()
         launch(CommonPool) {
@@ -759,6 +814,18 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .build()
             val sss = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(response_ds)
+                    .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                        override fun onSuccess(p0: DataReadResponse?) {
+                            Log.i(TAG, "bmiResponse_onSuccess")
+                        }
+
+                    })
+                    .addOnFailureListener(object :OnFailureListener{
+                        override fun onFailure(p0: Exception) {
+                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, p0.message.toString())
+                        }
+                    })
             walkResponse = Tasks.await(sss)
         }.join()
         launch(CommonPool) {
@@ -769,14 +836,19 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .build()
             val ccc = Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                     .readData(response_dc)
+                    .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                        override fun onSuccess(p0: DataReadResponse?) {
+                            Log.i(TAG, "bmiResponse_onSuccess")
+                        }
+
+                    })
+                    .addOnFailureListener(object :OnFailureListener{
+                        override fun onFailure(p0: Exception) {
+                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, p0.message.toString())
+                        }
+                    })
             kcalResponse = Tasks.await(ccc) }.join()
-        launch(CommonPool) {
-            val response_dc =  Fitness.getHistoryClient(this@MainActivity,  GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
-                    .readData(DataReadRequest.Builder()
-                            .read(DataType.TYPE_BASAL_METABOLIC_RATE)
-                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                            .build())
-            BkcalResponse = Tasks.await(response_dc)}.join()
     }
 
     /**

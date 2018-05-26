@@ -19,7 +19,7 @@ android {
             storePassword 'dlqjadn1482**'
             //D:/BCNS/APK/BodyGation.jks
             //E:/personal/APK/BodyGation.jks
-            storeFile file('E:/personal/APK/BodyGation.jks')
+            storeFile file('D:/BCNS/APK/BodyGation.jks')
         }
     }
     compileSdkVersion 27
@@ -27,7 +27,7 @@ android {
         applicationId "bodygate.bcns.bodygation"
         minSdkVersion 23
         targetSdkVersion 27
-        versionCode 9
+        versionCode 11
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
