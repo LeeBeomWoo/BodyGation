@@ -28,6 +28,7 @@ import com.google.android.gms.fitness.result.DataSourcesResult
 import com.google.android.gms.fitness.result.DataTypeResult
 import kotlinx.android.synthetic.main.fragment_goal.*
 import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.launch
 import kotlin.math.min
 import java.lang.reflect.Array.setInt
 import java.lang.reflect.Array.setFloat
@@ -81,9 +82,6 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         }
         Log.i(TAG, "onCreate")
     }
-    fun getBMI(){
-       my_bmi_txtB.setText((my_weight_txtB.text.toString().toDouble()/(goal_height_txtB.text.toString().toDouble() * 0.01)*(goal_height_txtB.text.toString().toDouble() * 0.01)).toString())
-    }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.i(TAG, "onCreateView")
         // Inflate the layout for this fragment
@@ -105,8 +103,9 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         girl_RBtn.setOnCheckedChangeListener(this)
         upload_Btn.setOnClickListener(object :View.OnClickListener{
             override fun onClick(v: View?) {
+                Log.i("pendingResult" , "upload_Btn.setOnClickListener")
                 if(my_bodyfat_txtB.text.isNotEmpty() && my_musclemass_txtB.text.isNotEmpty()){
-                    mListener!!.makePersonalData()
+                   mListener!!.makePersonalData()
                 }else if(goal_height_txtB.text.isEmpty()) {
                     Toast.makeText(this@GoalFragment.context, "신장을 입력하여 주세요", Toast.LENGTH_SHORT).show()
                     goal_height_txtB.setFocusable(true)
@@ -123,7 +122,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
             }
 
         })
-        goal_height_txtB.onFocusChangeListener = object :View.OnFocusChangeListener {
+        goal_height_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener {
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
                 if (hasFocus) {
                     if (man_RBtn.isChecked.not() && girl_RBtn.isChecked.not()) {
@@ -133,7 +132,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                     }
                 }
             }
-        }
+        })
         my_weight_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
                 if(hasFocus){
@@ -244,7 +243,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
     interface OnGoalInteractionListener {
         // TODO: Update argument type and name
         fun OnGoalInteractionListener(uri: Uri)
-        fun makePersonalData(): Job
+        fun makePersonalData()
     }
 
     companion object {

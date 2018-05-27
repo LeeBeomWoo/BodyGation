@@ -430,13 +430,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         mCredential = GoogleAccountCredential.usingOAuth2(
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(ExponentialBackOff())
-        if(GoogleSignIn.getLastSignedInAccount(this) == null){
-            doGoogleSignIn()
-        }else{
-            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
-        }
-        if (savedInstanceState != null)
-            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING)
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_WRITE)
@@ -461,7 +454,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     fitnessOptions)
         }else{
             registerFitnessDataListener()
-        }// Create items
+        }
+        if(GoogleSignIn.getLastSignedInAccount(this) == null){
+            doGoogleSignIn()
+        }else{
+            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
+        }
+        if (savedInstanceState != null)
+            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING)
+        // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
         val item3 = AHBottomNavigationItem(getString(R.string.title_infome), getDrawable(R.drawable.select_formemenu))
@@ -529,6 +530,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private fun buildGoogleSignInClient(): GoogleSignInClient {
         val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()//request email id
+                .requestProfile()
                 .requestScopes(Scope(Scopes.FITNESS_LOCATION_READ))
                 .requestScopes(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
                 .requestScopes(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
@@ -575,7 +577,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
     }
-    override fun makePersonalData() = launch(CommonPool) {
+    override fun makePersonalData(){
+        Log.i("pendingResult", "makePersonalData")
         val cal = Calendar.getInstance()
         val now = Date()
         cal.time = now
@@ -599,7 +602,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 val dataSet = DataSet.create(source)
                 dataSet.add(dataPoint)
                 val response = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).insertData(dataSet)
-                launch(coroutineContext) { Tasks.await(response) }
+                launch(CommonPool) { Tasks.await(response) }
             }
         })
                 .addOnFailureListener(object : OnFailureListener{
@@ -627,7 +630,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 val dataSet = DataSet.create(source)
                 dataSet.add(dataPoint)
                 val response = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).insertData(dataSet)
-                launch(coroutineContext) { Tasks.await(response) }
+                launch(CommonPool) { Tasks.await(response) }
             }
         })
                 .addOnFailureListener(object : OnFailureListener{
@@ -655,7 +658,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 val dataSet = DataSet.create(source)
                 dataSet.add(dataPoint)
                 val response = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).insertData(dataSet)
-                launch(coroutineContext) { Tasks.await(response) }
+                launch(CommonPool) { Tasks.await(response) }
             }
         })
                 .addOnFailureListener(object : OnFailureListener{
@@ -665,6 +668,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
 
                 })
+        if(pendingResult_muscle.isSuccessful && pendingResult_fat.isSuccessful && pendingResult_bmi.isSuccessful){
+            Toast.makeText(this, "전송이 완료되었습니다.", Toast.LENGTH_SHORT).show()
+            bottom_navigation.setCurrentItem(1)
+        }else{
+            Toast.makeText(this, "전송이 완료되지 않았습니다. 오류가 지속 될경우 개발자에게 전달해 주세요.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDataPoint(dataPoint: DataPoint) {

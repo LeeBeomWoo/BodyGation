@@ -169,7 +169,6 @@
                         android:paddingEnd="5dp"
                         android:paddingLeft="3dp"
                         android:text="@string/desweight"
-                        android:textAlignment="viewEnd"
                         android:textColor="@android:color/background_light"
                         android:textSize="12sp" />
 
@@ -183,7 +182,6 @@
                         android:autoText="false"
                         android:ems="10"
                         android:inputType="number"
-                        android:textAlignment="textStart"
                         android:textColor="@android:color/background_light"
                         android:textSize="12sp" />
 
@@ -241,7 +239,6 @@
                             android:paddingEnd="5dp"
                             android:paddingLeft="3dp"
                             android:text="@string/mybmi"
-                            android:textAlignment="viewEnd"
                             android:textColor="@android:color/background_light"
                             android:textSize="12sp" />
 
@@ -257,7 +254,6 @@
                             android:ems="10"
                             android:inputType="number"
                             android:paddingStart="10dp"
-                            android:textAlignment="textStart"
                             android:textColor="@android:color/background_light"
                             android:textSize="12sp" />
 
@@ -278,7 +274,6 @@
                             android:paddingEnd="5dp"
                             android:paddingLeft="3dp"
                             android:text="@string/desbmi"
-                            android:textAlignment="viewEnd"
                             android:textColor="@android:color/background_light"
                             android:textSize="12sp" />
 
@@ -294,7 +289,6 @@
                             android:ems="10"
                             android:inputType="number"
                             android:paddingStart="10dp"
-                            android:textAlignment="textStart"
                             android:textColor="@android:color/background_light"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -369,7 +363,6 @@
                             android:ems="10"
                             android:inputType="none|number"
                             android:paddingStart="30dp"
-                            android:textAlignment="textStart"
                             android:textColor="@android:color/background_light"
                             android:textSize="12sp" />
 
@@ -388,7 +381,6 @@
                             android:layout_gravity="center_vertical"
                             android:layout_weight="2"
                             android:text="@string/mainbodyfat"
-                            android:textAlignment="viewEnd"
                             android:textColor="@android:color/background_light"
                             android:textSize="12sp" />
 
@@ -470,7 +462,6 @@
                                 android:layout_weight="1"
                                 android:padding="1dp"
                                 android:text="@string/mymusclemass"
-                                android:textAlignment="viewEnd"
                                 android:textColor="@android:color/background_light"
                                 android:textSize="12sp" />
 
@@ -485,7 +476,6 @@
                                 android:ems="10"
                                 android:inputType="none|number"
                                 android:padding="1dp"
-                                android:textAlignment="textStart"
                                 android:textColor="@android:color/background_light"
                                 android:textSize="12sp" />
 
@@ -507,7 +497,6 @@
                                 android:paddingEnd="5dp"
                                 android:paddingLeft="3dp"
                                 android:text="@string/desmusclemass"
-                                android:textAlignment="viewEnd"
                                 android:textColor="@android:color/background_light"
                                 android:textSize="12sp" />
 
@@ -522,8 +511,6 @@
                                 android:autoText="false"
                                 android:ems="10"
                                 android:inputType="number"
-                                android:paddingStart="30dp"
-                                android:textAlignment="textStart"
                                 android:textColor="@android:color/background_light"
                                 android:textSize="12sp" />
 
@@ -544,7 +531,6 @@
                                 android:layout_weight="1"
                                 android:padding="1dp"
                                 android:text="@string/weight_musclemass"
-                                android:textAlignment="viewEnd"
                                 android:textColor="@android:color/background_light"
                                 android:textSize="12sp" />
 
@@ -562,7 +548,6 @@
                                 android:inputType="number"
                                 android:padding="1dp"
                                 android:paddingStart="30dp"
-                                android:textAlignment="textStart"
                                 android:textColor="@android:color/background_light"
                                 android:textSize="12sp" />
                         </LinearLayout>

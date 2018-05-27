@@ -1,35 +1,39 @@
 {
   "project_info": {
-    "project_number": "983554172809",
-    "firebase_url": "https://bodygation.firebaseio.com",
-    "project_id": "bodygation",
-    "storage_bucket": "bodygation.appspot.com"
+    "project_number": "669763084628",
+    "firebase_url": "https://bordygation.firebaseio.com",
+    "project_id": "bordygation",
+    "storage_bucket": "bordygation.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:983554172809:android:213de7db9c70db17",
+        "mobilesdk_app_id": "1:669763084628:android:213de7db9c70db17",
         "android_client_info": {
           "package_name": "bodygate.bcns.bodygation"
         }
       },
       "oauth_client": [
         {
-          "client_id": "983554172809-46bfiou1hpbvd94hej3gm5ui9df47qid.apps.googleusercontent.com",
+          "client_id": "669763084628-6u508e0l02lajm30c4ulggpitrb9dofi.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "669763084628-5jkkgdltc64jm7n2iunsdhnibruc3813.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "bodygate.bcns.bodygation",
-            "certificate_hash": "e73490f370962edc13483a3256eb8d1245a9fe85"
+            "certificate_hash": "676d89cf3f0de6a9ca13f4e44fcc451d06927580"
           }
         },
         {
-          "client_id": "983554172809-ad0d2a8oqqlgsgf2ua4d1jjt2n353vd6.apps.googleusercontent.com",
+          "client_id": "669763084628-6u508e0l02lajm30c4ulggpitrb9dofi.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCNtEhkqucWKRHkNFVcNtW3Jf0oMlFRbjE"
+          "current_key": "AIzaSyCYPFWdlydMAZtuoQaj7dmOk4VjQYJDK94"
         }
       ],
       "services": {
@@ -40,7 +44,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "983554172809-ad0d2a8oqqlgsgf2ua4d1jjt2n353vd6.apps.googleusercontent.com",
+              "client_id": "669763084628-6u508e0l02lajm30c4ulggpitrb9dofi.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

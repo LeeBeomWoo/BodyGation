@@ -229,7 +229,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             :View.OnClickListener{
             override fun onClick(v: View?) {
                 Log.i("Button_pre_Btn", current_position.toString() + "\t" +  last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
-                if(current_position >0 && current_position < last_position&& graph.combinedData.dataSetCount >0) {
+                if(current_position >0 && current_position < (last_position +1)&& graph.combinedData.dataSetCount >0) {
                     current_position -= 1
                     cal_lbl.text = display_label.get(current_position)
                     when(section){
@@ -299,6 +299,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             Log.i(TAG, "체중 없음")
                             Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
                         }else {
+                            Log.i(TAG, "체중 있음")
                             if (graph.getData() != null &&
                                     graph.getData().getDataSetCount() > 0) {
                                 graph.data.clearValues()
@@ -331,6 +332,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     Log.i(TAG, "걷기 없음")
                     Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
                 }else {
+                    Log.i(TAG, "걷기 있음")
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
@@ -363,6 +365,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     Log.i(TAG, "칼로리 없음")
                     Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
                 } else {
+                    Log.i(TAG, "칼로리 있음")
                     if (graph.data != null &&
                             graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
@@ -398,6 +401,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     Log.i(TAG, "체지방비율 없음")
                     Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
+                    Log.i(TAG, "체지방비율 있음")
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
@@ -430,6 +434,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     Log.i(TAG, "골격근 없음")
                     Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
+                    Log.i(TAG, "골격근 있음")
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
@@ -462,6 +467,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     Log.i(TAG, "BMI 없음")
                     Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
+                    Log.i(TAG, "BMI 있음")
                     if (graph.getData() != null &&
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
