@@ -433,12 +433,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         mCredential = GoogleAccountCredential.usingOAuth2(
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(ExponentialBackOff())
-        fitnessConectFun()
         if(GoogleSignIn.getLastSignedInAccount(this) == null){
             doGoogleSignIn()
         }else{
             getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
         }
+        fitnessConectFun()
         if (savedInstanceState != null)
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING)
         // Create items
@@ -507,20 +507,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
     fun fitnessConectFun(){
         val fitnessOptions = FitnessOptions.builder()
-                .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
-                .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_WRITE)
-                .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_WRITE)
-                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
-                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
-                .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
-                .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.TYPE_BODY_FAT_PERCENTAGE, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.TYPE_BASAL_METABOLIC_RATE, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
+                .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
                 .build()
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
@@ -561,14 +557,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .requestProfile()
                 .requestIdToken(getString(R.string.server_client_id))
                 //.requestServerAuthCode(getString(R.string.server_client_id))
-                .requestScopes(Scope(Scopes.FITNESS_LOCATION_READ))
                 .requestScopes(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .requestScopes(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
-                .requestScopes(Scope(Scopes.FITNESS_BODY_READ_WRITE))
                 .requestScopes(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
                 .requestScopes(Scope(Scopes.FITNESS_BODY_READ_WRITE))
                 .requestScopes(Scope(SCOPES))
                 .build()
+        mGoogleSignInClient = GoogleSignIn.getClient(this, signInOptions)
         return GoogleSignIn.getClient(this, signInOptions)
     }
     @SuppressLint("RestrictedApi")
@@ -602,6 +596,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 Log.i(TAG, "RC_SIGN_IN")
                 if (resultCode == RESULT_OK){
                     val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                    fitnessConectFun()
                     handleSignInResult(task)
                     registerFitnessDataListener()
                 }
@@ -636,16 +631,19 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
     }
-    override fun makePersonalData(){
+    override fun makePersonalData()= runBlocking{
         Log.i("pendingResult", "makePersonalData")
         val cal = Calendar.getInstance()
         val now = Date()
         cal.time = now
         val nowTime = cal.timeInMillis
         if(GoogleSignIn.getLastSignedInAccount(this@MainActivity) == null){
-
+            doGoogleSignIn()
         }else {
             val pendingResult_muscle = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).readDataType("bodygate.bcns.bodygation.muscle")
+            val pendingResult_fat = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).readDataType("bodygate.bcns.bodygation.fat")
+            val pendingResult_bmi = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).readDataType("bodygate.bcns.bodygation.bmi")
+            launch(CommonPool) {
             pendingResult_muscle
                     .addOnSuccessListener(object : OnSuccessListener<DataType> {
                         override fun onSuccess(p0: DataType) {
@@ -653,7 +651,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             val source = DataSource.Builder()
                                     .setName("bodygate.bcns.bodygation.muscle")
                                     .setDataType(p0)
-                                    .setAppPackageName(this@MainActivity.context)
+                                    .setAppPackageName(this@MainActivity.context.packageName)
                                     .setType(DataSource.TYPE_DERIVED)
                                     .build()
                             val dataPoint = DataPoint.create(source)
@@ -674,7 +672,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         }
 
                     })
-            val pendingResult_fat = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).readDataType("bodygate.bcns.bodygation.fat")
             pendingResult_fat
                     .addOnSuccessListener(object : OnSuccessListener<DataType> {
                         override fun onSuccess(p0: DataType) {
@@ -682,7 +679,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             val source = DataSource.Builder()
                                     .setName("bodygate.bcns.bodygation.fat")
                                     .setDataType(p0)
-                                    .setAppPackageName(this@MainActivity.context)
+                                    .setAppPackageName(this@MainActivity.context.packageName)
                                     .setType(DataSource.TYPE_DERIVED)
                                     .build()
                             val dataPoint = DataPoint.create(source)
@@ -703,7 +700,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         }
 
                     })
-            val pendingResult_bmi = Fitness.getConfigClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!).readDataType("bodygate.bcns.bodygation.bmi")
             pendingResult_bmi
                     .addOnSuccessListener(object : OnSuccessListener<DataType> {
                         override fun onSuccess(p0: DataType) {
@@ -711,7 +707,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             val source = DataSource.Builder()
                                     .setName("bodygate.bcns.bodygation.bmi")
                                     .setDataType(p0)
-                                    .setAppPackageName(this@MainActivity.context)
+                                    .setAppPackageName(this@MainActivity.context.packageName)
                                     .setType(DataSource.TYPE_DERIVED)
                                     .build()
                             val dataPoint = DataPoint.create(source)
@@ -732,11 +728,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         }
 
                     })
+                Tasks.await(pendingResult_muscle)
+                Tasks.await(pendingResult_fat)
+                Tasks.await(pendingResult_bmi)
+            }.join()
             if (pendingResult_muscle.isSuccessful && pendingResult_fat.isSuccessful && pendingResult_bmi.isSuccessful) {
-                Toast.makeText(this, "전송이 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "전송이 완료되었습니다.", Toast.LENGTH_SHORT).show()
                 bottom_navigation.setCurrentItem(1)
             } else {
-                Toast.makeText(this, "전송이 완료되지 않았습니다. 오류가 지속 될경우 개발자에게 전달해 주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "전송이 완료되지 않았습니다. 오류가 지속 될경우 개발자에게 전달해 주세요.", Toast.LENGTH_SHORT).show()
                 doSignInSignOut()
             }
         }
@@ -774,16 +774,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                         override fun onSuccess(p0: DataReadResponse?) {
                             Log.i(TAG, "bmiResponse_onSuccess")
+                            bmiResponse = p0
                         }
 
                     })
                     .addOnFailureListener(object :OnFailureListener{
                         override fun onFailure(p0: Exception) {
-                            Log.i(TAG, p0.message.toString())
-                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, "bmiResponse :" + p0.message.toString())
                         }
                     })
-                bmiResponse = Tasks.await(response_second)
+                Tasks.await(response_second)
             }
         }.join()
         launch(CommonPool) {
@@ -797,16 +797,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                         override fun onSuccess(p0: DataReadResponse?) {
                             Log.i(TAG, "muscleResponse_onSuccess")
+                            muscleResponse = p0
                         }
 
                     })
                     .addOnFailureListener(object :OnFailureListener{
                         override fun onFailure(p0: Exception) {
-                            Log.i(TAG, p0.message.toString())
-                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, "muscleResponse :" + p0.message.toString())
                         }
                     })
-            muscleResponse = Tasks.await(response_second)}
+            Tasks.await(response_second)}
         }.join()
         launch(CommonPool) {
             val taype = pendingResult_fat.await().dataType
@@ -819,16 +819,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                         override fun onSuccess(p0: DataReadResponse?) {
                             Log.i(TAG, "fatResponse_onSuccess")
+                            fatResponse = p0
                         }
 
                     })
                     .addOnFailureListener(object :OnFailureListener{
                         override fun onFailure(p0: Exception) {
-                            Log.i(TAG, p0.message.toString())
-                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, "fatResponse :" + p0.message.toString())
                         }
                     })
-            fatResponse = Tasks.await(response_second)
+             Tasks.await(response_second)
             }
         }.join()
         launch(CommonPool) {
@@ -839,17 +839,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             .build())
                     .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                         override fun onSuccess(p0: DataReadResponse?) {
-                            Log.i(TAG, "bmiResponse_onSuccess")
+                            Log.i(TAG, "readResponse_onSuccess")
+                            readResponse = p0
                         }
 
                     })
                     .addOnFailureListener(object :OnFailureListener{
                         override fun onFailure(p0: Exception) {
-                            Log.i(TAG, p0.message.toString())
-                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, "readResponse :" + p0.message.toString())
                         }
                     })
-            readResponse = Tasks.await(response)
+            Tasks.await(response)
         }.join()
         launch(CommonPool) {
             val response_ds = DataReadRequest.Builder()
@@ -861,17 +861,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .readData(response_ds)
                     .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                         override fun onSuccess(p0: DataReadResponse?) {
-                            Log.i(TAG, "bmiResponse_onSuccess")
+                            Log.i(TAG, "walkResponse_onSuccess")
+                            walkResponse = p0
                         }
 
                     })
                     .addOnFailureListener(object :OnFailureListener{
                         override fun onFailure(p0: Exception) {
-                            Log.i(TAG, p0.message.toString())
-                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, "walkResponse :" + p0.message.toString())
                         }
                     })
-            walkResponse = Tasks.await(sss)
+            Tasks.await(sss)
         }.join()
         launch(CommonPool) {
             val response_dc = DataReadRequest.Builder()
@@ -883,17 +883,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .readData(response_dc)
                     .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                         override fun onSuccess(p0: DataReadResponse?) {
-                            Log.i(TAG, "bmiResponse_onSuccess")
+                            Log.i(TAG, "kcalResponse_onSuccess")
+                            kcalResponse = p0
                         }
 
                     })
                     .addOnFailureListener(object :OnFailureListener{
                         override fun onFailure(p0: Exception) {
-                            Log.i(TAG, p0.message.toString())
-                            Log.i(TAG, p0.message.toString())
+                            Log.i(TAG, "kcalResponse :" + p0.message.toString())
                         }
                     })
-            kcalResponse = Tasks.await(ccc) }.join()
+            Tasks.await(ccc) }.join()
     }
 
     /**
