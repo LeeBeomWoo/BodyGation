@@ -125,7 +125,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         goal_height_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener {
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
                 if (hasFocus) {
-                    if (man_RBtn.isChecked.not() && girl_RBtn.isChecked.not()) {
+                    if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
                         Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
                         goal_height_txtB.setFocusable(false)
                         goal_height_txtB.text.clear()

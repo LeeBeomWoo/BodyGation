@@ -1,373 +1,377 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<cn.gavinliu.android.lib.scale.ScaleLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
-    tools:context="bodygate.bcns.bodygation.navigationitem.FollowFragment"
-    tools:layout_behavior="@string/appbar_scrolling_view_behavior">
+    android:orientation="vertical"
+    tools:context="bodygate.bcns.bodygation.navigationitem.FollowFragment">
 
-    <LinearLayout
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/exercise_lbl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:background="@drawable/whitcircle"
-            android:padding="5dp"
-            android:text="@string/excercise_category"
-            android:textAlignment="center"
-            android:textColor="@color/common_google_signin_btn_text_dark_default"
-            android:textSize="30sp"
-            android:textStyle="bold" />
+        android:layout_height="match_parent"
+        android:background="@drawable/background"
+        tools:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/backline"
-            android:baselineAligned="false"
-            android:divider="@drawable/crossline"
-            android:orientation="horizontal"
-            android:padding="5dp"
-            android:showDividers="middle"
-            android:visibility="visible">
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/exercise_lbl"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/stretching_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="5dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_stretching_selector" />
-
-                <TextView
-                    android:id="@+id/textView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="5dp"
-                    android:text="@string/stretching"
-                    android:textAlignment="center" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/muscle_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="5dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_muscle_selector" />
-
-                <TextView
-                    android:id="@+id/textView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="5dp"
-                    android:text="@string/weight_excercise"
-                    android:textAlignment="center" />
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/section_lbl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:background="@drawable/whitcircle"
-            android:padding="5dp"
-            android:text="@string/section"
-            android:textAlignment="center"
-            android:textColor="@color/common_google_signin_btn_text_dark_default"
-            android:textSize="30sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/backline"
-            android:orientation="vertical"
-            android:padding="5dp">
+                android:layout_margin="10dp"
+                android:background="@drawable/whitcircle"
+                android:padding="5dp"
+                android:text="@string/excercise_category"
+                android:textAlignment="center"
+                android:textColor="@color/common_google_signin_btn_text_dark_default"
+                android:textSize="30sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="2dp">
-
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/shoulder_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="20dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_shoulder_selector" />
-
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/upback_body_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="20dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_body_selector" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:layout_marginTop="10dp"
-                android:gravity="center"
+                android:background="@drawable/backline"
+                android:baselineAligned="false"
+                android:divider="@drawable/crossline"
                 android:orientation="horizontal"
-                android:padding="2dp">
+                android:padding="5dp"
+                android:showDividers="middle"
+                android:visibility="visible">
 
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/upperarm_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_upperarm_selector" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/upfront_abs_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_abs_selector" />
 
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/chest_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_chest_selector" />
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/stretching_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="5dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_stretching_selector" />
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="5dp"
+                        android:text="@string/stretching"
+                        android:textAlignment="center" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/muscle_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="5dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_muscle_selector" />
+
+                    <TextView
+                        android:id="@+id/textView2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="5dp"
+                        android:text="@string/weight_excercise"
+                        android:textAlignment="center" />
+                </LinearLayout>
 
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/section_lbl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:background="@drawable/whitcircle"
+                android:padding="5dp"
+                android:text="@string/section"
+                android:textAlignment="center"
+                android:textColor="@color/common_google_signin_btn_text_dark_default"
+                android:textSize="30sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/backline"
+                android:orientation="vertical"
+                android:padding="5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:padding="2dp">
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/shoulder_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="20dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_shoulder_selector" />
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/upback_body_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="20dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_body_selector" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:padding="2dp">
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/upperarm_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_upperarm_selector" />
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/upfront_abs_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_abs_selector" />
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/chest_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_chest_selector" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:padding="2dp">
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/upleg_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_upperleg_selector" />
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/lowerleg_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_lowerleg_selector" />
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/hip_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_hip_selector" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/place_lbl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:background="@drawable/whitcircle"
+                android:padding="5dp"
+                android:text="@string/place"
+                android:textAlignment="center"
+                android:textColor="@color/common_google_signin_btn_text_dark_default"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/backline"
+                android:divider="@drawable/crossline"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:padding="2dp">
+                android:showDividers="middle">
 
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/upleg_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_upperleg_selector" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp">
 
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/lowerleg_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_lowerleg_selector" />
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/home_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_home_selector" />
 
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/hip_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_hip_selector" />
+                    <TextView
+                        android:id="@+id/textView3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/house"
+                        android:textAlignment="center" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp">
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/car_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_car_selector" />
+
+                    <TextView
+                        android:id="@+id/textView4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/car"
+                        android:textAlignment="center" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:orientation="vertical"
+                    android:paddingBottom="5dp"
+                    android:paddingTop="5dp">
+
+                    <bodygate.bcns.bodygation.support.CheckableImageButton
+                        android:id="@+id/work_img"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@color/nocolor"
+                        android:checkable="true"
+                        android:focusable="auto"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/main_work_selector" />
+
+                    <TextView
+                        android:id="@+id/textView5"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/office"
+                        android:textAlignment="center" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
+            <Button
+                android:id="@+id/search_Btn"
+                style="@style/Widget.AppCompat.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:background="@color/colorBottomNavigationActiveColored"
+                android:drawableStart="@drawable/ic_search_black_24dp"
+                android:paddingStart="10dp"
+                android:text="@string/search"
+                android:textAlignment="center"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/place_lbl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:background="@drawable/whitcircle"
-            android:padding="5dp"
-            android:text="@string/place"
-            android:textAlignment="center"
-            android:textColor="@color/common_google_signin_btn_text_dark_default"
-            android:textSize="30sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:background="@drawable/backline"
-            android:divider="@drawable/crossline"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:showDividers="middle">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:orientation="vertical"
-                android:paddingBottom="5dp"
-                android:paddingTop="5dp">
-
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/home_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_home_selector" />
-
-                <TextView
-                    android:id="@+id/textView3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/house"
-                    android:textAlignment="center" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:orientation="vertical"
-                android:paddingBottom="5dp"
-                android:paddingTop="5dp">
-
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/car_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_car_selector" />
-
-                <TextView
-                    android:id="@+id/textView4"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/car"
-                    android:textAlignment="center" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:orientation="vertical"
-                android:paddingBottom="5dp"
-                android:paddingTop="5dp">
-
-                <bodygate.bcns.bodygation.support.CheckableImageButton
-                    android:id="@+id/work_img"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:background="@color/nocolor"
-                    android:checkable="true"
-                    android:focusable="auto"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/main_work_selector" />
-
-                <TextView
-                    android:id="@+id/textView5"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/office"
-                    android:textAlignment="center" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/search_Btn"
-            style="@style/Widget.AppCompat.Button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@color/colorBottomNavigationActiveColored"
-            android:drawableStart="@drawable/ic_search_black_24dp"
-            android:paddingStart="10dp"
-            android:text="@string/search"
-            android:textAlignment="center"
-            android:textColor="@color/colorPrimary"
-            android:textSize="18sp" />
-
-
-    </LinearLayout>
-</android.support.v4.widget.NestedScrollView>
+    </android.support.v4.widget.NestedScrollView>
+</cn.gavinliu.android.lib.scale.ScaleLinearLayout>

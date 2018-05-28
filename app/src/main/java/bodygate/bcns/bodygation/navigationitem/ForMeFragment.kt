@@ -12,17 +12,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import bodygate.bcns.bodygation.support.CheckableImageButton
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.support.CheckableImageButton
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.CombinedData
 import com.github.mikephil.charting.formatter.IAxisValueFormatter
 import com.google.android.gms.fitness.data.Bucket
 import com.google.android.gms.fitness.data.DataSet
-import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.result.DataReadResponse
 import com.squareup.picasso.Picasso
@@ -30,7 +32,6 @@ import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -293,9 +294,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
 
 
     @SuppressLint("SetTextI18n")
-    fun graphSet(p:Int)=runBlocking {
-        horizonValue.clear()
-        value.clear()
+    fun graphSet(p:Int)= launch(UI) {
         when(p){
             0->{//체중
                 section = 1
@@ -310,11 +309,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             }
                             if (weight_series.isEmpty()) {
                                 Log.i(TAG, "weight_series.isEmpty()")
-                                    Log.i(TAG, "weight_series.isEmpty()_launch")
-                                  launch (CommonPool){ printData(mListener!!.readResponse!!, p) }.join()
+                                launch(CommonPool) {
+                                      Log.i(TAG, "weight_series.isEmpty()_launch")
+                                      printData(mListener!!.readResponse!!)}.join()
+                                Log.i(TAG, "weight_series.isEmpty()_launch_end")
+                                launch(CommonPool) {
+                                    weight_series = series_dataSet()
+                                    weight_Label = label_dataSet() }.join()
+                            }else{
+                                last_position = weight_series.size-1
                             }
-                            weight_series = series_dataSet()
-                            weight_Label = label_dataSet()
                             val set1 = BarDataSet(weight_series, getString(R.string.weight))
                             set1.setColors(Color.rgb(65, 192, 193))
                             val barData = BarData(set1)
@@ -343,11 +347,15 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         Log.i(TAG, "walk_series.isEmpty()")
                         launch(CommonPool) {
                             Log.i(TAG, "walk_series.isEmpty()_launch")
-                            printData(mListener!!.walkResponse!!, p)
+                            printData(mListener!!.walkResponse!!)
                         }.join()
+                        Log.i(TAG, "walk_series.isEmpty()_launch_end")
+                        launch(CommonPool) {
+                            walk_series = series_dataSet()
+                            walk_Label = label_dataSet() }.join()
+                    }else{
+                        last_position = walk_series.size-1
                     }
-                    walk_series = series_dataSet()
-                    walk_Label = label_dataSet()
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -376,11 +384,15 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             Log.i(TAG, "kcalResponse.isEmpty()")
                             launch(CommonPool) {
                                 Log.i(TAG, "kcalResponse.isEmpty()_launch")
-                                printData(mListener!!.kcalResponse!!, p)
+                                printData(mListener!!.kcalResponse!!)
                             }.join()
+                            Log.i(TAG, "kcalResponse.isEmpty()_launch_end")
+                            launch(CommonPool) {
+                                kcal_series = series_dataSet()
+                                kcal_Label = label_dataSet() }.join()
+                        }else{
+                            last_position = kcal_series.size-1
                         }
-                            kcal_series = series_dataSet()
-                            kcal_Label = label_dataSet()
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -409,10 +421,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             Log.i(TAG, "fatResponse.isEmpty()")
                             launch(CommonPool) {
                                 Log.i(TAG, "fatResponse.isEmpty()_launch")
-                                printData(mListener!!.fatResponse!!, p) }.join()
+                                printData(mListener!!.fatResponse!!) }.join()
+                            Log.i(TAG, "fatResponse.isEmpty()_launch_end")
+                            launch(CommonPool) {
+                                fat_series = series_dataSet()
+                                fat_Label = label_dataSet() }.join()
+                        }else{
+                            last_position = fat_series.size-1
                         }
-                            fat_series = series_dataSet()
-                            fat_Label = label_dataSet()
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -439,11 +455,15 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     }
                     if(muscle_series.isEmpty()) {
                         launch {
-                            printData(mListener!!.muscleResponse!!, p)
+                            printData(mListener!!.muscleResponse!!)
                         }.join()
+                        Log.i(TAG, "muscle_series.isEmpty()_launch_end")
+                        launch(CommonPool) {
+                            muscle_series = series_dataSet()
+                            muscle_Label = label_dataSet() }.join()
+                    }else{
+                        last_position = muscle_series.size-1
                     }
-                        muscle_series = series_dataSet()
-                        muscle_Label = label_dataSet()
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -470,12 +490,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     }
                         if(bmi_series.isEmpty()) {
                             launch {
-                                printData(mListener!!.bmiResponse!!, p)
+                                printData(mListener!!.bmiResponse!!)
                             }.join()
+                            launch(CommonPool) {
+                                bmi_series = series_dataSet()
+                                bmi_Label = label_dataSet() }.join()
+                        }else{
+                            last_position = bmi_series.size-1
                         }
-
-                        bmi_series = series_dataSet()
-                        bmi_Label = label_dataSet()
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -554,7 +576,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     }
 
     @SuppressLint("SimpleDateFormat")
-    suspend fun printData(dataReadResult: DataReadResponse, i:Int) {
+    suspend fun printData(dataReadResult: DataReadResponse) {
         launch(CommonPool) {
             Log.i(TAG, "printData")
             Log.i(TAG, "printData_" + dataReadResult.getBuckets().size.toString())
@@ -562,93 +584,55 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             val label = SimpleDateFormat("MM/dd")
             var ia = 0
             if (dataReadResult.getBuckets().size > 0) {
-                Log.i("printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
-                for (bucket: Bucket in dataReadResult.getBuckets()) {
-                    Log.i("printData", "Bucket point:");
-                    Log.i("printData", "bucket : " + bucket.toString())
-                    Log.i("printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
-                    Log.i("printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                    Log.i("printData", "\tdataSets: " + bucket.dataSets.toString())
-                    printBucket(bucket, i)
-                    ia += 1
-                    Log.i("printData", "\tia : " + ia.toString())
+                Log.i(TAG, "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
+                for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.getBuckets()) {
+                    for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
+                        Log.i(TAG, "dumpDataSet")
+                        Log.i(TAG, dataset.toString())
+                    Log.i(TAG, "Bucket point:");
+                    Log.i(TAG, "bucket : " + bucket.toString())
+                    Log.i(TAG, "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
+                    Log.i(TAG, "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                    Log.i(TAG, "\tdataSets: " + bucket.dataSets.toString())
+                        dumpDataSet(dataset)
+                    }
+                    Log.i(TAG, "\tia : " + ia.toString())
                 }
-                Log.i("printData", "\thorizonValue : " + horizonValue.size.toString())
-                Log.i("printData", "\tvalue : " + value.size.toString())
+                Log.i(TAG, "\thorizonValue : " + horizonValue.size.toString())
+                Log.i(TAG, "\tvalue : " + value.size.toString())
             } else if (dataReadResult.getDataSets().size > 0) {
-                Log.i("printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
-                for (dataSet: DataSet in dataReadResult.getDataSets()) {
+                Log.i(TAG, "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
+                for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.getDataSets()) {
                     dumpDataSet(dataSet)
                     ia += 1
-                    Log.i("printData", "\tia : " + ia.toString())
+                    Log.i(TAG, "\tia : " + ia.toString())
                 }
             }
         }.join()
     }
 
-   fun printBucket(bucket:Bucket, i: Int) {
-       Log.i(TAG, "printBucket")
-        Log.i("printData", "printBucket")
-        when(i){
-            1 -> {//걷기
-                Log.i(TAG, "printBucket_" + "set")
-                for(dataset: DataSet in bucket.dataSets) {
-                    for (dp: com.google.android.gms.fitness.data.DataPoint in dataset.dataPoints) {
-                        Log.i(TAG, "printBucket_" + "dataPoints")
-                        if (bucket.getEndTime(TimeUnit.MILLISECONDS) > 0) {
-                            Log.i(TAG, "printBucket_" + "getEndTime")
-                            //  if (dp.getValue(Field.FIELD_STEPS).asInt() > 10) {
-                            for (field: Field in dp.getDataType().getFields()) {
-                                Log.i(TAG, "printBucket_" + "getDataType")
-                                value.add(dp.getValue(field).toString().toDouble())
-                                horizonValue.add(Date(dp.getEndTime(TimeUnit.MILLISECONDS)))
-                                Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
-                            }
-                            //  value.add(dp.getValue(Field.FIELD_STEPS).asFloat().toDouble())
-                            Log.i(TAG, "걷기: " + Date(bucket.getEndTime(TimeUnit.MILLISECONDS)).toString() + dp.getValue(Field.FIELD_STEPS).asInt().toDouble().toString())
-                            // }
-                        }
-                    }
-                }
-            }
-            2 -> {//칼로리
-                for(dataset: DataSet in bucket.dataSets) {
-                    Log.i(TAG, "printBucket_" + "set")
-                    for (dp: com.google.android.gms.fitness.data.DataPoint in dataset.dataPoints) {
-                        Log.i(TAG, "printBucket_" + "dataPoints")
-                        for (field: Field in dp.getDataType().getFields()) {
-                            Log.i(TAG, "printBucket_" + "getDataType")
-                            value.add(dp.getValue(field).toString().toDouble())
-                            horizonValue.add(Date(dp.getEndTime(TimeUnit.MILLISECONDS)))
-                            Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
-                        }
-                        //  value.add(dp.getValue(Field.FIELD_CALORIES).asFloat().toDouble())
-                        Log.i(TAG, "칼로리: " + Date(bucket.getEndTime(TimeUnit.MILLISECONDS)).toString() + dp.getValue(Field.FIELD_STEPS).asInt().toDouble().toString())
-                    }
-                }
-            }
-        }
-    }
-
     @SuppressLint("SimpleDateFormat")
-    private fun dumpDataSet(dataSet:DataSet) {
-        Log.i(TAG, "dumpDataSet")
-        Log.i(TAG, dataSet.toString())
-        var ia = 0
-        for ( dp : com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
-            Log.i(TAG, "dumpDataSet_" + "dataSet")
-            if(dp.getValue(dp.getDataType().fields.get(0)).toString().toDouble() > 0.5) {
-                Log.i(TAG, "dumpDataSet_" + "fields")
-                horizonValue.add(Date(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                for (field : Field in dp.getDataType().getFields()) {
-                    Log.i(TAG, "dumpDataSet_" + "getDataType")
+    fun dumpDataSet(dataSet:DataSet)= launch {
+             val label = SimpleDateFormat("MM/dd")
+             var ia = 0
+        horizonValue.clear()
+        value.clear()
+            for ( dp : com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints)
+            {
+                Log.i(TAG, "Data point:")
+                Log.i(TAG, "\tType: " + dp.dataType.name)
+                Log.i(TAG, "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
+                Log.i(TAG, "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                for (field:com.google.android.gms.fitness.data.Field in dp.dataType.fields)
+                {
+                    Log.i(TAG, "\tField: " + field.name + " Value: " + dp.getValue(field))
                     value.add(dp.getValue(field).toString().toDouble())
+                    if(dp.getValue(field).toString().toDouble() > 0.0){
+                        horizonValue.add(Date(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                    }
                     ia += 1
-                    Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
                 }
-                Log.i(TAG, "dumpDataSet: " + Date(dp.getTimestamp(TimeUnit.MILLISECONDS)).toString() + dp.getValue(dp.getDataType().fields.get(0)).asInt().toDouble().toString())
             }
-        }
     }
 
 
