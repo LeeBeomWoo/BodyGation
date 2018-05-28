@@ -173,6 +173,7 @@
     <string name="fitheghit">아쉽게도 키는 목표를 잡을 수가 없네요</string>
     <string name="server_client_id">669763084628-5jkkgdltc64jm7n2iunsdhnibruc3813.apps.googleusercontent.com</string>
     <string name="API_key">AIzaSyCtYgMR9n4Es0u5sLqGGuasDcMO_P0qhV0</string>
+    <string name="Server_API_key">AIzaSyD-GHRyRHTF2ijQ_x51h1yeTYAf7X1AZYQ</string>
     <string name="default_sign_in_button">구글 계정과 연동 합니다.</string>
     <string name="custom_sign_in_button">다른 구글 계정으로 연동합니다.</string>
     <string name="sign_in">로그인</string>

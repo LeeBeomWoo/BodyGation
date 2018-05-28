@@ -167,11 +167,9 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                         Toast.makeText(this@GoalFragment.context, "신장을 입력하여 주세요", Toast.LENGTH_SHORT).show()
                         my_bmi_txtB.setFocusable(false)
                         my_bmi_txtB.text.clear()
-                    }else if (my_weight_txtB.text.isNotEmpty()) {
-                        if(goal_height_txtB.text.isNotEmpty()) {
+                    }else if (my_weight_txtB.text.isNotEmpty() &&goal_height_txtB.text.isNotEmpty()) {
                             my_bmi_txtB.setText((Math.round(BMICal(goal_height_txtB.text.toString().toDouble() * 0.01, my_weight_txtB.text.toString().toDouble()) * 100) * 0.01).toString())
                             goal_weight_musclemass_txtB.setText((Math.round(weight_muscleCal(my_weight_txtB.text.toString().toDouble()) * 100) * 0.01).toString())
-                        }
                     }
                 }
             }

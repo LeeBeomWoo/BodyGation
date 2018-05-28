@@ -253,8 +253,9 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         next_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
-                Log.i("Button_next_Btn", current_position.toString() + "\t" +  last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
+                Log.i("Button_next_Btn", "onClick")
                 if(current_position >0 && current_position < last_position&& graph.combinedData.dataSetCount >0) {
+                    Log.i("Button_next_Btn", current_position.toString() + "\t" +  last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
                     current_position += 1
                     cal_lbl.text = display_label.get(current_position)
                     when(section){
@@ -304,13 +305,13 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                                     graph.getData().getDataSetCount() > 0) {
                                 graph.data.clearValues()
                             }
+                            launch(UI) {
                             if(weight_series.isEmpty()){
-                                val job = launch {
+                                launch {
                                     printData(mListener!!.readResponse!!, p)
-                                }
-                                job.join()
-                                weight_series = series_dataSet()
-                                weight_Label = label_dataSet()
+                                }.join()
+                                    weight_series = series_dataSet()
+                                    weight_Label = label_dataSet()
                             }
                             val set1 = BarDataSet(weight_series, getString(R.string.weight))
                             set1.setColors(Color.rgb(65, 192, 193))
@@ -321,7 +322,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             val data = CombinedData()
                             data.setData(barData)
                             graph.setData(data)
-                            launch(UI) {
                                 graph.data.notifyDataChanged()
                                 graph.notifyDataSetChanged() }.join()
                         }
@@ -337,13 +337,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
+                    launch(UI) {
                     if(walk_series.isEmpty()) {
-                        val job = launch {
+                        launch {
                             printData(mListener!!.walkResponse!!, p)
-                        }
-                        job.join()
-                        walk_series = series_dataSet()
-                        walk_Label = label_dataSet()
+                        }.join()
+                            walk_series = series_dataSet()
+                            walk_Label = label_dataSet()
+
                     }
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
@@ -354,7 +355,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    launch(UI) {
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged() }.join()
                 }
@@ -370,17 +370,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
-                    if(kcal_series.isEmpty()) {
-                        val job = launch {
-                            printData(mListener!!.kcalResponse!!, p)
-                        }
-                        job.join()
-                        val job_third = launch {
+                    launch(UI) {
+                        if(kcal_series.isEmpty()) {
+                            launch {
+                                printData(mListener!!.kcalResponse!!, p)
+                            }.join()
                             kcal_series = series_dataSet()
                             kcal_Label = label_dataSet()
                         }
-                        job_third.join()
-                    }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -390,7 +387,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    launch(UI) {
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged() }.join()
                 }
@@ -406,14 +402,13 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
-                    if (fat_series.isEmpty()) {
-                        val job = launch {
-                            printData(mListener!!.fatResponse!!, p)
+                    launch(UI) {
+                        if (fat_series.isEmpty()) {
+                            launch {
+                                printData(mListener!!.fatResponse!!, p) }.join()
+                            fat_series = series_dataSet()
+                            fat_Label = label_dataSet()
                         }
-                        job.join()
-                        fat_series = series_dataSet()
-                        fat_Label = label_dataSet()
-                    }
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -423,7 +418,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    launch(UI) {
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged() }.join()
                 }
@@ -439,13 +433,13 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
+                    launch(UI) {
                     if(muscle_series.isEmpty()) {
-                        val job = launch {
+                        launch {
                             printData(mListener!!.muscleResponse!!, p)
-                        }
-                        job.join()
-                        muscle_series = series_dataSet()
-                        muscle_Label = label_dataSet()
+                        }.join()
+                            muscle_series = series_dataSet()
+                            muscle_Label = label_dataSet()
                     }
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
@@ -456,7 +450,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    launch(UI) {
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged() }.join()
                 }
@@ -472,14 +465,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
-                    if(bmi_series.isEmpty()) {
-                        val job = launch {
-                            printData(mListener!!.bmiResponse!!, p)
+                    launch(UI) {
+                        if(bmi_series.isEmpty()) {
+                            launch {
+                                printData(mListener!!.bmiResponse!!, p)
+                            }.join()
+                            bmi_series = series_dataSet()
+                            bmi_Label = label_dataSet()
                         }
-                        job.join()
-                        bmi_series = series_dataSet()
-                        bmi_Label = label_dataSet()
-                    }
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -489,14 +482,12 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     val data = CombinedData()
                     data.setData(barData)
                     graph.setData(data)
-                    launch(UI) {
                         graph.data.notifyDataChanged()
                         graph.notifyDataSetChanged() }.join()
                 }
             }
         }
         if(last_position>0) {
-            launch(UI) {
             graph.invalidate()
             current_position = last_position
             cal_lbl.text = display_label.get(current_position)
@@ -520,33 +511,38 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     main_lbl.text = display_series.get(current_position) + "걸음"
                 }
             }
-            }.join()
         }
     }
 
 
    fun series_dataSet():MutableList<BarEntry>{
+       Log.i(TAG, "series_dataSet")
         val series: MutableList<BarEntry> = ArrayList()
         val x = value.size-1
        display_series.clear()
+       Log.i(TAG, display_series.size.toString())
         for (a: Int in 0..x) {
             //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
             series.add(a, BarEntry(a.toFloat(), value.get(a).toFloat()))
             display_series.add("%.2f".format(value.get(a)))
         }
+       Log.i(TAG, display_series.size.toString())
         return series
     }
 
     @SuppressLint("SimpleDateFormat")
     fun label_dataSet():MutableList<String> {
+        Log.i(TAG, "label_dataSet")
         val label = SimpleDateFormat("MM/dd")
         val series: MutableList<String> = ArrayList()
         last_position = horizonValue.size - 1
         display_label.clear()
+        Log.i(TAG, display_label.size.toString())
         for (a: Int in 0..last_position) {
             series.add(a, label.format(horizonValue[a]))
             display_label.add(label.format(horizonValue[a]))
         }
+        Log.i(TAG, display_label.size.toString())
         return series
     }
 
@@ -611,7 +607,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
 
     @SuppressLint("SimpleDateFormat")
     private fun dumpDataSet(dataSet:DataSet) {
-        val label = SimpleDateFormat("MM/dd")
         var ia = 0
 
         for ( dp : com.google.android.gms.fitness.data.DataPoint in dataSet.getDataPoints()) {
