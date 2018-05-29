@@ -7,9 +7,7 @@
 
     <uses-permission android:name="android.permission.FITNESS_ACTIVITY_READ_WRITE"/>
     <uses-permission android:name="android.permission.FITNESS_BODY_READ_WRITE"/>
-    <uses-permission android:name="android.permission.FITNESS_LOCATION_READ_WRITE"/>
     <uses-permission android:name="android.permission.FITNESS_NUTRITION_READ_WRITE"/>
-    <uses-permission android:name="android.permission.FITNESS_BODY_READ_WRITE"/>
 
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>

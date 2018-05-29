@@ -50,8 +50,6 @@ import kotlin.collections.ArrayList
 class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     private var mParam1: String? = null
     private var mListener: OnForMeInteraction? = null
-    val value:MutableList<Double> =  ArrayList()
-    val horizonValue:MutableList<Date> =  ArrayList()
     var weight_Label:MutableList<String> =  ArrayList()
     var kcal_Label:MutableList<String> =  ArrayList()
     var walk_Label:MutableList<String> =  ArrayList()
@@ -62,14 +60,15 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     var last_position = 0
     var current_position = 0
     var section = 0
-    var weight_series: MutableList<BarEntry> = ArrayList()
-    var muscle_series: MutableList<BarEntry> = ArrayList()
-    var walk_series: MutableList<BarEntry> = ArrayList()
-    var fat_series: MutableList<BarEntry> = ArrayList()
-    var bmi_series: MutableList<BarEntry> = ArrayList()
-    var kcal_series: MutableList<BarEntry> = ArrayList()
+    val weight_series: MutableList<BarEntry> = ArrayList()
+    val muscle_series: MutableList<BarEntry> = ArrayList()
+    val walk_series: MutableList<BarEntry> = ArrayList()
+    val fat_series: MutableList<BarEntry> = ArrayList()
+    val bmi_series: MutableList<BarEntry> = ArrayList()
+    val kcal_series: MutableList<BarEntry> = ArrayList()
     var display_label:MutableList<String> =  ArrayList()
     var display_series: MutableList<String> = ArrayList()
+    var ib = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -230,7 +229,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         pre_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
-                Log.i("Button_pre_Btn", current_position.toString() + "\t" +  last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
+                Log.i("Button_pre_Btn", current_position.toString() + "\t" +  last_position.toString())
                 if(current_position >0 && current_position < (last_position +1)&& graph.combinedData.dataSetCount >0) {
                     current_position -= 1
                     cal_lbl.text = display_label.get(current_position)
@@ -307,18 +306,15 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                                     graph.getData().getDataSetCount() > 0) {
                                 graph.data.clearValues()
                             }
-                            if (weight_series.isEmpty()) {
+                            if (weight_series.size < 1) {
                                 Log.i(TAG, "weight_series.isEmpty()")
                                 launch(CommonPool) {
                                       Log.i(TAG, "weight_series.isEmpty()_launch")
                                       printData(mListener!!.readResponse!!)}.join()
                                 Log.i(TAG, "weight_series.isEmpty()_launch_end")
-                                launch(CommonPool) {
-                                    weight_series = series_dataSet()
-                                    weight_Label = label_dataSet() }.join()
-                            }else{
-                                last_position = weight_series.size-1
                             }
+                            last_position = weight_series.size-1
+                            display_label = weight_Label
                             val set1 = BarDataSet(weight_series, getString(R.string.weight))
                             set1.setColors(Color.rgb(65, 192, 193))
                             val barData = BarData(set1)
@@ -343,19 +339,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
-                    if (walk_series.isEmpty()) {
+                    if (walk_series.size < 1) {
                         Log.i(TAG, "walk_series.isEmpty()")
                         launch(CommonPool) {
                             Log.i(TAG, "walk_series.isEmpty()_launch")
                             printData(mListener!!.walkResponse!!)
                         }.join()
                         Log.i(TAG, "walk_series.isEmpty()_launch_end")
-                        launch(CommonPool) {
-                            walk_series = series_dataSet()
-                            walk_Label = label_dataSet() }.join()
-                    }else{
-                        last_position = walk_series.size-1
                     }
+                    last_position = walk_series.size-1
+                    display_label = walk_Label
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -380,19 +373,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.data.getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
-                        if(kcal_series.isEmpty()) {
+                        if(kcal_series.size < 1) {
                             Log.i(TAG, "kcalResponse.isEmpty()")
                             launch(CommonPool) {
                                 Log.i(TAG, "kcalResponse.isEmpty()_launch")
                                 printData(mListener!!.kcalResponse!!)
                             }.join()
                             Log.i(TAG, "kcalResponse.isEmpty()_launch_end")
-                            launch(CommonPool) {
-                                kcal_series = series_dataSet()
-                                kcal_Label = label_dataSet() }.join()
-                        }else{
-                            last_position = kcal_series.size-1
                         }
+                    last_position = kcal_series.size-1
+                    display_label = kcal_Label
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -408,7 +398,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             }
             3->{//체지방비율
                 section = 3
-                if(mListener!!.fatResponse == null){
+                if(mListener!!.customResponse == null){
                     Log.i(TAG, "체지방비율 없음")
                     Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
@@ -417,18 +407,15 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
-                        if (fat_series.isEmpty()) {
+                        if (fat_series.size < 1) {
                             Log.i(TAG, "fatResponse.isEmpty()")
                             launch(CommonPool) {
                                 Log.i(TAG, "fatResponse.isEmpty()_launch")
-                                printData(mListener!!.fatResponse!!) }.join()
+                                printData(mListener!!.customResponse!!) }.join()
                             Log.i(TAG, "fatResponse.isEmpty()_launch_end")
-                            launch(CommonPool) {
-                                fat_series = series_dataSet()
-                                fat_Label = label_dataSet() }.join()
-                        }else{
-                            last_position = fat_series.size-1
                         }
+                    last_position = fat_series.size-1
+                    display_label = fat_Label
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -444,7 +431,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             }
             4->{//골격근
                 section = 2
-                if(mListener!!.muscleResponse == null){
+                if(mListener!!.customResponse == null){
                     Log.i(TAG, "골격근 없음")
                     Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
@@ -453,17 +440,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
-                    if(muscle_series.isEmpty()) {
-                        launch {
-                            printData(mListener!!.muscleResponse!!)
+                    if(muscle_series.size < 1) {
+                        launch(CommonPool) {
+                            printData(mListener!!.customResponse!!)
                         }.join()
                         Log.i(TAG, "muscle_series.isEmpty()_launch_end")
-                        launch(CommonPool) {
-                            muscle_series = series_dataSet()
-                            muscle_Label = label_dataSet() }.join()
-                    }else{
-                        last_position = muscle_series.size-1
                     }
+                    last_position = muscle_series.size-1
+                    display_label = muscle_Label
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -479,7 +463,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             }
             5->{//BMI
                 section = 0
-                if(mListener!!.bmiResponse == null){
+                if(mListener!!.customResponse == null){
                     Log.i(TAG, "BMI 없음")
                     Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
                 }else {
@@ -488,16 +472,13 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                             graph.getData().getDataSetCount() > 0) {
                         graph.data.clearValues()
                     }
-                        if(bmi_series.isEmpty()) {
-                            launch {
-                                printData(mListener!!.bmiResponse!!)
-                            }.join()
+                        if(bmi_series.size < 1) {
                             launch(CommonPool) {
-                                bmi_series = series_dataSet()
-                                bmi_Label = label_dataSet() }.join()
-                        }else{
-                            last_position = bmi_series.size-1
+                                printData(mListener!!.customResponse!!)
+                            }.join()
                         }
+                    last_position = bmi_series.size-1
+                    display_label = bmi_Label
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val barData = BarData(set1)
@@ -512,11 +493,11 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 }
             }
         }
-                Log.i(TAG, "graph_change")
-                if(last_position>0) {
+        Log.i(TAG, "graph_change")
+        if(last_position > 0) {
             graph.invalidate()
             current_position = last_position
-                    Log.i(TAG, "graph_change : " + last_position.toString())
+            Log.i(TAG, "graph_change : " + last_position.toString())
             cal_lbl.text = display_label.get(current_position)
             when (section) {
                 0 -> {//bmi
@@ -542,98 +523,83 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     }
 
 
-   fun series_dataSet():MutableList<BarEntry>{
-       Log.i(TAG, "series_dataSet")
-        val series: MutableList<BarEntry> = ArrayList()
-        val x = value.size-1
-       display_series.clear()
-       Log.i(TAG, "display_series: " + display_series.size.toString())
-       Log.i(TAG, "value: " + value.size.toString())
-        for (a: Int in 0..x) {
-            //series.add(BarEntry(horizonValue[a].time.toFloat(), value.get(a).toFloat()))
-            series.add(a, BarEntry(a.toFloat(), value.get(a).toFloat()))
-            display_series.add("%.2f".format(value.get(a)))
-        }
-       Log.i(TAG, "display_series: " + display_series.size.toString())
-        return series
-    }
-
     @SuppressLint("SimpleDateFormat")
-    fun label_dataSet():MutableList<String> {
-        Log.i(TAG, "label_dataSet")
-        val label = SimpleDateFormat("MM/dd")
-        val series: MutableList<String> = ArrayList()
-        last_position = horizonValue.size - 1
-        display_label.clear()
-        Log.i(TAG, "display_label: " + display_label.size.toString())
-        Log.i(TAG, "horizonValue: " + horizonValue.size.toString())
-        for (a: Int in 0..last_position) {
-            series.add(a, label.format(horizonValue[a]))
-            display_label.add(label.format(horizonValue[a]))
-        }
-        Log.i(TAG, "display_label: " + display_label.size.toString())
-        return series
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    suspend fun printData(dataReadResult: DataReadResponse) {
-        launch(CommonPool) {
-            Log.i(TAG, "printData")
-            Log.i(TAG, "printData_" + dataReadResult.getBuckets().size.toString())
-            Log.i(TAG, "printData_" + dataReadResult.getDataSets().size.toString())
+    fun printData(dataReadResult: DataReadResponse) {
+            Log.i(TAG+ "printData", "dataReadResult.getBuckets()" + dataReadResult.getBuckets().size.toString())
+            Log.i(TAG+ "printData", "dataReadResult.getDataSets()" + dataReadResult.getDataSets().size.toString())
             val label = SimpleDateFormat("MM/dd")
             var ia = 0
+            ib =0
             if (dataReadResult.getBuckets().size > 0) {
-                Log.i(TAG, "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
+                Log.i(TAG+ "printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
                 for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.getBuckets()) {
                     for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
-                        Log.i(TAG, "dumpDataSet")
-                        Log.i(TAG, dataset.toString())
-                    Log.i(TAG, "Bucket point:");
-                    Log.i(TAG, "bucket : " + bucket.toString())
-                    Log.i(TAG, "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
-                    Log.i(TAG, "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                    Log.i(TAG, "\tdataSets: " + bucket.dataSets.toString())
+                        Log.i(TAG+ "printData", "dumpDataSet")
+                        Log.i(TAG+ "printData", dataset.toString())
+                    Log.i(TAG+ "printData", "Bucket point:");
+                    Log.i(TAG+ "printData", "bucket : " + bucket.toString())
+                    Log.i(TAG+ "printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
+                    Log.i(TAG+ "printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                    Log.i(TAG+ "printData", "\tdataSets: " + bucket.dataSets.toString())
                         dumpDataSet(dataset)
+                        ia += 1
                     }
-                    Log.i(TAG, "\tia : " + ia.toString())
+                    Log.i(TAG+ "printData", "\tia : " + ia.toString())
                 }
-                Log.i(TAG, "\thorizonValue : " + horizonValue.size.toString())
-                Log.i(TAG, "\tvalue : " + value.size.toString())
             } else if (dataReadResult.getDataSets().size > 0) {
-                Log.i(TAG, "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
+                Log.i(TAG+ "printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
                 for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.getDataSets()) {
                     dumpDataSet(dataSet)
                     ia += 1
-                    Log.i(TAG, "\tia : " + ia.toString())
+                    Log.i(TAG+ "printData", "\tia : " + ia.toString())
                 }
             }
-        }.join()
-    }
+        }
+
 
     @SuppressLint("SimpleDateFormat")
-    fun dumpDataSet(dataSet:DataSet)= launch {
-             val label = SimpleDateFormat("MM/dd")
-             var ia = 0
-        horizonValue.clear()
-        value.clear()
+    fun dumpDataSet(dataSet:DataSet) {
+        val label = SimpleDateFormat("MM/dd")
+        Log.i(TAG + "DataSet", dataSet.toString())
             for ( dp : com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints)
             {
-                Log.i(TAG, "Data point:")
-                Log.i(TAG, "\tType: " + dp.dataType.name)
-                Log.i(TAG, "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
-                Log.i(TAG, "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                Log.i(TAG+ "DataSet", "\tType: " + dp.dataType.name)
+                Log.i(TAG+ "DataSet", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
+                Log.i(TAG+ "DataSet", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
                 for (field:com.google.android.gms.fitness.data.Field in dp.dataType.fields)
                 {
-                    Log.i(TAG, "\tField: " + field.name + " Value: " + dp.getValue(field))
-                    value.add(dp.getValue(field).toString().toDouble())
-                    if(dp.getValue(field).toString().toDouble() > 0.0){
-                        horizonValue.add(Date(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                    Log.i(TAG+ "_DataSet", "\tField: " + field.name + " Value: " + dp.getValue(field))
+                    when(field.name){
+                        "bmi" -> {
+                            bmi_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
+                            bmi_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                        }
+                        "muscle" -> {
+                            muscle_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
+                            muscle_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                        }
+                        "fat" -> {
+                            fat_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
+                            fat_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                        }
+                        Field.FIELD_WEIGHT.name ->{
+                            weight_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
+                            weight_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                        }
+                        Field.FIELD_CALORIES.name ->{
+                            kcal_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
+                            kcal_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                        }
+                        Field.FIELD_STEPS.name ->{
+                            walk_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
+                            walk_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                        }
                     }
-                    ia += 1
+                    ib += 1
                 }
             }
     }
+
 
 
     /**
@@ -651,9 +617,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         var kcalResponse: DataReadResponse?
         var walkResponse: DataReadResponse?
         var readResponse:DataReadResponse?
-        var muscleResponse: DataReadResponse?
-        var fatResponse: DataReadResponse?
-        var bmiResponse: DataReadResponse?
+        var customResponse: DataReadResponse?
         val context:Context
     }
 
