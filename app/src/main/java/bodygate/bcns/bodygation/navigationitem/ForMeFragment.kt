@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import bodygate.bcns.bodygation.R
+import bodygate.bcns.bodygation.R.id.walk_Btn
 import bodygate.bcns.bodygation.support.CheckableImageButton
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.AxisBase
@@ -87,9 +88,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
-                if (weight_Btn.isChecked){
-                    launch(UI) {
-                        launch(CommonPool) { mListener!!.OnForMeInteraction(0) }.join() }
+                if (weight_Btn.isChecked){ mListener!!.OnForMeInteraction(0)
                 }
             }
             R.id.walk_Btn -> {
@@ -105,8 +104,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (walk_Btn.isChecked){
-                    launch(UI) {
-                        launch(CommonPool) { mListener!!.OnForMeInteraction(1) }.join()}
+                    mListener!!.OnForMeInteraction(1)
                 }
             }
             R.id.kal_Btn -> {
@@ -122,8 +120,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (kal_Btn.isChecked){
-                    launch(UI) {
-                        launch(CommonPool) { mListener!!.OnForMeInteraction(2) }.join()}
+                    mListener!!.OnForMeInteraction(2)
                 }
             }
             R.id.bfp_Btn -> {
@@ -138,9 +135,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked){
-                    launch(UI) {
-                        launch(CommonPool) { mListener!!.OnForMeInteraction(3) }.join()}
+                if (bfp_Btn.isChecked) {
+                    mListener!!.OnForMeInteraction(3)
                 }
             }
             R.id.bmi_Btn -> {
@@ -156,8 +152,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (muscle_Btn.isChecked)
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked){
-                    launch(UI) {
-                        launch(CommonPool) { mListener!!.OnForMeInteraction(5) }.join()}
+                    mListener!!.OnForMeInteraction(5)
                 }
             }
             R.id.muscle_Btn -> {
@@ -172,9 +167,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     bfp_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
-                if (muscle_Btn.isChecked){
-                    launch(UI) {
-                        launch(CommonPool) { mListener!!.OnForMeInteraction(4) }.join()}
+                if (muscle_Btn.isChecked){ mListener!!.OnForMeInteraction(4)
                 }
             }
         }
