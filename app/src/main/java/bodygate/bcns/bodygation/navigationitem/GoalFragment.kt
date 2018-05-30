@@ -105,7 +105,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
             override fun onClick(v: View?) {
                 Log.i("pendingResult" , "upload_Btn.setOnClickListener")
                 if(my_bodyfat_txtB.text.isNotEmpty() && my_musclemass_txtB.text.isNotEmpty()){
-                   mListener!!.makePersonalData()
+                   mListener!!.OnGoalInteractionListener()
                 }else if(goal_height_txtB.text.isEmpty()) {
                     Toast.makeText(this@GoalFragment.context, "신장을 입력하여 주세요", Toast.LENGTH_SHORT).show()
                     goal_height_txtB.setFocusable(true)
@@ -240,8 +240,7 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
      */
     interface OnGoalInteractionListener {
         // TODO: Update argument type and name
-        fun OnGoalInteractionListener(uri: Uri)
-        fun makePersonalData()
+        fun OnGoalInteractionListener()
     }
 
     companion object {

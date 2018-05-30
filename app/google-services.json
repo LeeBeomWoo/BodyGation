@@ -23,19 +23,7 @@
           }
         },
         {
-          "client_id": "669763084628-6u508e0l02lajm30c4ulggpitrb9dofi.apps.googleusercontent.com",
-          "client_type": 3
-        },
-        {
-          "client_id": "669763084628-5jkkgdltc64jm7n2iunsdhnibruc3813.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "bodygate.bcns.bodygation",
-            "certificate_hash": "676d89cf3f0de6a9ca13f4e44fcc451d06927580"
-          }
-        },
-        {
-          "client_id": "669763084628-6u508e0l02lajm30c4ulggpitrb9dofi.apps.googleusercontent.com",
+          "client_id": "669763084628-mit5fhh56fv6g93pn0e57rs4r009lt4f.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -52,7 +40,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "669763084628-6u508e0l02lajm30c4ulggpitrb9dofi.apps.googleusercontent.com",
+              "client_id": "669763084628-mit5fhh56fv6g93pn0e57rs4r009lt4f.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.support.annotation.NonNull
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
@@ -23,15 +24,21 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.CombinedData
 import com.github.mikephil.charting.formatter.IAxisValueFormatter
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.data.Bucket
 import com.google.android.gms.fitness.data.DataSet
 import com.google.android.gms.fitness.data.Field
 import com.google.android.gms.fitness.result.DataReadResponse
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Task
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -50,25 +57,8 @@ import kotlin.collections.ArrayList
 class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     private var mParam1: String? = null
     private var mListener: OnForMeInteraction? = null
-    var weight_Label:MutableList<String> =  ArrayList()
-    var kcal_Label:MutableList<String> =  ArrayList()
-    var walk_Label:MutableList<String> =  ArrayList()
-    var fat_Label:MutableList<String> =  ArrayList()
-    var muscle_Label:MutableList<String> =  ArrayList()
-    var bmi_Label:MutableList<String> =  ArrayList()
     val TAG = "ForMeFragment_"
-    var last_position = 0
-    var current_position = 0
     var section = 0
-    val weight_series: MutableList<BarEntry> = ArrayList()
-    val muscle_series: MutableList<BarEntry> = ArrayList()
-    val walk_series: MutableList<BarEntry> = ArrayList()
-    val fat_series: MutableList<BarEntry> = ArrayList()
-    val bmi_series: MutableList<BarEntry> = ArrayList()
-    val kcal_series: MutableList<BarEntry> = ArrayList()
-    var display_label:MutableList<String> =  ArrayList()
-    var display_series: MutableList<String> = ArrayList()
-    var ib = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,7 +88,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (weight_Btn.isChecked){
-                    graphSet(0)
+                    launch(UI) {
+                        launch(CommonPool) { mListener!!.OnForMeInteraction(0) }.join() }
                 }
             }
             R.id.walk_Btn -> {
@@ -114,7 +105,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (walk_Btn.isChecked){
-                    graphSet(1)
+                    launch(UI) {
+                        launch(CommonPool) { mListener!!.OnForMeInteraction(1) }.join()}
                 }
             }
             R.id.kal_Btn -> {
@@ -130,7 +122,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (kal_Btn.isChecked){
-                 graphSet(2)
+                    launch(UI) {
+                        launch(CommonPool) { mListener!!.OnForMeInteraction(2) }.join()}
                 }
             }
             R.id.bfp_Btn -> {
@@ -146,7 +139,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked){
-                    graphSet(3)
+                    launch(UI) {
+                        launch(CommonPool) { mListener!!.OnForMeInteraction(3) }.join()}
                 }
             }
             R.id.bmi_Btn -> {
@@ -162,7 +156,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (muscle_Btn.isChecked)
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked){
-                    graphSet(5)
+                    launch(UI) {
+                        launch(CommonPool) { mListener!!.OnForMeInteraction(5) }.join()}
                 }
             }
             R.id.muscle_Btn -> {
@@ -178,14 +173,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (muscle_Btn.isChecked){
-                    graphSet(4)
+                    launch(UI) {
+                        launch(CommonPool) { mListener!!.OnForMeInteraction(4) }.join()}
                 }
             }
         }
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        mListener!!.OnForMeInteraction()
         weight_Btn.setOnCheckedChangeListener(this)
         kal_Btn.setOnCheckedChangeListener(this)
         walk_Btn.setOnCheckedChangeListener(this)
@@ -229,23 +224,23 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         pre_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
-                Log.i("Button_pre_Btn", current_position.toString() + "\t" +  last_position.toString())
-                if(current_position >0 && current_position < (last_position +1)&& graph.combinedData.dataSetCount >0) {
-                    current_position -= 1
-                    cal_lbl.text = display_label.get(current_position)
+                Log.i("Button_pre_Btn", mListener!!.current_position.toString() + "\t" +  mListener!!.last_position.toString())
+                if(mListener!!.current_position >0 && mListener!!.current_position < (mListener!!.last_position +1)&& graph.combinedData.dataSetCount >0) {
+                    mListener!!.current_position -= 1
+                    cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                     when(section){
                         0->{//bmi
-                            main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"}
                         1->{//체중
-                            main_lbl.text = display_series.get(current_position) + "Kg"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"}
                         2->{//골격근
-                            main_lbl.text = display_series.get(current_position) + "Kg"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"}
                         3->{//체지방
-                            main_lbl.text = display_series.get(current_position)+ "%"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "%"}
                         4->{//소모칼로리
-                            main_lbl.text = display_series.get(current_position) + "Kcal"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"}
                         5->{//걸음수
-                            main_lbl.text = display_series.get(current_position)+ "걸음"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "걸음"}
                     }
                 }
             }
@@ -255,23 +250,23 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             :View.OnClickListener{
             override fun onClick(v: View?) {
                 Log.i("Button_next_Btn", "onClick")
-                if(current_position >0 && current_position < last_position&& graph.combinedData.dataSetCount >0) {
-                    Log.i("Button_next_Btn", current_position.toString() + "\t" +  last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
-                    current_position += 1
-                    cal_lbl.text = display_label.get(current_position)
+                if(mListener!!.current_position >0 && mListener!!.current_position < mListener!!.last_position&& graph.combinedData.dataSetCount >0) {
+                    Log.i("Button_next_Btn", mListener!!.current_position.toString() + "\t" +  mListener!!.last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
+                    mListener!!.current_position += 1
+                    cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                     when(section){
                         0->{//bmi
-                            main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"}
                         1->{//체중
-                            main_lbl.text = display_series.get(current_position) + "Kg"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"}
                         2->{//골격근
-                            main_lbl.text = display_series.get(current_position) + "Kg"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"}
                         3->{//체지방
-                            main_lbl.text = display_series.get(current_position)+ "%"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "%"}
                         4->{//소모칼로리
-                            main_lbl.text = display_series.get(current_position) + "Kcal"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"}
                         5->{//걸음수
-                            main_lbl.text = display_series.get(current_position)+ "걸음"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "걸음"}
                     }
                 }
             }
@@ -290,318 +285,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         super.onDetach()
         mListener = null
     }
-
-
-    @SuppressLint("SetTextI18n")
-    fun graphSet(p:Int)= launch(UI) {
-        when(p){
-            0->{//체중
-                section = 1
-                        if(mListener!!.readResponse == null){
-                            Log.i(TAG, "체중 없음")
-                            Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
-                        }else {
-                            Log.i(TAG, "체중 있음")
-                            if (graph.getData() != null &&
-                                    graph.getData().getDataSetCount() > 0) {
-                                graph.data.clearValues()
-                            }
-                            if (weight_series.size < 1) {
-                                Log.i(TAG, "weight_series.isEmpty()")
-                                launch(CommonPool) {
-                                      Log.i(TAG, "weight_series.isEmpty()_launch")
-                                      printData(mListener!!.readResponse!!)}.join()
-                                Log.i(TAG, "weight_series.isEmpty()_launch_end")
-                            }
-                            last_position = weight_series.size-1
-                            display_label = weight_Label
-                            val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                            set1.setColors(Color.rgb(65, 192, 193))
-                            val barData = BarData(set1)
-                            val xAxis = graph.xAxis
-                            xAxis.setGranularity(1f)
-                            xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
-                            val data = CombinedData()
-                            data.setData(barData)
-                            graph.setData(data)
-                            graph.data.notifyDataChanged()
-                            graph.notifyDataSetChanged()
-                        }
-            }
-            1->{//걷기
-                section = 5
-                if(mListener!!.walkResponse == null){
-                    Log.i(TAG, "걷기 없음")
-                    Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
-                }else {
-                    Log.i(TAG, "걷기 있음")
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
-                        graph.data.clearValues()
-                    }
-                    if (walk_series.size < 1) {
-                        Log.i(TAG, "walk_series.isEmpty()")
-                        launch(CommonPool) {
-                            Log.i(TAG, "walk_series.isEmpty()_launch")
-                            printData(mListener!!.walkResponse!!)
-                        }.join()
-                        Log.i(TAG, "walk_series.isEmpty()_launch_end")
-                    }
-                    last_position = walk_series.size-1
-                    display_label = walk_Label
-                    val set1 = BarDataSet(walk_series, getString(R.string.walk))
-                    set1.setColors(Color.rgb(65, 192, 193))
-                    val barData = BarData(set1)
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                    val data = CombinedData()
-                    data.setData(barData)
-                    graph.setData(data)
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
-                }
-            }
-            2-> {//칼로리
-                section = 4
-                if (mListener!!.kcalResponse == null) {
-                    Log.i(TAG, "칼로리 없음")
-                    Toast.makeText(mListener!!.context, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
-                } else {
-                    Log.i(TAG, "칼로리 있음")
-                    if (graph.data != null &&
-                            graph.data.getDataSetCount() > 0) {
-                        graph.data.clearValues()
-                    }
-                        if(kcal_series.size < 1) {
-                            Log.i(TAG, "kcalResponse.isEmpty()")
-                            launch(CommonPool) {
-                                Log.i(TAG, "kcalResponse.isEmpty()_launch")
-                                printData(mListener!!.kcalResponse!!)
-                            }.join()
-                            Log.i(TAG, "kcalResponse.isEmpty()_launch_end")
-                        }
-                    last_position = kcal_series.size-1
-                    display_label = kcal_Label
-                    val set1 = BarDataSet(kcal_series, getString(R.string.calore))
-                    set1.setColors(Color.rgb(65, 192, 193))
-                    val barData = BarData(set1)
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(kcal_Label.toTypedArray()))
-                    val data = CombinedData()
-                    data.setData(barData)
-                    graph.setData(data)
-                        graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()
-                }
-            }
-            3->{//체지방비율
-                section = 3
-                if(mListener!!.customResponse == null){
-                    Log.i(TAG, "체지방비율 없음")
-                    Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
-                }else {
-                    Log.i(TAG, "체지방비율 있음")
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
-                        graph.data.clearValues()
-                    }
-                        if (fat_series.size < 1) {
-                            Log.i(TAG, "fatResponse.isEmpty()")
-                            launch(CommonPool) {
-                                Log.i(TAG, "fatResponse.isEmpty()_launch")
-                                printData(mListener!!.customResponse!!) }.join()
-                            Log.i(TAG, "fatResponse.isEmpty()_launch_end")
-                        }
-                    last_position = fat_series.size-1
-                    display_label = fat_Label
-                    val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
-                    set1.setColors(Color.rgb(65, 192, 193))
-                    val barData = BarData(set1)
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(fat_Label.toTypedArray()))
-                    val data = CombinedData()
-                    data.setData(barData)
-                    graph.setData(data)
-                        graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()
-                }
-            }
-            4->{//골격근
-                section = 2
-                if(mListener!!.customResponse == null){
-                    Log.i(TAG, "골격근 없음")
-                    Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
-                }else {
-                    Log.i(TAG, "골격근 있음")
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
-                        graph.data.clearValues()
-                    }
-                    if(muscle_series.size < 1) {
-                        launch(CommonPool) {
-                            printData(mListener!!.customResponse!!)
-                        }.join()
-                        Log.i(TAG, "muscle_series.isEmpty()_launch_end")
-                    }
-                    last_position = muscle_series.size-1
-                    display_label = muscle_Label
-                    val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
-                    set1.setColors(Color.rgb(65, 192, 193))
-                    val barData = BarData(set1)
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(muscle_Label.toTypedArray()))
-                    val data = CombinedData()
-                    data.setData(barData)
-                    graph.setData(data)
-                        graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()
-                }
-            }
-            5->{//BMI
-                section = 0
-                if(mListener!!.customResponse == null){
-                    Log.i(TAG, "BMI 없음")
-                    Toast.makeText(mListener!!.context, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
-                }else {
-                    Log.i(TAG, "BMI 있음")
-                    if (graph.getData() != null &&
-                            graph.getData().getDataSetCount() > 0) {
-                        graph.data.clearValues()
-                    }
-                        if(bmi_series.size < 1) {
-                            launch(CommonPool) {
-                                printData(mListener!!.customResponse!!)
-                            }.join()
-                        }
-                    last_position = bmi_series.size-1
-                    display_label = bmi_Label
-                    val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
-                    set1.setColors(Color.rgb(65, 192, 193))
-                    val barData = BarData(set1)
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(bmi_Label.toTypedArray()))
-                    val data = CombinedData()
-                    data.setData(barData)
-                    graph.setData(data)
-                        graph.data.notifyDataChanged()
-                        graph.notifyDataSetChanged()
-                }
-            }
-        }
-        Log.i(TAG, "graph_change")
-        if(last_position > 0) {
-            graph.invalidate()
-            current_position = last_position
-            Log.i(TAG, "graph_change : " + last_position.toString())
-            cal_lbl.text = display_label.get(current_position)
-            when (section) {
-                0 -> {//bmi
-                    main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"
-                }
-                1 -> {//체중
-                    main_lbl.text = display_series.get(current_position) + "Kg"
-                }
-                2 -> {//골격근
-                    main_lbl.text = display_series.get(current_position) + "Kg"
-                }
-                3 -> {//체지방
-                    main_lbl.text = display_series.get(current_position) + "%"
-                }
-                4 -> {//소모칼로리
-                    main_lbl.text = display_series.get(current_position) + "Kcal"
-                }
-                5 -> {//걸음수
-                    main_lbl.text = display_series.get(current_position) + "걸음"
-                }
-            }
-            }
-    }
-
-
-    @SuppressLint("SimpleDateFormat")
-    fun printData(dataReadResult: DataReadResponse) {
-            Log.i(TAG+ "printData", "dataReadResult.getBuckets()" + dataReadResult.getBuckets().size.toString())
-            Log.i(TAG+ "printData", "dataReadResult.getDataSets()" + dataReadResult.getDataSets().size.toString())
-            val label = SimpleDateFormat("MM/dd")
-            var ia = 0
-            ib =0
-            if (dataReadResult.getBuckets().size > 0) {
-                Log.i(TAG+ "printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
-                for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.getBuckets()) {
-                    for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
-                        Log.i(TAG+ "printData", "dumpDataSet")
-                        Log.i(TAG+ "printData", dataset.toString())
-                    Log.i(TAG+ "printData", "Bucket point:");
-                    Log.i(TAG+ "printData", "bucket : " + bucket.toString())
-                    Log.i(TAG+ "printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
-                    Log.i(TAG+ "printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                    Log.i(TAG+ "printData", "\tdataSets: " + bucket.dataSets.toString())
-                        dumpDataSet(dataset)
-                        ia += 1
-                    }
-                    Log.i(TAG+ "printData", "\tia : " + ia.toString())
-                }
-            } else if (dataReadResult.getDataSets().size > 0) {
-                Log.i(TAG+ "printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
-                for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.getDataSets()) {
-                    dumpDataSet(dataSet)
-                    ia += 1
-                    Log.i(TAG+ "printData", "\tia : " + ia.toString())
-                }
-            }
-        }
-
-
-    @SuppressLint("SimpleDateFormat")
-    fun dumpDataSet(dataSet:DataSet) {
-        val label = SimpleDateFormat("MM/dd")
-        Log.i(TAG + "DataSet", dataSet.toString())
-            for ( dp : com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints)
-            {
-                Log.i(TAG+ "DataSet", "\tType: " + dp.dataType.name)
-                Log.i(TAG+ "DataSet", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
-                Log.i(TAG+ "DataSet", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
-                for (field:com.google.android.gms.fitness.data.Field in dp.dataType.fields)
-                {
-                    Log.i(TAG+ "_DataSet", "\tField: " + field.name + " Value: " + dp.getValue(field))
-                    when(field.name){
-                        "bmi" -> {
-                            bmi_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
-                            bmi_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        "muscle" -> {
-                            muscle_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
-                            muscle_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        "fat" -> {
-                            fat_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
-                            fat_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        Field.FIELD_WEIGHT.name ->{
-                            weight_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
-                            weight_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        Field.FIELD_CALORIES.name ->{
-                            kcal_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
-                            kcal_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        Field.FIELD_STEPS.name ->{
-                            walk_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
-                            walk_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                    }
-                    ib += 1
-                }
-            }
-    }
-
-
-
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -613,11 +296,11 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
      */
     interface OnForMeInteraction {
         // TODO: Update argument type and name
-        fun OnForMeInteraction()
-        var kcalResponse: DataReadResponse?
-        var walkResponse: DataReadResponse?
-        var readResponse:DataReadResponse?
-        var customResponse: DataReadResponse?
+        fun OnForMeInteraction(section:Int)
+        var last_position:Int
+        var current_position :Int
+        var display_label:MutableList<String>
+        var display_series: MutableList<String>
         val context:Context
     }
 

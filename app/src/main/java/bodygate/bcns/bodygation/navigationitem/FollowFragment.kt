@@ -223,17 +223,11 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         f()
         return true
     }
-    private var mParam1: String? = null
-    private var mParam2: String? = null
 
     private var mListener: OnFollowInteraction? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            mParam1 = arguments!!.getString(ARG_PARAM1)
-            mParam2 = arguments!!.getString(ARG_PARAM2)
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -375,11 +369,9 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
          * @return A new instance of fragment FollowFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(param1: String?, param2: String?): FollowFragment {
+        fun newInstance(): FollowFragment {
             val fragment = FollowFragment()
             val args = Bundle()
-            args.putString(ARG_PARAM1, param1)
-            args.putString(ARG_PARAM2, param2)
             fragment.arguments = args
             return fragment
         }
