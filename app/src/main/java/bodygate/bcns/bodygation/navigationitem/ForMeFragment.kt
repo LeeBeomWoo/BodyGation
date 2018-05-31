@@ -75,6 +75,10 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
     }
     override fun onCheckedChanged(button: CheckableImageButton?, check: Boolean) {
         Log.i(TAG, "onCheckedChanged")
+        if (graph.getData() != null &&
+                graph.getData().getDataSetCount() > 0) {
+            graph.data.clearValues()
+        }
         when (button!!.id) {
             R.id.weight_Btn -> {
                 weight_Btn.setChecked(check)
@@ -89,6 +93,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (weight_Btn.isChecked){ mListener!!.OnForMeInteraction(0)
+                    graph.setData(mListener!!.graphSet(0))
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                    graph.invalidate()
+                    if (mListener!!.last_position > 0) {
+                        mListener!!.current_position = mListener!!.last_position
+                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
+                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
+                    }
                 }
             }
             R.id.walk_Btn -> {
@@ -105,6 +119,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     bmi_Btn.setChecked(!check)
                 if (walk_Btn.isChecked){
                     mListener!!.OnForMeInteraction(1)
+                    graph.setData(mListener!!.graphSet(1))
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                    graph.invalidate()
+                    if (mListener!!.last_position > 0) {
+                        mListener!!.current_position = mListener!!.last_position
+                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
+                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "걸음"
+                    }
                 }
             }
             R.id.kal_Btn -> {
@@ -119,8 +143,18 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
-                if (kal_Btn.isChecked){
+                if (kal_Btn.isChecked) {
                     mListener!!.OnForMeInteraction(2)
+                    graph.setData(mListener!!.graphSet(2))
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                    graph.invalidate()
+                    if (mListener!!.last_position > 0) {
+                        mListener!!.current_position = mListener!!.last_position
+                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
+                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"
+                    }
                 }
             }
             R.id.bfp_Btn -> {
@@ -137,6 +171,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     bmi_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked) {
                     mListener!!.OnForMeInteraction(3)
+                    graph.setData(mListener!!.graphSet(3))
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                    graph.invalidate()
+                    if (mListener!!.last_position > 0) {
+                        mListener!!.current_position = mListener!!.last_position
+                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
+                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "%"
+                    }
                 }
             }
             R.id.bmi_Btn -> {
@@ -153,6 +197,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked){
                     mListener!!.OnForMeInteraction(5)
+                    graph.setData(mListener!!.graphSet(5))
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                    graph.invalidate()
+                    if (mListener!!.last_position > 0) {
+                        mListener!!.current_position = mListener!!.last_position
+                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
+                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"
+                    }
                 }
             }
             R.id.muscle_Btn -> {
@@ -168,6 +222,16 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (muscle_Btn.isChecked){ mListener!!.OnForMeInteraction(4)
+                    graph.setData(mListener!!.graphSet(4))
+                    graph.data.notifyDataChanged()
+                    graph.notifyDataSetChanged()
+                    graph.invalidate()
+                    if (mListener!!.last_position > 0) {
+                        mListener!!.current_position = mListener!!.last_position
+                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
+                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
+                    }
                 }
             }
         }
@@ -212,13 +276,12 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         graph.setVisibleXRangeMaximum(5.toFloat())
         graph.setNoDataText("위 버튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
         graph.setNoDataTextColor(R.color.colorPrimaryDark)
-        graph.setDrawOrder(arrayOf(CombinedChart.DrawOrder.BAR))
         graph.setBackgroundColor(resources.getColor(R.color.whiteback))
         pre_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
                 Log.i("Button_pre_Btn", mListener!!.current_position.toString() + "\t" +  mListener!!.last_position.toString())
-                if(mListener!!.current_position >0 && mListener!!.current_position < (mListener!!.last_position +1)&& graph.combinedData.dataSetCount >0) {
+                if(mListener!!.current_position >0 && mListener!!.current_position < (mListener!!.last_position +1)&& graph.barData.dataSetCount >0) {
                     mListener!!.current_position -= 1
                     cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                     when(section){
@@ -243,8 +306,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             :View.OnClickListener{
             override fun onClick(v: View?) {
                 Log.i("Button_next_Btn", "onClick")
-                if(mListener!!.current_position >0 && mListener!!.current_position < mListener!!.last_position&& graph.combinedData.dataSetCount >0) {
-                    Log.i("Button_next_Btn", mListener!!.current_position.toString() + "\t" +  mListener!!.last_position.toString() + "\t" + graph.combinedData.dataSetCount.toString())
+                if(mListener!!.current_position >0 && mListener!!.current_position < mListener!!.last_position&& graph.barData.dataSetCount >0) {
+                    Log.i("Button_next_Btn", mListener!!.current_position.toString() + "\t" +  mListener!!.last_position.toString() + "\t" + graph.barData.dataSetCount.toString())
                     mListener!!.current_position += 1
                     cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                     when(section){
@@ -294,6 +357,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         var current_position :Int
         var display_label:MutableList<String>
         var display_series: MutableList<String>
+        fun graphSet(p:Int):BarData
         val context:Context
     }
 

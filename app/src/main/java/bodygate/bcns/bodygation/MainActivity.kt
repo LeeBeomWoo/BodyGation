@@ -88,7 +88,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val PREF_ACCOUNT_NAME = "accountName"
     val REQUEST_ACCOUNT_PICKER = 1000
     private val REQUEST_OAUTH = 1001
-    var mFitnessClient:GoogleApiClient? = null
+    lateinit var mFitnessClient:GoogleApiClient
     var connectFitAPI:Boolean = false
     val ID: String? = null
     val PW: String? = null
@@ -98,7 +98,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var personUrl:Uri? = null
     var page = ""
     override var totalpage = 100
-    private var mGoogleSignInClient: GoogleSignInClient? = null//google sign in client
+    lateinit var mGoogleSignInClient: GoogleSignInClient//google sign in client
     var mCredential: GoogleAccountCredential? = null
     var SCOPES = YouTubeScopes.YOUTUBE_READONLY
     var mPb:ProgressDialog? = null
@@ -127,6 +127,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var weightRe:DataReadResponse? = null
     var walkRe:DataReadResponse? = null
     var kcalRe:DataReadResponse? = null
+    lateinit var custom_Type:DataType
     var weight_Label:MutableList<String> =  ArrayList()
     var kcal_Label:MutableList<String> =  ArrayList()
     var walk_Label:MutableList<String> =  ArrayList()
@@ -217,7 +218,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
           data = body
       Log.i("data", data.toString())
        }
-
 
     suspend override fun getNetxtPage( q: String, api_Key: String, max_result: Int, more:Boolean, section:Int){
         val youTube = YouTube.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance(), object: HttpRequestInitializer {
@@ -363,89 +363,54 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     override fun OnForMeInteraction(section:Int) {
-        launch(UI) {
-            if(GoogleSignIn.getLastSignedInAccount(this@MainActivity) == null){
-                doGoogleSignIn()
+        last_position = 0
+        when (section) {
+            0 -> {//체중
+                readRequest_weight()
+                graphSet(section)
             }
-            fitnessConectFun()
-            last_position = 0
-            when (section) {
-                0 -> {//체중
-                    val response = weightRe
-                        launch(CommonPool) {
-                            if(response != null) {
-                                printData(response)
-                            }}.join()
-                        graphSet(section)
-                }
-                1 -> {//걷기
-                    val response = walkRe
-                    launch (CommonPool){
-                        if(response != null) {
-                            printData(response)
-                        }}.join()
-                    graphSet(section)
-                }
-                2 -> {//칼로리
-                    val response = kcalRe
-                    launch (CommonPool){
-                        if(response != null) {
-                     printData(response)}}.join()
-                    graphSet(section)
-                }
-                3 -> {//체지방비율
-                    val response = customRe
-                    launch (CommonPool){
-                        if(response != null) {
-                            printData(response)}}.join()
-                    graphSet(section)
-                }
-                4 -> {//체지방비율
-                    val response = customRe
-                    launch (CommonPool){
-                        if(response != null) {
-                            printData(response)}}.join()
-                    graphSet(section)
-                }
-                5 -> {//체지방비율
-                    val response = customRe
-                    launch (CommonPool){
-                        if(response != null) {
-                            printData(response)}}.join()
-                    graphSet(section)
-                }
+            1 -> {//걷기
+                readRequest_walk()
+                graphSet(section)
+            }
+            2 -> {//칼로리
+                readRequest_kcal()
+                graphSet(section)
+            }
+            3 -> {//체지방비율
+                readRequest_custom()
+                graphSet(section)
+            }
+            4 -> {//체지방비율
+                readRequest_custom()
+                graphSet(section)
+            }
+            5 -> {//체지방비율
+                readRequest_custom()
+                graphSet(section)
             }
         }
     }
 
     @SuppressLint("SetTextI18n")
-   suspend fun graphSet(p:Int) {
-        launch(UI) {
+  override fun graphSet(p:Int):BarData {
+        val data = BarData()
             when (p) {
                 0 -> {//체중
-                    val resPonse = readRequest_weight()
+                    val resPonse = weightRe
                     if (resPonse == null) {
                         fitnessConectFun()
                     } else {
                         if (resPonse.status.isSuccess) {
                             Log.i(TAG, "체중 있음")
-                            if (graph.getData() != null &&
-                                    graph.getData().getDataSetCount() > 0) {
-                                graph.data.clearValues()
-                            }
                             last_position = weight_series.size - 1
                             display_label = weight_Label
                             val set1 = BarDataSet(weight_series, getString(R.string.weight))
                             set1.setColors(Color.rgb(65, 192, 193))
-                            val barData = BarData(set1)
+                            data.addDataSet(set1)
                             val xAxis = graph.xAxis
                             xAxis.setGranularity(1f)
                             xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
-                            val data = CombinedData()
-                            data.setData(barData)
-                            graph.setData(data)
-                            graph.data.notifyDataChanged()
-                            graph.notifyDataSetChanged()
                         } else {
                             Log.i(TAG, "체중 없음")
                             Toast.makeText(this@MainActivity, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
@@ -453,29 +418,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
                 1 -> {//걷기
-                    val resPonse = readRequest_walk()
+                    val resPonse = walkRe
                     if (resPonse == null) {
                         fitnessConectFun()
                     } else {
                         if (resPonse.status.isSuccess) {
                             Log.i(TAG, "체중 있음")
-                            if (graph.getData() != null &&
-                                    graph.getData().getDataSetCount() > 0) {
-                                graph.data.clearValues()
-                            }
                             last_position = walk_series.size - 1
                             display_label = walk_Label
                             val set1 = BarDataSet(walk_series, getString(R.string.walk))
                             set1.setColors(Color.rgb(65, 192, 193))
-                            val barData = BarData(set1)
                             val xAxis = graph.xAxis
                             xAxis.setGranularity(1f)
                             xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                            val data = CombinedData()
-                            data.setData(barData)
-                            graph.setData(data)
-                            graph.data.notifyDataChanged()
-                            graph.notifyDataSetChanged()
+                            data.addDataSet(set1)
                         } else {
                             Log.i(TAG, "걷기 없음")
                             Toast.makeText(this@MainActivity, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
@@ -483,29 +439,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
                 2 -> {//칼로리
-                    val resPonse = readRequest_kcal()
+                    val resPonse = kcalRe
                     if (resPonse == null) {
                         fitnessConectFun()
                     } else {
                         if (resPonse.status.isSuccess) {
                             Log.i(TAG, "칼로리 있음")
-                            if (graph.data != null &&
-                                    graph.data.getDataSetCount() > 0) {
-                                graph.data.clearValues()
-                            }
                             last_position = kcal_series.size - 1
                             display_label = kcal_Label
                             val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                             set1.setColors(Color.rgb(65, 192, 193))
-                            val barData = BarData(set1)
                             val xAxis = graph.xAxis
                             xAxis.setGranularity(1f)
-                            xAxis.setValueFormatter(MyXAxisValueFormatter(kcal_Label.toTypedArray()))
-                            val data = CombinedData()
-                            data.setData(barData)
-                            graph.setData(data)
-                            graph.data.notifyDataChanged()
-                            graph.notifyDataSetChanged()
+                            xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                            data.addDataSet(set1)
                         } else {
                             Log.i(TAG, "칼로리 없음")
                             Toast.makeText(this@MainActivity, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
@@ -513,29 +460,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
                 3 -> {//체지방비율
-                    val resPonse = readRequest_custom()
+                    val resPonse = customRe
                     if (resPonse == null) {
                         fitnessConectFun()
                     } else {
                         if (resPonse.status.isSuccess) {
                             Log.i(TAG, "체지방비율 있음")
-                            if (graph.getData() != null &&
-                                    graph.getData().getDataSetCount() > 0) {
-                                graph.data.clearValues()
-                            }
                             last_position = fat_series.size - 1
                             display_label = fat_Label
                             val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                             set1.setColors(Color.rgb(65, 192, 193))
-                            val barData = BarData(set1)
                             val xAxis = graph.xAxis
                             xAxis.setGranularity(1f)
-                            xAxis.setValueFormatter(MyXAxisValueFormatter(fat_Label.toTypedArray()))
-                            val data = CombinedData()
-                            data.setData(barData)
-                            graph.setData(data)
-                            graph.data.notifyDataChanged()
-                            graph.notifyDataSetChanged()
+                            xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                            data.addDataSet(set1)
                         } else {
                             Log.i(TAG, "체지방비율 없음")
                             Toast.makeText(this@MainActivity, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
@@ -543,29 +481,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
                 4 -> {//골격근
-                    val resPonse = readRequest_custom()
+                    val resPonse = customRe
                     if (resPonse == null) {
                         fitnessConectFun()
                     } else {
                         if (resPonse.status.isSuccess) {
                             Log.i(TAG, "골격근 있음")
-                            if (graph.getData() != null &&
-                                    graph.getData().getDataSetCount() > 0) {
-                                graph.data.clearValues()
-                            }
                             last_position = muscle_series.size - 1
                             display_label = muscle_Label
                             val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                             set1.setColors(Color.rgb(65, 192, 193))
-                            val barData = BarData(set1)
                             val xAxis = graph.xAxis
                             xAxis.setGranularity(1f)
-                            xAxis.setValueFormatter(MyXAxisValueFormatter(muscle_Label.toTypedArray()))
-                            val data = CombinedData()
-                            data.setData(barData)
-                            graph.setData(data)
-                            graph.data.notifyDataChanged()
-                            graph.notifyDataSetChanged()
+                            xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                            data.addDataSet(set1)
                         } else {
                             Log.i(TAG, "골격근 없음")
                             Toast.makeText(this@MainActivity, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
@@ -573,29 +502,20 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
                 5 -> {//BMI
-                    val resPonse = readRequest_custom()
+                    val resPonse = customRe
                     if (resPonse == null) {
                         fitnessConectFun()
                     } else {
                         if (resPonse.status.isSuccess) {
                             Log.i(TAG, "BMI 있음")
-                            if (graph.getData() != null &&
-                                    graph.getData().getDataSetCount() > 0) {
-                                graph.data.clearValues()
-                            }
                             last_position = bmi_series.size - 1
                             display_label = bmi_Label
                             val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                             set1.setColors(Color.rgb(65, 192, 193))
-                            val barData = BarData(set1)
                             val xAxis = graph.xAxis
                             xAxis.setGranularity(1f)
-                            xAxis.setValueFormatter(MyXAxisValueFormatter(bmi_Label.toTypedArray()))
-                            val data = CombinedData()
-                            data.setData(barData)
-                            graph.setData(data)
-                            graph.data.notifyDataChanged()
-                            graph.notifyDataSetChanged()
+                            xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                            data.addDataSet(set1)
                         } else {
                             Log.i(TAG, "BMI 없음")
                             Toast.makeText(this@MainActivity, "우리 앱에서 아직 해당 자료를 등록하지 않으셨습니다.", Toast.LENGTH_SHORT).show()
@@ -603,36 +523,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
             }
-        }.join()
-        Log.i(TAG, "graph_change")
-        launch(UI) {
-            if (last_position > 0) {
-                graph.invalidate()
-                current_position = last_position
-                Log.i(TAG, "graph_change : " + last_position.toString())
-                cal_lbl.text = display_label.get(current_position)
-                when (p) {
-                    0 -> {//bmi
-                        main_lbl.text = display_series.get(current_position) + "Kg/" + "m\u00B2"
-                    }
-                    1 -> {//체중
-                        main_lbl.text = display_series.get(current_position) + "Kg"
-                    }
-                    2 -> {//골격근
-                        main_lbl.text = display_series.get(current_position) + "Kg"
-                    }
-                    3 -> {//체지방
-                        main_lbl.text = display_series.get(current_position) + "%"
-                    }
-                    4 -> {//소모칼로리
-                        main_lbl.text = display_series.get(current_position) + "Kcal"
-                    }
-                    5 -> {//걸음수
-                        main_lbl.text = display_series.get(current_position) + "걸음"
-                    }
-                }
-            }
-        }.join()
+        Log.i(TAG, "label , series :" + last_position.toString())
+        return data
     }
     override fun OnMovieInteraction(item: DummyContent.DummyItem) {
     }
@@ -712,10 +604,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     /**
      * do google sign in
      */
-    @SuppressLint("RestrictedApi")
     private fun doGoogleSignIn() {
         Log.d(TAG + "_", "doGoogleSignIn")
-        val signInIntent = mGoogleSignInClient!!.getSignInIntent()
+        val signInIntent = mGoogleSignInClient.getSignInIntent()
         startActivityForResult(signInIntent, RC_SIGN_IN)//pass the declared request code here
     }
 
@@ -738,7 +629,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build()
-        mFitnessClient!!.connect()
+        mFitnessClient.connect()
         Log.d(TAG + "_", "onCreate")
         //mPb = ProgressDialog(this)
         // pPb = ProgressDialog(this)
@@ -747,19 +638,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if(GoogleSignIn.getLastSignedInAccount(this) == null){
             doGoogleSignIn()
         }else{
-            fitnessConectFun()
             getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
         }
-        launch(UI) {
-            launch(CommonPool) {
-                customRe = readRequest_custom() }.join()
-            launch(CommonPool) {
-                walkRe = readRequest_walk() }.join()
-            launch(CommonPool) {
-                weightRe = readRequest_weight() }.join()
-            launch(CommonPool) {
-                kcalRe = readRequest_kcal() }.join() }
-
+        fitnessConectFun()
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
@@ -826,9 +707,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     fun fitnessConectFun(){
-        if(!mFitnessClient!!.isConnected){
-            mFitnessClient!!.connect()
-        }
         Log.i(TAG, "fitnessConectFun")
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
@@ -849,6 +727,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
         }
+        mFitnessClient.context
     }
     private fun handleSignInResult(completedTask:Task<GoogleSignInAccount>) {
         Log.i(TAG, "handleSignInResult")
@@ -865,7 +744,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-    private fun insertData()= launch {
+    private fun insertData() {
         val cal = Calendar.getInstance()
         val now = Date()
         cal.time = now
@@ -873,24 +752,23 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // Create a new dataset and insertion request.
         val source = DataSource.Builder()
         .setName("bodygate.bcns.bodygation.personal")
-                .setDataType(customDataType())
+                .setDataType(custom_Type)
                 .setAppPackageName(this@MainActivity.context.packageName)
                 .setType(DataSource.TYPE_DERIVED)
                 .build()
         val dataPoint = DataPoint.create(source)
-        val type = customDataType()!!
         // Set values for the data point
         // This data type has two custom fields (int, float) and a common field
-        for (s: Int in 0..(type.fields.size - 1)) {
-            when (type.fields[s].name) {
+        for (s: Int in 0..(custom_Type.fields.size - 1)) {
+            when (custom_Type.fields[s].name) {
                 "bmi" -> {
-                    dataPoint.getValue(type.fields[s]).setFloat(my_bmi_txtB.text.toString().toFloat())
+                    dataPoint.getValue(custom_Type.fields[s]).setFloat(my_bmi_txtB.text.toString().toFloat())
                 }
                 "muscle" -> {
-                    dataPoint.getValue(type.fields[s]).setFloat(my_musclemass_txtB.text.toString().toFloat())
+                    dataPoint.getValue(custom_Type.fields[s]).setFloat(my_musclemass_txtB.text.toString().toFloat())
                 }
                 "fat" -> {
-                    dataPoint.getValue(type.fields[s]).setFloat(my_bodyfat_txtB.text.toString().toFloat())
+                    dataPoint.getValue(custom_Type.fields[s]).setFloat(my_bodyfat_txtB.text.toString().toFloat())
                 }
             }
         }
@@ -929,10 +807,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .requestProfile()
                 .requestId ()
                 .requestServerAuthCode(getString(R.string.server_client_id))
-                .requestScopes(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .requestScopes(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
-                .requestScopes(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .requestScopes(Scope(SCOPES))
                 .build()
         return GoogleSignIn.getClient(this, signInOptions)
     }
@@ -941,14 +815,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onStart()
         // Connect to the Fitness API
         Log.i(TAG, "Connecting...")
-        mFitnessClient!!.connect()
+        mFitnessClient.connect()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             REQUEST_ACCOUNT_PICKER -> {
                 Log.i(TAG, "REQUEST_ACCOUNT_PICKER")
-                if (resultCode == RESULT_OK && data.getExtras() != null) {
+                if (resultCode == RESULT_OK && data!!.getExtras() != null) {
                     val accountName =
                             data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
                     if (accountName != null) {
@@ -967,10 +841,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     fitnessConectFun()
                     val task = GoogleSignIn.getSignedInAccountFromIntent(data)
                     handleSignInResult(task)
+                    launch(CommonPool) { makeData()}
                 }
             }
             GOOGLE_FIT_PERMISSIONS_REQUEST_CODE ->{
                 Log.i(TAG, "GOOGLE_FIT_PERMISSIONS_REQUEST_CODE")
+                if (resultCode == RESULT_OK){
+                    fitnessConectFun()
+                }
+            }
+            REQUEST_OAUTH ->{
+                Log.i(TAG, "REQUEST_OAUTH")
                 if (resultCode == RESULT_OK){
                     fitnessConectFun()
                 }
@@ -992,7 +873,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // Error while connecting. Try to resolve using the pending intent returned.
         Log.i(TAG, "onConnectionResult" + ":" + result.toString())
         Log.i(TAG, "onConnectionerrorCode" + ":" + result.errorCode.toString())
-        if (result.errorCode == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
+        if (result.hasResolution()) {
             try {
                 result.startResolutionForResult(this, REQUEST_OAUTH);
             } catch (e: IntentSender.SendIntentException) {
@@ -1020,7 +901,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-  suspend fun customDataType():DataType?{
+  fun customDataType(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1028,7 +909,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         cal.set(2018, 1, 1)
         val startTime = cal.timeInMillis
-       var type:DataType? = null
         val pendingResult_custom = Fitness.getConfigClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).readDataType("bodygate.bcns.bodygation.personal")
                 .addOnFailureListener(object :OnFailureListener{
                     override fun onFailure(p0: Exception) {
@@ -1039,21 +919,19 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnSuccessListener(object :OnSuccessListener<DataType>{
                     override fun onSuccess(p0: DataType?) {
                         Log.i(TAG, "onSuccess : " + p0.toString())
-                        type = p0
+                        custom_Type = p0!!
                     }
                 })
-        launch(CommonPool) {  Tasks.await(pendingResult_custom) }.join()
-       return type
+        launch(CommonPool) {  Tasks.await(pendingResult_custom) }
     }
 
-   suspend fun readRequest_weight(): DataReadResponse?{
+   fun readRequest_weight(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         cal.set(2018, 1, 1)
-        var dataRes:DataReadResponse? = null
         val startTime = cal.timeInMillis
         val response = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                 .readData(DataReadRequest.Builder()
@@ -1063,8 +941,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnSuccessListener(object : OnSuccessListener<DataReadResponse> {
                     override fun onSuccess(p0: DataReadResponse?) {
                         Log.i(TAG, "readResponse_onSuccess")
-                        Log.i(TAG, p0.toString())
-                        dataRes = p0
+                        printData(p0!!)
                     }
 
                 })
@@ -1073,10 +950,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         Log.i(TAG, "readResponse :" + p0.message.toString())
                     }
                 })
-        launch(CommonPool){Tasks.await(response)} .join()
-        return dataRes
+        launch { Tasks.await(response) }
     }
-   suspend fun readRequest_kcal(): DataReadResponse?{
+   fun readRequest_kcal(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1084,7 +960,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         cal.set(2018, 1, 1)
         val startTime = cal.timeInMillis
-        var dataRes:DataReadResponse? = null
         val request =DataReadRequest.Builder()
                 .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
                 .bucketByTime(1, TimeUnit.DAYS)
@@ -1096,7 +971,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onSuccess(p0: DataReadResponse?) {
                         Log.i(TAG, "kcalResponse_onSuccess")
                         Log.i(TAG, p0.toString())
-                        dataRes = p0
+                        printData(p0!!)
                     }
 
                 })
@@ -1111,10 +986,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
 
                 })
-        launch(CommonPool){Tasks.await(sss)} .join()
-        return dataRes
+        launch(CommonPool){Tasks.await(sss)}
     }
-   suspend fun readRequest_walk(): DataReadResponse?{
+   fun readRequest_walk(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1133,7 +1007,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnSuccessListener(object : OnSuccessListener<DataReadResponse> {
                     override fun onSuccess(p0: DataReadResponse?) {
                         Log.i(TAG, "walkResponse_onSuccess")
-                        dataRes = p0
+                        printData(p0!!)
                     }
 
                 })
@@ -1146,10 +1020,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onComplete(p0: Task<DataReadResponse>) {
                     }
                 })
-       launch(CommonPool){Tasks.await(ccc)} .join()
-        return dataRes
+       launch(CommonPool){Tasks.await(ccc)}
     }
-   suspend fun readRequest_custom():DataReadResponse?{
+   fun readRequest_custom(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1160,13 +1033,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         var dataRes:DataReadResponse? = null
         val ccc = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                 .readData(DataReadRequest.Builder()
-                        .read(customDataType())
+                        .read(custom_Type)
                         .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                         .build())
                 .addOnSuccessListener(object : OnSuccessListener<DataReadResponse> {
                     override fun onSuccess(p0: DataReadResponse?) {
                         Log.i(TAG, "customResponse_onSuccess")
-                        dataRes = p0
+                        printData(p0!!)
                     }
 
                 })
@@ -1179,8 +1052,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onComplete(p0: Task<DataReadResponse>) {
                     }
                 })
-        launch(CommonPool){Tasks.await(ccc)} .join()
-        return dataRes
+        launch(CommonPool){Tasks.await(ccc)}
     }
 
 
@@ -1215,14 +1087,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
             //user profile pic
             personUrl = acct.photoUrl
-            launch(CommonPool) { makeData()}
             Log.i("profile", personName + "\t" + acct.photoUrl.toString() + "\t" + personGivenName +"\t" + personEmail +"\t" + personId + "\t" + acct.toString())
         }
     }
 
 
     @SuppressLint("SimpleDateFormat")
-   suspend fun printData(dataReadResult: DataReadResponse) {
+   fun printData(dataReadResult: DataReadResponse) {
         Log.i(TAG+ "printData", "dataReadResult.getBuckets()" + dataReadResult.getBuckets().size.toString())
         Log.i(TAG+ "printData", "dataReadResult.getDataSets()" + dataReadResult.getDataSets().size.toString())
         val label = SimpleDateFormat("MM/dd")
@@ -1239,7 +1110,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     Log.i(TAG+ "printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
                     Log.i(TAG+ "printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
                     Log.i(TAG+ "printData", "\tdataSets: " + bucket.dataSets.toString())
-                   launch(CommonPool) { dumpDataSet(dataset)}.join()
+                  dumpDataSet(dataset)
                     ia += 1
                 }
                 Log.i(TAG+ "printData", "\tia : " + ia.toString())
@@ -1247,7 +1118,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         } else if (dataReadResult.getDataSets().size > 0) {
             Log.i(TAG+ "printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
             for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.getDataSets()) {
-                launch(CommonPool) { dumpDataSet(dataSet)}.join()
+                dumpDataSet(dataSet)
                 ia += 1
                 Log.i(TAG+ "printData", "\tia : " + ia.toString())
             }
@@ -1313,7 +1184,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
      */
     @SuppressLint("RestrictedApi")
     private fun doGoogleSignOut() {
-        mGoogleSignInClient?.signOut()?.addOnCompleteListener(this, {
+        mGoogleSignInClient.signOut()?.addOnCompleteListener(this, {
             Toast.makeText(this, "Google Sign Out done.", Toast.LENGTH_SHORT).show()
             revokeAccess();
         })
@@ -1328,7 +1199,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
      */
     @SuppressLint("RestrictedApi")
     private fun revokeAccess() {
-        mGoogleSignInClient?.revokeAccess()?.addOnCompleteListener(this, {
+        mGoogleSignInClient.revokeAccess()?.addOnCompleteListener(this, {
             Toast.makeText(this, "Google access revoked.", Toast.LENGTH_SHORT).show()
             getProfileInformation(null)
         })

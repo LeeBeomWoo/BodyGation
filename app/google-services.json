@@ -15,7 +15,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "669763084628-788aos3so0e1phcgloqjrjkle8hrgb23.apps.googleusercontent.com",
+          "client_id": "669763084628-1ek5dvhohsa9vcoheksedq2ct6sq9lp0.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "bodygate.bcns.bodygation",
@@ -23,7 +23,15 @@
           }
         },
         {
-          "client_id": "669763084628-mit5fhh56fv6g93pn0e57rs4r009lt4f.apps.googleusercontent.com",
+          "client_id": "669763084628-ulc8qjdcu00rkqqap83vrn43tef1av5o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "bodygate.bcns.bodygation",
+            "certificate_hash": "676d89cf3f0de6a9ca13f4e44fcc451d06927580"
+          }
+        },
+        {
+          "client_id": "669763084628-oug3oc1lirrc6p8lcj1c30sou5m0i1u5.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -40,7 +48,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "669763084628-mit5fhh56fv6g93pn0e57rs4r009lt4f.apps.googleusercontent.com",
+              "client_id": "669763084628-oug3oc1lirrc6p8lcj1c30sou5m0i1u5.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
