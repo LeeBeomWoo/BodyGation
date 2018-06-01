@@ -134,7 +134,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var weightRe:DataReadResponse? = null
     var walkRe:DataReadResponse? = null
     var kcalRe:DataReadResponse? = null
-    lateinit var custom_Type:DataType
+    var custom_Type:DataType? = null
     var weight_Label:MutableList<String> =  ArrayList()
     var kcal_Label:MutableList<String> =  ArrayList()
     var walk_Label:MutableList<String> =  ArrayList()
@@ -292,7 +292,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     override fun OnGoalInteractionListener() {
-        insertData()
+        launch { insertData()}
     }
     @SuppressLint("PackageManagerGetSignatures")
     private fun getSHA1(packageName:String):String? {
@@ -371,32 +371,31 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun OnForMeInteraction(section:Int) {
         last_position = 0
+        if(custom_Type == null)
+            launch(UI) { customDataType()}
         when (section) {
             0 -> {//체중
-                readRequest_weight()
+                launch(UI) { readRequest_weight()}
                 graphSet(section)
             }
             1 -> {//걷기
-                readRequest_walk()
+                launch(UI) { readRequest_walk()}
                 graphSet(section)
             }
             2 -> {//칼로리
-                readRequest_kcal()
+                launch(UI) { readRequest_kcal()}
                 graphSet(section)
             }
             3 -> {//체지방비율
-                customDataType()
-                readRequest_custom()
+                launch(UI) { readRequest_custom()}
                 graphSet(section)
             }
             4 -> {//체지방비율
-                customDataType()
-                readRequest_custom()
+                launch(UI) { readRequest_custom()}
                 graphSet(section)
             }
             5 -> {//체지방비율
-                customDataType()
-                readRequest_custom()
+                launch(UI) { readRequest_custom()}
                 graphSet(section)
             }
         }
@@ -639,8 +638,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING)
         }
         getResultsFromApi()
+        if(GoogleSignIn.getLastSignedInAccount(this) == null){
+            doGoogleSignIn()
+        }
         fitnessConectFun()
         mFitnessClient = GoogleApiClient.Builder(this)
+                .setAccountName(GoogleSignIn.getLastSignedInAccount(this)!!.account.toString())
+                .enableAutoManage(this, this)
                 .addApi(Fitness.HISTORY_API)
                 .addApi(Fitness.CONFIG_API)
                 .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
@@ -649,11 +653,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnConnectionFailedListener(this)
                 .build()
         mFitnessClient.connect()
-        if(GoogleSignIn.getLastSignedInAccount(this) == null){
-            doGoogleSignIn()
-        }else{
-            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
-        }
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
@@ -739,6 +738,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
+        }else{
+            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
         }
     }
     private fun handleSignInResult(completedTask:Task<GoogleSignInAccount>) {
@@ -757,7 +758,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-    private fun insertData() {
+    suspend fun insertData() {
         val cal = Calendar.getInstance()
         val now = Date()
         cal.time = now
@@ -772,16 +773,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val dataPoint = DataPoint.create(source)
         // Set values for the data point
         // This data type has two custom fields (int, float) and a common field
-        for (s: Int in 0..(custom_Type.fields.size - 1)) {
-            when (custom_Type.fields[s].name) {
+        for (s: Int in 0..(custom_Type!!.fields.size - 1)) {
+            when (custom_Type!!.fields[s].name) {
                 "bmi" -> {
-                    dataPoint.getValue(custom_Type.fields[s]).setFloat(my_bmi_txtB.text.toString().toFloat())
+                    dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bmi_txtB.text.toString().toFloat())
                 }
                 "muscle" -> {
-                    dataPoint.getValue(custom_Type.fields[s]).setFloat(my_musclemass_txtB.text.toString().toFloat())
+                    dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_musclemass_txtB.text.toString().toFloat())
                 }
                 "fat" -> {
-                    dataPoint.getValue(custom_Type.fields[s]).setFloat(my_bodyfat_txtB.text.toString().toFloat())
+                    dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bodyfat_txtB.text.toString().toFloat())
                 }
             }
         }
@@ -819,7 +820,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .requestEmail()//request email id
                 .requestProfile()
                 .requestId ()
-                .requestServerAuthCode(getString(R.string.server_client_id))
+                .requestIdToken(getString(R.string.server_client_id))
+                .requestScopes(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                .requestScopes(Scope(Scopes.FITNESS_BODY_READ_WRITE))
                 .build()
         return GoogleSignIn.getClient(this, signInOptions)
     }
@@ -907,7 +910,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-  fun customDataType(){
+    suspend fun customDataType(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -928,10 +931,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         custom_Type = p0!!
                     }
                 })
-        launch(CommonPool) {  Tasks.await(pendingResult_custom) }
+        launch(CommonPool) {  Tasks.await(pendingResult_custom) }.join()
     }
 
-   fun readRequest_weight(){
+    suspend fun readRequest_weight(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -961,9 +964,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         Log.i(TAG, "readResponse_onComplete")
                     }
                 })
-        launch(CommonPool) { Tasks.await(response)}
+        launch(CommonPool) { Tasks.await(response)}.join()
     }
-   fun readRequest_kcal(){
+    suspend fun readRequest_kcal(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -997,9 +1000,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
 
                 })
-        launch(CommonPool){Tasks.await(sss)}
+        launch(CommonPool){Tasks.await(sss)}.join()
     }
-   fun readRequest_walk(){
+    suspend fun readRequest_walk(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1029,9 +1032,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onComplete(p0: Task<DataReadResponse>) {
                     }
                 })
-       launch(CommonPool){Tasks.await(ccc)}
+       launch(CommonPool){Tasks.await(ccc)}.join()
     }
-   fun readRequest_custom(){
+    suspend fun readRequest_custom(){
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1060,7 +1063,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onComplete(p0: Task<DataReadResponse>) {
                     }
                 })
-        launch(CommonPool){Tasks.await(ccc)}
+        launch(CommonPool){Tasks.await(ccc)}.join()
     }
 
 
