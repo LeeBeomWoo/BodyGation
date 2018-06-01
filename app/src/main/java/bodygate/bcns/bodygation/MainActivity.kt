@@ -93,7 +93,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val ID: String? = null
     val PW: String? = null
     val TAG: String = "MainActivity_"
-    private val RC_SIGN_IN = 111//google sign in request code
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
     var personUrl:Uri? = null
     var page = ""
@@ -408,9 +407,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             val set1 = BarDataSet(weight_series, getString(R.string.weight))
                             set1.setColors(Color.rgb(65, 192, 193))
                             data.addDataSet(set1)
-                            val xAxis = graph.xAxis
-                            xAxis.setGranularity(1f)
-                            xAxis.setValueFormatter(MyXAxisValueFormatter(weight_Label.toTypedArray()))
                         } else {
                             Log.i(TAG, "체중 없음")
                             Toast.makeText(this@MainActivity, "구글핏과 계정을 연동 하신 후 구글핏에 해당 자료가 업로드 되도록 해주세요", Toast.LENGTH_SHORT).show()
@@ -607,7 +603,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private fun doGoogleSignIn() {
         Log.d(TAG + "_", "doGoogleSignIn")
         val signInIntent = mGoogleSignInClient.getSignInIntent()
-        startActivityForResult(signInIntent, RC_SIGN_IN)//pass the declared request code here
+        startActivityForResult(signInIntent, GOOGLE_FIT_PERMISSIONS_REQUEST_CODE)//pass the declared request code here
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -620,11 +616,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_main)
         mGoogleSignInClient = buildGoogleSignInClient()
+        fitnessConectFun()
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
                 .addApi(Fitness.CONFIG_API)
                 .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_NUTRITION_READ_WRITE))
                 .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -640,7 +636,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }else{
             getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
         }
-        fitnessConectFun()
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
@@ -727,7 +722,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
         }
-        mFitnessClient.context
     }
     private fun handleSignInResult(completedTask:Task<GoogleSignInAccount>) {
         Log.i(TAG, "handleSignInResult")
@@ -736,6 +730,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
             // Signed in successfully, show authenticated UI.
             getProfileInformation(acc)
+            fitnessConectFun()
         } catch (e: ApiException) {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
@@ -835,19 +830,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 }
             }
-            RC_SIGN_IN ->{
-                Log.i(TAG, "RC_SIGN_IN")
-                if (resultCode == RESULT_OK){
-                    fitnessConectFun()
-                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                    handleSignInResult(task)
-                    launch(CommonPool) { makeData()}
-                }
-            }
             GOOGLE_FIT_PERMISSIONS_REQUEST_CODE ->{
                 Log.i(TAG, "GOOGLE_FIT_PERMISSIONS_REQUEST_CODE")
                 if (resultCode == RESULT_OK){
-                    fitnessConectFun()
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                    handleSignInResult(task)
+                    launch(CommonPool) { makeData()}
                 }
             }
             REQUEST_OAUTH ->{
@@ -950,7 +938,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         Log.i(TAG, "readResponse :" + p0.message.toString())
                     }
                 })
-        launch { Tasks.await(response) }
+                .addOnCompleteListener(object :OnCompleteListener<DataReadResponse>{
+                    override fun onComplete(p0: Task<DataReadResponse>) {
+                        Log.i(TAG, "readResponse_onComplete")
+                    }
+                })
+        launch(CommonPool) { Tasks.await(response)}
     }
    fun readRequest_kcal(){
         val cal = Calendar.getInstance()
@@ -996,8 +989,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         cal.set(2018, 1, 1)
         val startTime = cal.timeInMillis
-        var dataRes:DataReadResponse? = null
-
         val ccc = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                 .readData(DataReadRequest.Builder()
                         .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
@@ -1030,7 +1021,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         cal.set(2018, 1, 1)
         val startTime = cal.timeInMillis
-        var dataRes:DataReadResponse? = null
         val ccc = Fitness.getHistoryClient(this@MainActivity, GoogleSignIn.getLastSignedInAccount(this@MainActivity)!!)
                 .readData(DataReadRequest.Builder()
                         .read(custom_Type)
@@ -1131,7 +1121,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     fun dumpDataSet(dataSet:DataSet) {
         val label = SimpleDateFormat("MM/dd")
         Log.i(TAG + "DataSet", dataSet.toString())
-        for ( dp :DataPoint in dataSet.getDataPoints())
+        Log.i(TAG + "DataSet", dataSet.dataPoints[0].toString())
+        for ( dp :DataPoint in dataSet.dataPoints)
         {
             Log.i(TAG+ "DataSet", "\tType: " + dp.dataType.name)
             Log.i(TAG+ "DataSet", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))

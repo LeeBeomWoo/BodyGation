@@ -92,7 +92,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
-                if (weight_Btn.isChecked){ mListener!!.OnForMeInteraction(0)
+                if (weight_Btn.isChecked){
+                    mListener!!.OnForMeInteraction(0)
                     graph.setData(mListener!!.graphSet(0))
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()

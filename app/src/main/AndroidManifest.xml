@@ -5,10 +5,6 @@
 
     <permission android:name="ACCOUNT_MANAGER" />
 
-    <uses-permission android:name="android.permission.FITNESS_ACTIVITY_READ_WRITE"/>
-    <uses-permission android:name="android.permission.FITNESS_BODY_READ_WRITE"/>
-    <uses-permission android:name="android.permission.FITNESS_NUTRITION_READ_WRITE"/>
-
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -79,7 +75,6 @@
                 <data android:mimeType="vnd.google.fitness.data_type/com.google.weight" />
                 <data android:mimeType="vnd.google.fitness.data_type/com.google.weight.summary" />
                 <data android:mimeType="vnd.google.fitness.data_type/com.google.calories.expended" />
-                <data android:mimeType="vnd.google.fitness.data_type/com.google.step_count.cumulative" />
                 <data android:mimeType="vnd.google.fitness.data_type/com.google.step_count.delta" />
             </intent-filter>
         </activity>
