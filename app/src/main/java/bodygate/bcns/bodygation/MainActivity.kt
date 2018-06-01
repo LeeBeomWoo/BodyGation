@@ -377,14 +377,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 graphSet(section)
             }
             3 -> {//체지방비율
+                customDataType()
                 readRequest_custom()
                 graphSet(section)
             }
             4 -> {//체지방비율
+                customDataType()
                 readRequest_custom()
                 graphSet(section)
             }
             5 -> {//체지방비율
+                customDataType()
                 readRequest_custom()
                 graphSet(section)
             }
@@ -616,16 +619,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_main)
         mGoogleSignInClient = buildGoogleSignInClient()
-        fitnessConectFun()
-        mFitnessClient = GoogleApiClient.Builder(this)
-                .addApi(Fitness.HISTORY_API)
-                .addApi(Fitness.CONFIG_API)
-                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build()
-        mFitnessClient.connect()
         Log.d(TAG + "_", "onCreate")
         //mPb = ProgressDialog(this)
         // pPb = ProgressDialog(this)
@@ -636,6 +629,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }else{
             getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
         }
+        fitnessConectFun()
+        mFitnessClient = GoogleApiClient.Builder(this)
+                .addApi(Fitness.HISTORY_API)
+                .addApi(Fitness.CONFIG_API)
+                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build()
+        mFitnessClient.connect()
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
@@ -1089,7 +1092,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val label = SimpleDateFormat("MM/dd")
         var ia = 0
         ib =0
-        if (dataReadResult.getBuckets().size > 0) {
+        if (dataReadResult.buckets.size > 0) {
             Log.i(TAG+ "printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
             for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.getBuckets()) {
                 for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
@@ -1121,7 +1124,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     fun dumpDataSet(dataSet:DataSet) {
         val label = SimpleDateFormat("MM/dd")
         Log.i(TAG + "DataSet", dataSet.toString())
-        Log.i(TAG + "DataSet", dataSet.dataPoints[0].toString())
+        Log.i(TAG + "DataSet", dataSet.dataPoints.size.toString())
         for ( dp :DataPoint in dataSet.dataPoints)
         {
             Log.i(TAG+ "DataSet", "\tType: " + dp.dataType.name)
