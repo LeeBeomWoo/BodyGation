@@ -4,6 +4,12 @@
     package="bodygate.bcns.bodygation">
 
     <permission android:name="ACCOUNT_MANAGER" />
+    <permission android:name="FITNESS_ACTIVITY_READ_WRITE" />
+    <permission android:name="FITNESS_BODY_READ_WRITE" />
+    <permission android:name="FITNESS_LOCATION_READ_WRITE" />
+    <permission android:name="FITNESS_NUTRITION_READ_WRITE" />
+    <permission android:name="BODY_SENSORS" />
+    <permission android:name="GET_TASKS" />
 
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>

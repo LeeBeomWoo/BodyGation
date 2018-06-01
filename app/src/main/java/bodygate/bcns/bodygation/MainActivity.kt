@@ -1,5 +1,6 @@
 package bodygate.bcns.bodygation
 
+import android.Manifest
 import android.accounts.AccountManager
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
@@ -33,6 +34,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
@@ -51,6 +54,7 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.SearchListResponse
@@ -86,14 +90,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     var sendcheck:Boolean = false
     private val PREF_ACCOUNT_NAME = "accountName"
+    private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
     val REQUEST_ACCOUNT_PICKER = 1000
     private val REQUEST_OAUTH = 1001
+    val REQUEST_GOOGLE_PLAY_SERVICES = 1002
+    val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
     lateinit var mFitnessClient:GoogleApiClient
     var connectFitAPI:Boolean = false
     val ID: String? = null
     val PW: String? = null
     val TAG: String = "MainActivity_"
-    private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
     var personUrl:Uri? = null
     var page = ""
     override var totalpage = 100
@@ -111,6 +117,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var data: MutableList<SearchResult> = arrayListOf()
     override var last_position = 0
     override var current_position = 0
+    private var authInProgress = false
+    private val AUTH_PENDING = "auth_state_pending"
 
     override var display_label:MutableList<String> =  ArrayList()
     override var display_series: MutableList<String> = ArrayList()
@@ -624,11 +632,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // pPb = ProgressDialog(this)
         // nPb = ProgressDialog(this)
         cPb = ProgressDialog(this)
-        if(GoogleSignIn.getLastSignedInAccount(this) == null){
-            doGoogleSignIn()
-        }else{
-            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
+        mCredential = GoogleAccountCredential.usingOAuth2(
+                getApplicationContext(), Arrays.asList(SCOPES))
+                .setBackOff(ExponentialBackOff());
+        if (savedInstanceState != null) {
+            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING)
         }
+        getResultsFromApi()
         fitnessConectFun()
         mFitnessClient = GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
@@ -639,6 +649,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnConnectionFailedListener(this)
                 .build()
         mFitnessClient.connect()
+        if(GoogleSignIn.getLastSignedInAccount(this) == null){
+            doGoogleSignIn()
+        }else{
+            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
+        }
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
@@ -1125,13 +1140,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val label = SimpleDateFormat("MM/dd")
         Log.i(TAG + "DataSet", dataSet.toString())
         Log.i(TAG + "DataSet", dataSet.dataPoints.size.toString())
-        for ( dp :DataPoint in dataSet.dataPoints)
+        for ( dp :com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints)
         {
             Log.i(TAG+ "DataSet", "\tType: " + dp.dataType.name)
             Log.i(TAG+ "DataSet", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
             Log.i(TAG+ "DataSet", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
             Log.i(TAG+ "DataSet", "\tField: " + dp.dataType.fields.toString())
-            for (field:Field in dp.dataType.fields)
+            for (field:com.google.android.gms.fitness.data.Field in dp.dataType.fields)
             {
                 Log.i(TAG+ "_DataSet", "\tField: " + field.name + " Value: " + dp.getValue(field))
                 when(field.name){
@@ -1170,7 +1185,63 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
     }
+    private fun getResultsFromApi() {
+        if (isGooglePlayServicesAvailable()) {
+            acquireGooglePlayServices();
+        } else if (mCredential!!.getSelectedAccountName() == null) {
+            chooseAccount()
 
+        }
+    }
+    private fun chooseAccount() {
+        if (EasyPermissions.hasPermissions(
+                        this, Manifest.permission.ACCOUNT_MANAGER)) {
+            val accountName = getPreferences(Context.MODE_PRIVATE)
+                    .getString(PREF_ACCOUNT_NAME, null);
+            if (accountName != null) {
+                mCredential!!.setSelectedAccountName(accountName);
+                getResultsFromApi();
+            } else {
+                // Start a dialog from which the user can choose an account
+                startActivityForResult(
+                        mCredential!!.newChooseAccountIntent(),
+                        REQUEST_ACCOUNT_PICKER);
+            }
+        } else {
+            // Request the GET_ACCOUNTS permission via a user dialog
+            EasyPermissions.requestPermissions(
+                    this,
+                    "This app needs to access your Google account (via Contacts).",
+                    REQUEST_PERMISSION_GET_ACCOUNTS,
+                    Manifest.permission.ACCOUNT_MANAGER);
+        }
+    }
+    fun isGooglePlayServicesAvailable(): Boolean {
+        val apiAvailability =
+                GoogleApiAvailability.getInstance();
+        val connectionStatusCode =
+                apiAvailability.isGooglePlayServicesAvailable(this);
+        return connectionStatusCode == ConnectionResult.SUCCESS;
+    }
+
+    fun acquireGooglePlayServices() {
+        val apiAvailability =
+                GoogleApiAvailability.getInstance();
+        val connectionStatusCode =
+                apiAvailability.isGooglePlayServicesAvailable(this);
+        if (apiAvailability.isUserResolvableError(connectionStatusCode)) {
+            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
+        }
+    }
+    fun showGooglePlayServicesAvailabilityErrorDialog(
+            connectionStatusCode: Int) {
+        val apiAvailability = GoogleApiAvailability.getInstance();
+        val dialog = apiAvailability.getErrorDialog(
+                this,
+                connectionStatusCode,
+                REQUEST_GOOGLE_PLAY_SERVICES);
+        dialog.show();
+    }
 
     /**
      * method to do google sign out
