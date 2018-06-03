@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "669763084628-ei3h7tsecic687lsiokoh6jifoghdc1l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "bodygate.bcns.bodygation",
+            "certificate_hash": "676d89cf3f0de6a9ca13f4e44fcc451d06927580"
+          }
+        },
+        {
           "client_id": "669763084628-oug3oc1lirrc6p8lcj1c30sou5m0i1u5.apps.googleusercontent.com",
           "client_type": 3
         },

@@ -3,17 +3,16 @@ package bodygate.bcns.bodygation
 import android.Manifest
 import android.accounts.AccountManager
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.ProgressDialog
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.IntentSender
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
+import android.provider.Settings
 import android.support.annotation.NonNull
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
@@ -35,6 +34,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.ApiException
@@ -68,6 +68,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.custom.async
+import org.jetbrains.anko.defaultSharedPreferences
 import pub.devrel.easypermissions.EasyPermissions
 import java.io.BufferedReader
 import java.io.IOException
@@ -78,20 +79,18 @@ import java.security.NoSuchAlgorithmException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.security.auth.callback.Callback
 import kotlin.collections.ArrayList
 
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, OnDataPointListener, Parcelable, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener {
-    override fun describeContents(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, OnDataPointListener, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener {
 
     var sendcheck:Boolean = false
     private val PREF_ACCOUNT_NAME = "accountName"
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
-    val REQUEST_ACCOUNT_PICKER = 1000
+    val REQUEST_ACCOUNT_PICKER = 2
     private val REQUEST_OAUTH = 1001
     val REQUEST_GOOGLE_PLAY_SERVICES = 1002
     val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
@@ -119,6 +118,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var current_position = 0
     private var authInProgress = false
     private val AUTH_PENDING = "auth_state_pending"
+    var accountname = ""
 
     override var display_label:MutableList<String> =  ArrayList()
     override var display_series: MutableList<String> = ArrayList()
@@ -142,18 +142,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var muscle_Label:MutableList<String> =  ArrayList()
     var bmi_Label:MutableList<String> =  ArrayList()
     var ib = 0
-
-    constructor(parcel: Parcel) : this() {
-        sendcheck = parcel.readByte() != 0.toByte()
-        personUrl = parcel.readParcelable(Uri::class.java.classLoader)
-        page = parcel.readString()
-        totalpage = parcel.readInt()
-        SCOPES = parcel.readString()
-        visableFragment = parcel.readString()
-        doubleBackToExitPressedOnce = parcel.readByte() != 0.toByte()
-    }
-
-
     override fun stopProgress(i:Int) {
         when(i) {
             3-> if (mPb!!.isShowing) {
@@ -278,19 +266,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun OnYoutubeResultInteraction(){
 
     }
-
-    override fun writeToParcel(p0: Parcel?, p1: Int) {
-        if (p0 != null) {
-            p0.writeByte(if (sendcheck) 1 else 0)
-            p0.writeParcelable(personUrl, p1)
-            p0.writeString(page)
-            p0.writeInt(totalpage)
-            p0.writeString(SCOPES)
-            p0.writeString(visableFragment)
-            p0.writeByte(if (doubleBackToExitPressedOnce) 1 else 0)
-        }
-    }
-
     override fun OnGoalInteractionListener() {
         launch { insertData()}
     }
@@ -309,9 +284,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
         catch (e:PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-        }
-        catch (e: NoSuchAlgorithmException) {
             e.printStackTrace()
         }
         return null
@@ -369,37 +341,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     .commit()
     }
 
-    override fun OnForMeInteraction(section:Int) {
-        last_position = 0
-        if(custom_Type == null)
-            launch(UI) { customDataType()}
-        when (section) {
-            0 -> {//체중
-                launch(UI) { readRequest_weight()}
-                graphSet(section)
-            }
-            1 -> {//걷기
-                launch(UI) { readRequest_walk()}
-                graphSet(section)
-            }
-            2 -> {//칼로리
-                launch(UI) { readRequest_kcal()}
-                graphSet(section)
-            }
-            3 -> {//체지방비율
-                launch(UI) { readRequest_custom()}
-                graphSet(section)
-            }
-            4 -> {//체지방비율
-                launch(UI) { readRequest_custom()}
-                graphSet(section)
-            }
-            5 -> {//체지방비율
-                launch(UI) { readRequest_custom()}
-                graphSet(section)
-            }
-        }
-    }
 
     @SuppressLint("SetTextI18n")
   override fun graphSet(p:Int):BarData {
@@ -541,7 +482,57 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     fun nextpage():String{
         return page
     }
+private fun buildFitnessClient() {
+    // Create the Google API Client
+    mFitnessClient = GoogleApiClient.Builder(this)
+            .addApi(Fitness.CONFIG_API)
+            .addApi(Fitness.HISTORY_API)
+            .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+            .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+            .addConnectionCallbacks(object :GoogleApiClient.ConnectionCallbacks {
+                override fun onConnectionSuspended(i: Int) {
+                    // If your connection to the sensor gets lost at some point,
+                    // you'll be able to determine the reason and react to it here.
+                    if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
+                        Log.i(TAG, "Connection lost.  Cause: Network Lost.");
+                    } else if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
+                        Log.i(TAG, "Connection lost.  Reason: Service Disconnected");
+                    }
+                }
 
+                override fun onConnected(p0: Bundle?) {
+                    Log.i(TAG, "Connected!!!");
+                  accessGoogleFit()
+                }
+
+            })
+            .addOnConnectionFailedListener(object :GoogleApiClient.OnConnectionFailedListener {
+                override fun onConnectionFailed(result: ConnectionResult) {
+                    Log.i(TAG, "Connection failed. Cause: " + result.toString());
+                    if (!result.hasResolution()) {
+                        // Show the localized error dialog
+                        GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(),
+                                this@MainActivity, 0).show();
+                        return;
+                    }
+                    // The failure has a resolution. Resolve it.
+                    // Called typically when the app is not yet authorized, and an
+                    // authorization dialog is displayed to the user.
+                    if (!authInProgress) {
+                        try {
+                            Log.i(TAG, "Attempting to resolve failed connection");
+                            authInProgress = true;
+                            result.startResolutionForResult( this@MainActivity,
+                                    REQUEST_OAUTH);
+                        } catch (e:IntentSender.SendIntentException) {
+                            Log.e(TAG,
+                                    "Exception while starting resolution activity", e);
+                        }
+                    }
+                }
+                })
+            .build()
+}
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
 
@@ -589,33 +580,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
     }
-
-
-    /**
-     * method to do Sign In or Sign Out on the basis of account exist or not
-     */
-    @SuppressLint("RestrictedApi")
-    private fun doSignInSignOut() {
-
-        //get the last sign in account
-        val account = GoogleSignIn.getLastSignedInAccount(this)
-
-        //if account doesn't exist do login else do sign out
-        if (account == null)
-            doGoogleSignIn()
-        else
-            doGoogleSignOut()
-    }
-
-    /**
-     * do google sign in
-     */
-    private fun doGoogleSignIn() {
-        Log.d(TAG + "_", "doGoogleSignIn")
-        val signInIntent = mGoogleSignInClient.getSignInIntent()
-        startActivityForResult(signInIntent, GOOGLE_FIT_PERMISSIONS_REQUEST_CODE)//pass the declared request code here
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ScaleConfig.create(this,
@@ -625,34 +589,33 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 (3).toFloat(),    // Design FontScale
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_main)
-        mGoogleSignInClient = buildGoogleSignInClient()
         Log.d(TAG + "_", "onCreate")
         //mPb = ProgressDialog(this)
         // pPb = ProgressDialog(this)
         // nPb = ProgressDialog(this)
         cPb = ProgressDialog(this)
-        mCredential = GoogleAccountCredential.usingOAuth2(
-                getApplicationContext(), Arrays.asList(SCOPES))
-                .setBackOff(ExponentialBackOff());
         if (savedInstanceState != null) {
-            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING)
+            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         }
-        getResultsFromApi()
-        if(GoogleSignIn.getLastSignedInAccount(this) == null){
-            doGoogleSignIn()
+        buildFitnessClient();
+
+        val fitnessOptions = FitnessOptions.builder()
+                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
+                .build();
+        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
+            GoogleSignIn.requestPermissions(
+                    this, // your activity
+                    GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
+                    GoogleSignIn.getLastSignedInAccount(this),
+                    fitnessOptions)
+        } else {
+            accessGoogleFit()
+            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
         }
-        fitnessConectFun()
-        mFitnessClient = GoogleApiClient.Builder(this)
-                .setAccountName(GoogleSignIn.getLastSignedInAccount(this)!!.account.toString())
-                .enableAutoManage(this, this)
-                .addApi(Fitness.HISTORY_API)
-                .addApi(Fitness.CONFIG_API)
-                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build()
-        mFitnessClient.connect()
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
@@ -732,30 +695,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
                 .build()
-        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
-            GoogleSignIn.requestPermissions(
-                    this,
-                    GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
-                    GoogleSignIn.getLastSignedInAccount(this),
-                    fitnessOptions)
-        }else{
-            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
-        }
-    }
-    private fun handleSignInResult(completedTask:Task<GoogleSignInAccount>) {
-        Log.i(TAG, "handleSignInResult")
-        try {
-            val acc = completedTask.getResult(ApiException::class.java)
-
-            // Signed in successfully, show authenticated UI.
-            getProfileInformation(acc)
-            fitnessConectFun()
-        } catch (e: ApiException) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
-            getProfileInformation(null)
-        }
     }
 
     suspend fun insertData() {
@@ -815,18 +754,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         launch(CommonPool) { Tasks.await(response)}
     }
 
-    private fun buildGoogleSignInClient(): GoogleSignInClient {
-        val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()//request email id
-                .requestProfile()
-                .requestId ()
-                .requestIdToken(getString(R.string.server_client_id))
-                .requestScopes(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .requestScopes(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-                .build()
-        return GoogleSignIn.getClient(this, signInOptions)
-    }
-    @SuppressLint("RestrictedApi")
     override fun onStart() {
         super.onStart()
         // Connect to the Fitness API
@@ -834,36 +761,94 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         mFitnessClient.connect()
     }
 
+    override fun onStop() {
+        super.onStop()
+        if (mFitnessClient.isConnected()) {
+            mFitnessClient.disconnect();
+        }
+    }
+    fun chooseAccount() {
+        startActivityForResult(mCredential!!.newChooseAccountIntent(),
+                REQUEST_ACCOUNT_PICKER)
+    }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
+            GOOGLE_FIT_PERMISSIONS_REQUEST_CODE -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
+                        accessGoogleFit()
+                }
+            }
             REQUEST_ACCOUNT_PICKER -> {
-                Log.i(TAG, "REQUEST_ACCOUNT_PICKER")
-                if (resultCode == RESULT_OK && data!!.getExtras() != null) {
+                if (data != null && data.getExtras() != null) {
                     val accountName =
-                            data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                    data.getExtras().getString(
+                            AccountManager.KEY_ACCOUNT_NAME);
                     if (accountName != null) {
-                        val settings =
-                                getPreferences(Context.MODE_PRIVATE)
-                        val editor = settings.edit()
+                        setSelectedAccountName(accountName);
+                        val editor:SharedPreferences.Editor = defaultSharedPreferences.edit()
                         editor.putString(PREF_ACCOUNT_NAME, accountName)
                         editor.apply()
-                        mCredential!!.setSelectedAccountName(accountName)
+                        // User is authorized.
                     }
                 }
             }
-            GOOGLE_FIT_PERMISSIONS_REQUEST_CODE ->{
-                Log.i(TAG, "GOOGLE_FIT_PERMISSIONS_REQUEST_CODE")
-                if (resultCode == RESULT_OK){
-                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                    handleSignInResult(task)
-                    launch(CommonPool) { makeData()}
+            REQUEST_OAUTH ->{
+                authInProgress = false;
+                if (resultCode == RESULT_OK) {
+                    // Make sure the app is not already connected or attempting to connect
+                    if (!mFitnessClient.isConnecting() && !mFitnessClient.isConnected()) {
+                        mFitnessClient.connect();
+                    }
                 }
             }
-            REQUEST_OAUTH ->{
-                Log.i(TAG, "REQUEST_OAUTH")
-                if (resultCode == RESULT_OK){
-                    fitnessConectFun()
-                }
+        }
+    }
+private fun setSelectedAccountName(accountName:String) {
+    val editor:SharedPreferences.Editor = defaultSharedPreferences.edit()
+  editor.putString(PREF_ACCOUNT_NAME, accountName);
+  editor.apply()
+  mCredential!!.setSelectedAccountName(accountName);
+  this.accountname = accountName;
+}
+    private fun accessGoogleFit() {
+        Log.i(TAG, "accessGoogleFit")
+        connectFitAPI = true
+        launch(CommonPool) { customDataType()}
+        launch(CommonPool) { readRequest_weight()}
+        launch(CommonPool) { readRequest_walk()}
+        launch(CommonPool) { readRequest_kcal()}
+        launch(CommonPool) { readRequest_custom()}
+    }
+
+    override fun OnForMeInteraction(section:Int) {
+        last_position = 0
+        //if(custom_Type == null)
+           // launch(UI) { customDataType()}
+        when (section) {
+            0 -> {//체중
+                //launch(UI) { readRequest_weight()}
+                graphSet(section)
+            }
+            1 -> {//걷기
+                //launch(UI) { readRequest_walk()}
+                graphSet(section)
+            }
+            2 -> {//칼로리
+              //  launch(UI) { readRequest_kcal()}
+                graphSet(section)
+            }
+            3 -> {//체지방비율
+               // launch(UI) { readRequest_custom()}
+                graphSet(section)
+            }
+            4 -> {//체지방비율
+                //launch(UI) { readRequest_custom()}
+                graphSet(section)
+            }
+            5 -> {//체지방비율
+                //launch(UI) { readRequest_custom()}
+                graphSet(section)
             }
         }
     }
@@ -871,7 +856,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, "onConnected")
         //Google Fit Client에 연결되었습니다.
         Log.i(TAG, p0.toString())
-        connectFitAPI = true
     }
     override fun onConnectionSuspended(cause: Int) {
         Log.i(TAG, "onConnectionSuspended")
@@ -911,6 +895,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     suspend fun customDataType(){
+        Log.i(TAG, "customDataType")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -935,6 +920,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     suspend fun readRequest_weight(){
+        Log.i(TAG, "readRequest_weight")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -967,6 +953,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         launch(CommonPool) { Tasks.await(response)}.join()
     }
     suspend fun readRequest_kcal(){
+        Log.i(TAG, "readRequest_kcal")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1003,6 +990,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         launch(CommonPool){Tasks.await(sss)}.join()
     }
     suspend fun readRequest_walk(){
+        Log.i(TAG, "readRequest_walk")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1035,6 +1023,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
        launch(CommonPool){Tasks.await(ccc)}.join()
     }
     suspend fun readRequest_custom(){
+        Log.i(TAG, "readRequest_custom")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
@@ -1186,117 +1175,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
                 ib += 1
             }
-        }
-    }
-    private fun getResultsFromApi() {
-        if (isGooglePlayServicesAvailable()) {
-            acquireGooglePlayServices();
-        } else if (mCredential!!.getSelectedAccountName() == null) {
-            chooseAccount()
-
-        }
-    }
-    private fun chooseAccount() {
-        if (EasyPermissions.hasPermissions(
-                        this, Manifest.permission.ACCOUNT_MANAGER)) {
-            val accountName = getPreferences(Context.MODE_PRIVATE)
-                    .getString(PREF_ACCOUNT_NAME, null);
-            if (accountName != null) {
-                mCredential!!.setSelectedAccountName(accountName);
-                getResultsFromApi();
-            } else {
-                // Start a dialog from which the user can choose an account
-                startActivityForResult(
-                        mCredential!!.newChooseAccountIntent(),
-                        REQUEST_ACCOUNT_PICKER);
-            }
-        } else {
-            // Request the GET_ACCOUNTS permission via a user dialog
-            EasyPermissions.requestPermissions(
-                    this,
-                    "This app needs to access your Google account (via Contacts).",
-                    REQUEST_PERMISSION_GET_ACCOUNTS,
-                    Manifest.permission.ACCOUNT_MANAGER);
-        }
-    }
-    fun isGooglePlayServicesAvailable(): Boolean {
-        val apiAvailability =
-                GoogleApiAvailability.getInstance();
-        val connectionStatusCode =
-                apiAvailability.isGooglePlayServicesAvailable(this);
-        return connectionStatusCode == ConnectionResult.SUCCESS;
-    }
-
-    fun acquireGooglePlayServices() {
-        val apiAvailability =
-                GoogleApiAvailability.getInstance();
-        val connectionStatusCode =
-                apiAvailability.isGooglePlayServicesAvailable(this);
-        if (apiAvailability.isUserResolvableError(connectionStatusCode)) {
-            showGooglePlayServicesAvailabilityErrorDialog(connectionStatusCode)
-        }
-    }
-    fun showGooglePlayServicesAvailabilityErrorDialog(
-            connectionStatusCode: Int) {
-        val apiAvailability = GoogleApiAvailability.getInstance();
-        val dialog = apiAvailability.getErrorDialog(
-                this,
-                connectionStatusCode,
-                REQUEST_GOOGLE_PLAY_SERVICES);
-        dialog.show();
-    }
-
-    /**
-     * method to do google sign out
-     * This code clears which account is connected to the app. To sign in again, the user must choose their account again.
-     */
-    @SuppressLint("RestrictedApi")
-    private fun doGoogleSignOut() {
-        mGoogleSignInClient.signOut()?.addOnCompleteListener(this, {
-            Toast.makeText(this, "Google Sign Out done.", Toast.LENGTH_SHORT).show()
-            revokeAccess();
-        })
-    }
-
-    /**
-     * DISCONNECT ACCOUNTS
-     * method to revoke access from this app
-     * call this method after successful sign out
-     * <p>
-     * It is highly recommended that you provide users that signed in with Google the ability to disconnect their Google account from your app. If the user deletes their account, you must delete the information that your app obtained from the Google APIs
-     */
-    @SuppressLint("RestrictedApi")
-    private fun revokeAccess() {
-        mGoogleSignInClient.revokeAccess()?.addOnCompleteListener(this, {
-            Toast.makeText(this, "Google access revoked.", Toast.LENGTH_SHORT).show()
-            getProfileInformation(null)
-        })
-    }
-
-    /**
-     * Respond to requests for permissions at runtime for API 23 and above.
-     * @param requestCode The request code passed in
-     *     requestPermissions(android.app.Activity, String, int, String[])
-     * @param permissions The requested permissions. Never null.
-     * @param grantResults The grant results for the corresponding permissions
-     *     which is either PERMISSION_GRANTED or PERMISSION_DENIED. Never null.
-     */
-
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            @NonNull permissions: Array<String>,
-                                            @NonNull grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        EasyPermissions.onRequestPermissionsResult(
-                requestCode, permissions, grantResults, this);
-    }
-
-    companion object CREATOR : Parcelable.Creator<MainActivity> {
-        override fun createFromParcel(parcel: Parcel): MainActivity {
-            return MainActivity(parcel)
-        }
-
-        override fun newArray(size: Int): Array<MainActivity?> {
-            return arrayOfNulls(size)
         }
     }
 
