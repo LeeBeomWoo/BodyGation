@@ -9,6 +9,7 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
@@ -502,7 +503,8 @@ private fun buildFitnessClient() {
 
                 override fun onConnected(p0: Bundle?) {
                     Log.i(TAG, "Connected!!!");
-                  accessGoogleFit()
+                    val task = fitTask()
+                    task.execute()
                 }
 
             })
@@ -613,7 +615,8 @@ private fun buildFitnessClient() {
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
         } else {
-            accessGoogleFit()
+            val task = fitTask()
+            task.execute()
             getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
         }
         // Create items
@@ -776,7 +779,8 @@ private fun buildFitnessClient() {
             GOOGLE_FIT_PERMISSIONS_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
-                        accessGoogleFit()
+                    val task = fitTask()
+                    task.execute()
                 }
             }
             REQUEST_ACCOUNT_PICKER -> {
@@ -1178,6 +1182,33 @@ private fun setSelectedAccountName(accountName:String) {
         }
     }
 
+    private inner class fitTask : AsyncTask<Void, Void, Void>() {
+
+        val pB = ProgressDialog(applicationContext)
+        override fun doInBackground(vararg params: Void): Void? {
+            Log.i(TAG, "doInBackground")
+            launch(CommonPool) { customDataType()}
+            launch(CommonPool) { readRequest_weight()}
+            launch(CommonPool) { readRequest_walk()}
+            launch(CommonPool) { readRequest_kcal()}
+            launch(CommonPool) { readRequest_custom()}
+            return null
+        }
+
+        override fun onPreExecute() {
+            super.onPreExecute()
+            pB.setTitle("데이터 동기화중...")
+            pB.setMessage("구글핏 데이터 동기화 중입니다.")
+            pB.setCancelable(false)
+            pB.show()
+        }
+
+        override fun onPostExecute(result: Void?) {
+            super.onPostExecute(result)
+            pB.dismiss()
+        }
+
+    }
 }
 
 
