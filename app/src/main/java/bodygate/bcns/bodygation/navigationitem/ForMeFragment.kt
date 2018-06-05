@@ -93,8 +93,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (weight_Btn.isChecked){
-                    mListener!!.OnForMeInteraction(0)
-                    graph.setData(mListener!!.graphSet(0))
+                    graph.setData(mListener!!.OnForMeInteraction(0))
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                     graph.invalidate()
@@ -119,8 +118,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (walk_Btn.isChecked){
-                    mListener!!.OnForMeInteraction(1)
-                    graph.setData(mListener!!.graphSet(1))
+                    graph.setData(mListener!!.OnForMeInteraction(1))
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                     graph.invalidate()
@@ -145,8 +143,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (kal_Btn.isChecked) {
-                    mListener!!.OnForMeInteraction(2)
-                    graph.setData(mListener!!.graphSet(2))
+                    graph.setData(mListener!!.OnForMeInteraction(2))
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                     graph.invalidate()
@@ -171,8 +168,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
                 if (bfp_Btn.isChecked) {
-                    mListener!!.OnForMeInteraction(3)
-                    graph.setData(mListener!!.graphSet(3))
+                    graph.setData(mListener!!.OnForMeInteraction(3))
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                     graph.invalidate()
@@ -197,8 +193,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 if (muscle_Btn.isChecked)
                     muscle_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked){
-                    mListener!!.OnForMeInteraction(5)
-                    graph.setData(mListener!!.graphSet(5))
+                    graph.setData(mListener!!.OnForMeInteraction(5))
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                     graph.invalidate()
@@ -222,8 +217,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     bfp_Btn.setChecked(!check)
                 if (bmi_Btn.isChecked)
                     bmi_Btn.setChecked(!check)
-                if (muscle_Btn.isChecked){ mListener!!.OnForMeInteraction(4)
-                    graph.setData(mListener!!.graphSet(4))
+                if (muscle_Btn.isChecked){
+                    graph.setData(mListener!!.OnForMeInteraction(4))
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                     graph.invalidate()
@@ -353,12 +348,11 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
      */
     interface OnForMeInteraction {
         // TODO: Update argument type and name
-        fun OnForMeInteraction(section:Int)
+        fun OnForMeInteraction(section:Int):BarData
         var last_position:Int
         var current_position :Int
         var display_label:MutableList<String>
         var display_series: MutableList<String>
-        fun graphSet(p:Int):BarData
         val context:Context
     }
 
