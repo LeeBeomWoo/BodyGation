@@ -65,6 +65,7 @@ import com.google.api.services.youtube.model.SearchResult
 import com.google.common.io.BaseEncoding
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_for_me.*
@@ -93,18 +94,17 @@ import kotlin.collections.ArrayList
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, OnDataPointListener, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener {
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener {
 
     var sendcheck:Boolean = false
+    var pB: ProgressDialog? = null
     private val PREF_ACCOUNT_NAME = "accountName"
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
     val REQUEST_ACCOUNT_PICKER = 2
     private val REQUEST_OAUTH = 1001
     val REQUEST_GOOGLE_PLAY_SERVICES = 1002
     val REQUEST_PERMISSION_GET_ACCOUNTS = 1003
-    lateinit var mFitnessClient:GoogleApiClient
-    lateinit var mClient:GoogleApiClient
-    lateinit var mAuth: FirebaseAuth
+    var mClient:GoogleApiClient? = null
     var connectFitAPI:Boolean = false
     val ID: String? = null
     val PW: String? = null
@@ -126,7 +126,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var data: MutableList<SearchResult> = arrayListOf()
     override var last_position = 0
     override var current_position = 0
-    private var authInProgress = false
     private val AUTH_PENDING = "auth_state_pending"
     var accountname = ""
 
@@ -356,18 +355,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     fun nextpage():String{
         return page
     }
-private fun buildFitnessClient() {
-    // Create the Google API Client
-    mFitnessClient = GoogleApiClient.Builder(this)
-            .addApi(Fitness.CONFIG_API)
-            .addApi(Fitness.HISTORY_API)
-            .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
-            .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-            .addConnectionCallbacks(this)
-            .addOnConnectionFailedListener(this)
-            .build()
-    mFitnessClient.connect()
-}
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
 
@@ -428,19 +415,28 @@ private fun buildFitnessClient() {
         //mPb = ProgressDialog(this)
         // pPb = ProgressDialog(this)
         // nPb = ProgressDialog(this)
-        cPb = ProgressDialog(this)
-        if (savedInstanceState != null) {
-            authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
-        }
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
+                .requestId()
                 .requestProfile()
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .build()
-        mClient = GoogleApiClient.Builder(this).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, gso).build()
-        mClient.connect()
-        buildFitnessClient()
-
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+        cPb = ProgressDialog(this)
+        mClient = GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Fitness.CONFIG_API)
+                .addApi(Fitness.HISTORY_API)
+                .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build()
+        if(GoogleSignIn.getLastSignedInAccount(this) == null){
+            signIn()
+        }else{
+            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
+        }
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
@@ -453,16 +449,15 @@ private fun buildFitnessClient() {
                 .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
                 .build();
-        if (GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
-            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
-            val task = fitTask()
-            task.execute()
-        } else {
+        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
             GoogleSignIn.requestPermissions(
                     this, // your activity
                     GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
+        } else {
+            val task = fitTask()
+            task.execute()
         }
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
@@ -528,9 +523,10 @@ private fun buildFitnessClient() {
 
         })
     }
-private fun signIn() {
+    private fun signIn() {
+        Log.i(TAG, "signIn")
         val signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, REQUEST_OAUTH);
+        startActivityForResult(signInIntent, REQUEST_OAUTH)
     }
     fun insertData() {
         val cal = Calendar.getInstance()
@@ -593,13 +589,13 @@ private fun signIn() {
         super.onStart()
         // Connect to the Fitness API
         Log.i(TAG, "Connecting...")
-        mFitnessClient.connect()
+        mClient!!.connect()
     }
 
     override fun onStop() {
         super.onStop()
-        if (mFitnessClient.isConnected()) {
-            mFitnessClient.disconnect();
+        if (mClient!!.isConnected()) {
+            mClient!!.disconnect();
         }
     }
     fun chooseAccount() {
@@ -609,6 +605,7 @@ private fun signIn() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             GOOGLE_FIT_PERMISSIONS_REQUEST_CODE -> {
+                Log.i(TAG, "GOOGLE_FIT_PERMISSIONS_REQUEST_CODE")
                 if (resultCode == Activity.RESULT_OK) {
                     getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
                     val task = fitTask()
@@ -616,35 +613,28 @@ private fun signIn() {
                 }
             }
             REQUEST_ACCOUNT_PICKER -> {
-                if (data != null && data.getExtras() != null) {
-                    val accountName =
-                            data.getExtras().getString(
-                                    AccountManager.KEY_ACCOUNT_NAME);
-                    if (accountName != null) {
-                        setSelectedAccountName(accountName);
-                        val editor: SharedPreferences.Editor = defaultSharedPreferences.edit()
-                        editor.putString(PREF_ACCOUNT_NAME, accountName)
-                        editor.apply()
-                        // User is authorized.
+                Log.i(TAG, "REQUEST_ACCOUNT_PICKER")
+                if (resultCode == Activity.RESULT_OK) {
+                    if (data != null && data.getExtras() != null) {
+                        val accountName =
+                                data.getExtras().getString(
+                                        AccountManager.KEY_ACCOUNT_NAME);
+                        if (accountName != null) {
+                            setSelectedAccountName(accountName);
+                            val editor: SharedPreferences.Editor = defaultSharedPreferences.edit()
+                            editor.putString(PREF_ACCOUNT_NAME, accountName)
+                            editor.apply()
+                            // User is authorized.
+                        }
                     }
                 }
             }
             REQUEST_OAUTH -> {
-                authInProgress = false;
-                if (resultCode == RESULT_OK) {
+                Log.i(TAG, "REQUEST_OAUTH")
+                if (resultCode == Activity.RESULT_OK) {
                     // Make sure the app is not already connected or attempting to connectTask<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-                    try {
-                        // Google Sign In was successful, authenticate with Firebase
-                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                        val account = task.getResult(ApiException::class.java)
-                        getProfileInformation(account)
-                        if (!mFitnessClient.isConnecting() && !mFitnessClient.isConnected()) {
-                            mFitnessClient.connect();
-                        }
-                    } catch (e: ApiException) {
-                        // Google Sign In failed, update UI appropriately
-                        Log.w(TAG, "Google sign in failed : ", e)
-                    }
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                    getProfileInformation(task.result);
                 }
             }
         }
@@ -662,67 +652,97 @@ private fun setSelectedAccountName(accountName:String) {
         val data = BarData()
         when (section) {
             0 -> {//체중
-                Log.i(TAG, "체중 있음")
-                last_position = weight_series.size - 1
-                display_label = weight_Label
-                val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                set1.setColors(Color.rgb(65, 192, 193))
-                data.addDataSet(set1)
+                if(weight_series.size >0) {
+                    Log.i(TAG, "체중 있음")
+                    last_position = weight_series.size - 1
+                    display_label = weight_Label
+                    val set1 = BarDataSet(weight_series, getString(R.string.weight))
+                    set1.setColors(Color.rgb(65, 192, 193))
+                    data.addDataSet(set1)
+                }else{
+                    Log.i(TAG, "체중 없음")
+                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                }
             }
             1 -> {//걷기
-                Log.i(TAG, "체중 있음")
-                last_position = walk_series.size - 1
-                display_label = walk_Label
-                val set1 = BarDataSet(walk_series, getString(R.string.walk))
-                set1.setColors(Color.rgb(65, 192, 193))
-                val xAxis = graph.xAxis
-                xAxis.setGranularity(1f)
-                xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                data.addDataSet(set1)
+                if(walk_series.size >0) {
+                    Log.i(TAG, "걷기자료 있음")
+                    last_position = walk_series.size - 1
+                    display_label = walk_Label
+                    val set1 = BarDataSet(walk_series, getString(R.string.walk))
+                    set1.setColors(Color.rgb(65, 192, 193))
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                    data.addDataSet(set1)
+                }else{
+                    Log.i(TAG, "걷기자료 없음")
+                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                }
             }
             2 -> {//칼로리
-                Log.i(TAG, "칼로리 있음")
-                last_position = kcal_series.size - 1
-                display_label = kcal_Label
-                val set1 = BarDataSet(kcal_series, getString(R.string.calore))
-                set1.setColors(Color.rgb(65, 192, 193))
-                val xAxis = graph.xAxis
-                xAxis.setGranularity(1f)
-                xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                data.addDataSet(set1)
+                if(kcal_series.size >0) {
+                    Log.i(TAG, "칼로리 있음")
+                    last_position = kcal_series.size - 1
+                    display_label = kcal_Label
+                    val set1 = BarDataSet(kcal_series, getString(R.string.calore))
+                    set1.setColors(Color.rgb(65, 192, 193))
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                    data.addDataSet(set1)
+                }else{
+                    Log.i(TAG, "칼로리 없음")
+                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                }
             }
             3 -> {//체지방비율
-                Log.i(TAG, "체지방비율 있음")
-                last_position = fat_series.size - 1
-                display_label = fat_Label
-                val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
-                set1.setColors(Color.rgb(65, 192, 193))
-                val xAxis = graph.xAxis
-                xAxis.setGranularity(1f)
-                xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                data.addDataSet(set1)
+                if(fat_series.size >0) {
+                    Log.i(TAG, "체지방비율 있음")
+                    last_position = fat_series.size - 1
+                    display_label = fat_Label
+                    val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
+                    set1.setColors(Color.rgb(65, 192, 193))
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                    data.addDataSet(set1)
+                }else{
+                    Log.i(TAG, "체지방비율 없음")
+                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                }
             }
             4 -> {//골격근
-                Log.i(TAG, "골격근 있음")
-                last_position = muscle_series.size - 1
-                display_label = muscle_Label
-                val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
-                set1.setColors(Color.rgb(65, 192, 193))
-                val xAxis = graph.xAxis
-                xAxis.setGranularity(1f)
-                xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                data.addDataSet(set1)
+                if(muscle_series.size >0) {
+                    Log.i(TAG, "골격근 있음")
+                    last_position = muscle_series.size - 1
+                    display_label = muscle_Label
+                    val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
+                    set1.setColors(Color.rgb(65, 192, 193))
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                    data.addDataSet(set1)
+                }else{
+                    Log.i(TAG, "골격근 없음")
+                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                }
             }
             5 -> {//BMI
-                Log.i(TAG, "BMI 있음")
-                last_position = bmi_series.size - 1
-                display_label = bmi_Label
-                val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
-                set1.setColors(Color.rgb(65, 192, 193))
-                val xAxis = graph.xAxis
-                xAxis.setGranularity(1f)
-                xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
-                data.addDataSet(set1)
+                if(bmi_series.size >0) {
+                    Log.i(TAG, "BMI 있음")
+                    last_position = bmi_series.size - 1
+                    display_label = bmi_Label
+                    val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
+                    set1.setColors(Color.rgb(65, 192, 193))
+                    val xAxis = graph.xAxis
+                    xAxis.setGranularity(1f)
+                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
+                    data.addDataSet(set1)
+                }else{
+                    Log.i(TAG, "BMI 없음")
+                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
         Log.i(TAG, "label , series :" + last_position.toString())
@@ -747,22 +767,10 @@ private fun setSelectedAccountName(accountName:String) {
         if (!result.hasResolution()) {
             // Show the localized error dialog
             GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(),
-                    this@MainActivity, 0).show();
+                    this, 0).show();
             return;
-        }
-        // The failure has a resolution. Resolve it.
-        // Called typically when the app is not yet authorized, and an
-        // authorization dialog is displayed to the user.
-        if (!authInProgress) {
-            try {
-                Log.i(TAG, "Attempting to resolve failed connection");
-                authInProgress = true;
-                result.startResolutionForResult( this@MainActivity,
-                        REQUEST_OAUTH);
-            } catch (e:IntentSender.SendIntentException) {
-                Log.e(TAG,
-                        "Exception while starting resolution activity", e);
-            }
+        }else{
+            result.startResolutionForResult(this, REQUEST_OAUTH)
         }
     }
    suspend fun makeData(){
@@ -777,50 +785,14 @@ private fun setSelectedAccountName(accountName:String) {
         val pendingResult = Fitness.getConfigClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).createCustomDataType(request)
        launch(CommonPool) { Tasks.await(pendingResult)}.join()
     }
-    override fun onDataPoint(dataPoint: DataPoint) {
-        Log.i(TAG, "onDataPoint")
-        // Do cool stuff that matters. 중요한 것을 멋지게 처리하십시오.
-        for (field: Field in dataPoint.getDataType().getFields()) {
-            val value = dataPoint.getValue(field);
-        }
+
+    override fun onPause() {
+        super.onPause()
+        if(pB != null)
+        if(pB!!.isShowing)
+            pB!!.dismiss()
     }
 
-
-    /**
-     * method to handle google sign in result
-     *
-     * @param completedTask from google onActivityResult
-     */
-private fun firebaseAuthWithGoogle(acct:GoogleSignInAccount) {
-        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
-
-        val credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(object :OnCompleteListener<AuthResult> {
-                    override fun onComplete(@NonNull task: Task<AuthResult>) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-                            val user = mAuth.getCurrentUser()
-
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException())
-                            Toast.makeText(this@MainActivity, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show()
-                            getProfileInformation(null)
-                        }
-
-                        // ...
-                    }
-                });
-    }
-
-    /**
-     * method to fetch user profile information from GoogleSignInAccount
-     *
-     * @param acct googleSignInAccount
-     */
     private fun getProfileInformation(acct: GoogleSignInAccount?) {
         //if account is not null fetch the information
         if (acct != null) {
@@ -841,234 +813,237 @@ private fun firebaseAuthWithGoogle(acct:GoogleSignInAccount) {
 
             //user profile pic
             personUrl = acct.photoUrl
-            Log.i("profile", personName + "\t" + acct.photoUrl.toString() + "\t" + personGivenName +"\t" + personEmail +"\t" + personId + "\t" + acct.toString())
+            Log.i("profile", "getProfileInformation : " + personName + "\t" + acct.photoUrl.toString() + "\t"+ personEmail +"\t" + personId + "\t" + acct.toString())
+        }
+    }
+    fun customDataType(){
+        Log.i(TAG, "customDataType")
+        val pendingResult_custom = Fitness.ConfigApi.readDataType(mClient, "bodygate.bcns.bodygation.personal")
+        launch { custom_Type = pendingResult_custom.await().dataType}
+        Log.i(TAG, custom_Type.toString())
+    }
+
+    fun readRequest_weight(){
+        Log.i(TAG, "readRequest_weight")
+        val cal = Calendar.getInstance()
+        val now = Date()
+        val endTime = now.time
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        cal.set(2015, 1, 1)
+        val startTime = cal.timeInMillis
+        val request = DataReadRequest.Builder()
+                .read(DataType.TYPE_WEIGHT)
+                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                .build()
+        val fitnessOptions =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
+                        .build();
+        val gsa = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
+        val response = Fitness.HistoryApi.readData(mClient, request)
+                /*
+                .addOnFailureListener(object :OnFailureListener{
+                    override fun onFailure(p0: Exception) {
+                        Log.i(TAG, p0.toString())
+                        Log.i(TAG, "readRequest_weight_" +"onFailure")
+                        Log.i(TAG, "localizedMessage :" +p0.localizedMessage)
+                        Log.i(TAG, "message :" +p0.message)
+                    }
+                })
+                .addOnCompleteListener(object : OnCompleteListener<DataReadResponse>{
+                    override fun onComplete(p0: Task<DataReadResponse>) {
+                        Log.i(TAG, "readRequest_weight_" + "onComplete")
+                    }
+                })
+                .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                    override fun onSuccess(p0: DataReadResponse?) {
+                        Log.i(TAG, "readRequest_weight_" + "onSuccess")
+                        printData(p0!!)
+                    }
+                })*/
+       dumpDataSet(response.await().getDataSet(DataType.TYPE_WEIGHT))
+    }
+    fun readRequest_arr(){
+        Log.i(TAG, "readRequest_AGGREGATE")
+        val cal = Calendar.getInstance()
+        val now = Date()
+        val endTime = now.time
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        cal.set(2015, 1, 1)
+        val startTime = cal.timeInMillis
+        val request = DataReadRequest.Builder()
+                .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
+                .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
+                .bucketByTime(1, TimeUnit.DAYS)
+                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                .build()
+       val fitnessOptions =
+                FitnessOptions.builder()
+                        .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
+                        .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                        .build();
+        val gsa = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
+        val response = Fitness.getHistoryClient(this, gsa).readData(request)
+                .addOnFailureListener(object :OnFailureListener{
+                    override fun onFailure(p0: Exception) {
+                        Log.i(TAG, p0.toString())
+                        Log.i(TAG, "AGGREGATE_" +"onFailure")
+                        Log.i(TAG, "localizedMessage :" +p0.localizedMessage)
+                        Log.i(TAG, "message :" +p0.message)
+                    }
+                })
+                .addOnCompleteListener(object : OnCompleteListener<DataReadResponse>{
+                    override fun onComplete(p0: Task<DataReadResponse>) {
+                        Log.i(TAG, "AGGREGATE_" + "onComplete")
+                    }
+                })
+                .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                    override fun onSuccess(p0: DataReadResponse?) {
+                        Log.i(TAG, "AGGREGATE_" + "onSuccess")
+                        printData(p0!!)
+                    }
+                })
+        Tasks.await(response)
+    }
+    fun readRequest_custom(){
+        Log.i(TAG, "readRequest_custom")
+        val cal = Calendar.getInstance()
+        val now = Date()
+        val endTime = now.time
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        cal.set(2015, 1, 1)
+        val startTime = cal.timeInMillis
+        val request = DataReadRequest.Builder()
+                .read(custom_Type)
+                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                .build()
+        val fitnessOptions =
+                FitnessOptions.builder()
+                        .addDataType(custom_Type!!, FitnessOptions.ACCESS_READ)
+                        .build();
+        val gsa = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
+        val response = Fitness.getHistoryClient(this, gsa).readData(request)
+                .addOnFailureListener(object :OnFailureListener{
+                    override fun onFailure(p0: Exception) {
+                        Log.i(TAG, p0.toString())
+                        Log.i(TAG, "readRequest_custom_" +"onFailure")
+                        Log.i(TAG, "localizedMessage :" +p0.localizedMessage)
+                        Log.i(TAG, "message :" +p0.message)
+                    }
+                })
+                .addOnCompleteListener(object : OnCompleteListener<DataReadResponse>{
+                    override fun onComplete(p0: Task<DataReadResponse>) {
+                        Log.i(TAG, "readRequest_custom_" + "onComplete")
+                    }
+                })
+                .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
+                    override fun onSuccess(p0: DataReadResponse?) {
+                        Log.i(TAG, "readRequest_custom_" + "onSuccess")
+                        printData(p0!!)
+                    }
+                })
+        Tasks.await(response)
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    fun printData(dataReadResult: DataReadResponse) {
+        Log.i(TAG+ "printData", "dataReadResult.getBuckets()" + dataReadResult.getBuckets().size.toString())
+        Log.i(TAG+ "printData", "dataReadResult.getDataSets()" + dataReadResult.getDataSets().size.toString())
+        Log.i(TAG+ "printData", "dataReadResult.status" + dataReadResult.status.toString())
+        val label = SimpleDateFormat("MM/dd")
+        var ia = 0
+        ib =0
+        if (dataReadResult.buckets.size > 0) {
+            Log.i(TAG+ "printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
+            for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.getBuckets()) {
+                for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
+                    Log.i(TAG+ "printData", "dumpDataSet")
+                    Log.i(TAG+ "printData", dataset.toString())
+                    Log.i(TAG+ "printData", "Bucket point:");
+                    Log.i(TAG+ "printData", "bucket : " + bucket.toString())
+                    Log.i(TAG+ "printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
+                    Log.i(TAG+ "printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
+                    Log.i(TAG+ "printData", "\tdataSets: " + bucket.dataSets.toString())
+                    dumpDataSet(dataset)
+                    ia += 1
+                }
+                Log.i(TAG+ "printData", "\tia : " + ia.toString())
+            }
+        } else if (dataReadResult.getDataSets().size > 0) {
+            Log.i(TAG+ "printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
+            for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.getDataSets()) {
+                dumpDataSet(dataSet)
+                ia += 1
+                Log.i(TAG+ "printData", "\tia : " + ia.toString())
+            }
+        }
+    }
+    @SuppressLint("SimpleDateFormat")
+    fun dumpDataSet(dataSet:DataSet) {
+        var count = 0
+        val label = SimpleDateFormat("MM/dd")
+        Log.i(TAG + "DataSet", dataSet.toString())
+        Log.i(TAG + "DataSet", dataSet.dataPoints.size.toString())
+        for ( dp :com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints)
+        {
+            Log.i(TAG+ "DataSet", "\tType: " + dp.dataType.name)
+            Log.i(TAG+ "DataSet", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
+            Log.i(TAG+ "DataSet", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
+            Log.i(TAG+ "DataSet", "\tField: " + dp.dataType.fields.toString())
+            for (field:com.google.android.gms.fitness.data.Field in dp.dataType.fields)
+            {
+                Log.i(TAG+ "_DataSet", "\tField: " + field.name + " Value: " + dp.getValue(field))
+                when(field.name){
+                    "bmi" -> {
+                        bmi_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
+                        bmi_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                    }
+                    "muscle" -> {
+                        muscle_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
+                        muscle_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                    }
+                    "fat" -> {
+                        fat_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
+                        fat_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                    }
+                    Field.FIELD_WEIGHT.name ->{
+                        weight_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
+                        weight_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                    }
+                    Field.FIELD_CALORIES.name ->{
+                        kcal_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
+                        kcal_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                    }
+                    Field.FIELD_STEPS.name ->{
+                        walk_series.add(BarEntry(count.toFloat(), dp.getValue(field).asInt().toFloat()))
+                        walk_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                    }
+                }
+                count += 1
+            }
         }
     }
     @SuppressLint("StaticFieldLeak")
     private inner class fitTask : AsyncTask<Void, Void, Void>() {
 
-        fun test(){
-            // Setting a start and end date using a range of 1 week before this moment.
-            val cal = Calendar.getInstance();
-            val now = Date();
-            cal.setTime(now);
-            val endTime = cal.getTimeInMillis();
-            cal.add(Calendar.DAY_OF_YEAR, -730);
-            val startTime = cal.getTimeInMillis();
-
-            val dateFormat = getDateInstance();
-            Log.i(TAG, "Range Start: " + dateFormat.format(startTime));
-            Log.i(TAG, "Range End: " + dateFormat.format(endTime));
-
-            val readRequest =
-                    DataReadRequest.Builder()
-                            // The data request can specify multiple data types to return, effectively
-                            // combining multiple data queries into one call.
-                            // In this example, it's very unlikely that the request is for several hundred
-                            // datapoints each consisting of a few steps and a timestamp.  The more likely
-                            // scenario is wanting to see how many steps were walked per day, for 7 days.
-                            .aggregate(DataType.TYPE_STEP_COUNT_DELTA, DataType.AGGREGATE_STEP_COUNT_DELTA)
-                            // Analogous to a "Group By" in SQL, defines how data should be aggregated.
-                            // bucketByTime allows for a time span, whereas bucketBySession would allow
-                            // bucketing by "sessions", which would need to be defined in code.
-                            .bucketByTime(1, TimeUnit.DAYS)
-                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                            .build()
-            val response = Fitness.HistoryApi.readData(mFitnessClient, readRequest)
-            launch(CommonPool) {
-                Log.i(TAG, "test Task")
-                val dataSets = response.await().getDataSets()
-                Log.i(TAG, dataSets.toString())
-                for (dataSet: com.google.android.gms.fitness.data.DataSet in dataSets) {
-                    dumpDataSet(dataSet)
-                    Log.i(TAG, dataSet.toString())
-                    Log.i(TAG, dataSet.dataPoints.toString())
-                    Log.i(TAG, dataSet.dataSource.toString())
-                    Log.i(TAG, dataSet.dataType.toString())
-                }
-            }
-        }
-        fun dumpDataSet(dataSet:DataSet) {
-            Log.i(TAG, "Data returned for Data type: " + dataSet.getDataType().getName());
-            val dateFormat = getTimeInstance();
-
-            for (dp:DataPoint in dataSet.getDataPoints()) {
-                Log.i(TAG, "Data point:");
-                Log.i(TAG, "\tType: " + dp.getDataType().getName());
-                Log.i(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-                Log.i(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
-                for ( field :Field in dp.getDataType().getFields()) {
-                    Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
-                }
-            }
-        }
-        /*
-        fun customDataType(){
-            Log.i(TAG, "customDataType")
-            val pendingResult_custom = Fitness.ConfigApi.readDataType(mFitnessClient, "bodygate.bcns.bodygation.personal")
-          launch { custom_Type = pendingResult_custom.await().dataType}
-            Log.i(TAG, custom_Type.toString())
-        }
-
-        fun readRequest_weight(){
-            Log.i(TAG, "readRequest_weight")
-            val cal = Calendar.getInstance()
-            val now = Date()
-            val endTime = now.time
-            val calendar = Calendar.getInstance()
-            calendar.add(Calendar.DAY_OF_YEAR, -1)
-            cal.set(2015, 1, 1)
-            val startTime = cal.timeInMillis
-            val response = Fitness.HistoryApi.readData(mFitnessClient, DataReadRequest.Builder()
-                            .read(DataType.TYPE_WEIGHT)
-                            .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                            .build())
-            printData(response.await())
-        }
-        fun readRequest_arr(){
-            Log.i(TAG, "readRequest_kcal")
-            val cal = Calendar.getInstance()
-            val now = Date()
-            val endTime = now.time
-            val calendar = Calendar.getInstance()
-            calendar.add(Calendar.DAY_OF_YEAR, -1)
-            cal.set(2015, 1, 1)
-            val startTime = cal.timeInMillis
-            val response = Fitness.HistoryApi.readData(mFitnessClient, DataReadRequest.Builder()
-                    .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
-                    .aggregate(DataType.TYPE_ACTIVITY_SEGMENT, DataType.AGGREGATE_ACTIVITY_SUMMARY)
-                    .bucketByTime(1, TimeUnit.DAYS)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build())
-            printData(response.await())
-        }
-        fun readRequest_custom(){
-            Log.i(TAG, "readRequest_custom")
-            val cal = Calendar.getInstance()
-            val now = Date()
-            val endTime = now.time
-            val calendar = Calendar.getInstance()
-            calendar.add(Calendar.DAY_OF_YEAR, -1)
-            cal.set(2015, 1, 1)
-            val startTime = cal.timeInMillis
-            val ccc = Fitness.HistoryApi.readData(mFitnessClient,DataReadRequest.Builder()
-                    .read(custom_Type)
-                    .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                    .build())
-            printData(ccc.await())
-        }
-
-        @SuppressLint("SimpleDateFormat")
-        fun printData(dataReadResult: DataReadResult) {
-            Log.i(TAG+ "printData", "dataReadResult.getBuckets()" + dataReadResult.getBuckets().size.toString())
-            Log.i(TAG+ "printData", "dataReadResult.getDataSets()" + dataReadResult.getDataSets().size.toString())
-            Log.i(TAG+ "printData", "dataReadResult.status" + dataReadResult.status.toString())
-            val label = SimpleDateFormat("MM/dd")
-            var ia = 0
-            ib =0
-            if (dataReadResult.buckets.size > 0) {
-                Log.i(TAG+ "printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
-                for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.getBuckets()) {
-                    for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
-                        Log.i(TAG+ "printData", "dumpDataSet")
-                        Log.i(TAG+ "printData", dataset.toString())
-                        Log.i(TAG+ "printData", "Bucket point:");
-                        Log.i(TAG+ "printData", "bucket : " + bucket.toString())
-                        Log.i(TAG+ "printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
-                        Log.i(TAG+ "printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                        Log.i(TAG+ "printData", "\tdataSets: " + bucket.dataSets.toString())
-                        dumpDataSet(dataset)
-                        ia += 1
-                    }
-                    Log.i(TAG+ "printData", "\tia : " + ia.toString())
-                }
-            } else if (dataReadResult.getDataSets().size > 0) {
-                Log.i(TAG+ "printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
-                for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.getDataSets()) {
-                    dumpDataSet(dataSet)
-                    ia += 1
-                    Log.i(TAG+ "printData", "\tia : " + ia.toString())
-                }
-            }
-        }
-        @SuppressLint("SimpleDateFormat")
-        fun dumpDataSet(dataSet:DataSet) {
-            var count = 0
-            val label = SimpleDateFormat("MM/dd")
-            Log.i(TAG + "DataSet", dataSet.toString())
-            Log.i(TAG + "DataSet", dataSet.dataPoints.size.toString())
-            for ( dp :com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints)
-            {
-                Log.i(TAG+ "DataSet", "\tType: " + dp.dataType.name)
-                Log.i(TAG+ "DataSet", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
-                Log.i(TAG+ "DataSet", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
-                Log.i(TAG+ "DataSet", "\tField: " + dp.dataType.fields.toString())
-                for (field:com.google.android.gms.fitness.data.Field in dp.dataType.fields)
-                {
-                    Log.i(TAG+ "_DataSet", "\tField: " + field.name + " Value: " + dp.getValue(field))
-                    when(field.name){
-                        "bmi" -> {
-                            bmi_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            bmi_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        "muscle" -> {
-                            muscle_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            muscle_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        "fat" -> {
-                            fat_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            fat_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        Field.FIELD_WEIGHT.name ->{
-                            weight_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            weight_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        Field.FIELD_CALORIES.name ->{
-                            kcal_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            kcal_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                        Field.FIELD_STEPS.name ->{
-                            walk_series.add(BarEntry(count.toFloat(), dp.getValue(field).asInt().toFloat()))
-                            walk_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
-                        }
-                    }
-                    count += 1
-                }
-            }
-        }
-
-*/
-        val pB = ProgressDialog(this@MainActivity)
         override fun doInBackground(vararg params: Void): Void? {
             Log.i(TAG, "doInBackground")
-            test()
-            /*
             readRequest_weight()
             readRequest_arr()
             if(custom_Type != null) {
                 readRequest_custom()
-            }*/
+            }
             return null
-        }
-
-        override fun onProgressUpdate(vararg values: Void?) {
-            super.onProgressUpdate(*values)
-            if(!pB.isShowing)
-            pB.show()
         }
 
         override fun onPreExecute() {
             super.onPreExecute()
-            publishProgress()
-            pB.setTitle("데이터 동기화중...")
-            pB.setMessage("구글핏 데이터 동기화 중입니다.")
-            pB.setCancelable(false)
-            //customDataType()
-        }
-
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
-            pB.dismiss()
+            customDataType()
         }
 
     }
