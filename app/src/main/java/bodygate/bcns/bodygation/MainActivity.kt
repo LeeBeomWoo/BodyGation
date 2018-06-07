@@ -633,8 +633,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 Log.i(TAG, "REQUEST_OAUTH")
                 if (resultCode == Activity.RESULT_OK) {
                     // Make sure the app is not already connected or attempting to connectTask<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                    getProfileInformation(task.result);
+                   // val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                   // getProfileInformation(task.result);
+                    Log.i(TAG, data.toString())
                 }
             }
         }
@@ -656,6 +657,9 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "체중 있음")
                     last_position = weight_series.size - 1
                     display_label = weight_Label
+                    for(i:Int in 0..weight_series.size){
+                        display_series.add(weight_series[i].y.toString())
+                    }
                     val set1 = BarDataSet(weight_series, getString(R.string.weight))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
@@ -669,6 +673,9 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "걷기자료 있음")
                     last_position = walk_series.size - 1
                     display_label = walk_Label
+                    for(i:Int in 0..walk_series.size){
+                        display_series.add(walk_series[i].y.toString())
+                    }
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val xAxis = graph.xAxis
@@ -685,6 +692,9 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "칼로리 있음")
                     last_position = kcal_series.size - 1
                     display_label = kcal_Label
+                    for(i:Int in 0..kcal_series.size){
+                        display_series.add(kcal_series[i].y.toString())
+                    }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val xAxis = graph.xAxis
@@ -701,6 +711,9 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "체지방비율 있음")
                     last_position = fat_series.size - 1
                     display_label = fat_Label
+                    for(i:Int in 0..fat_series.size){
+                        display_series.add(fat_series[i].y.toString())
+                    }
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val xAxis = graph.xAxis
@@ -717,6 +730,9 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "골격근 있음")
                     last_position = muscle_series.size - 1
                     display_label = muscle_Label
+                    for(i:Int in 0..muscle_series.size){
+                        display_series.add(muscle_series[i].y.toString())
+                    }
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val xAxis = graph.xAxis
@@ -733,6 +749,9 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "BMI 있음")
                     last_position = bmi_series.size - 1
                     display_label = bmi_Label
+                    for(i:Int in 0..bmi_series.size){
+                        display_series.add(bmi_series[i].y.toString())
+                    }
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
                     val xAxis = graph.xAxis
@@ -879,35 +898,8 @@ private fun setSelectedAccountName(accountName:String) {
                 .bucketByTime(1, TimeUnit.DAYS)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
-       val fitnessOptions =
-                FitnessOptions.builder()
-                        .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-                        .addDataType(DataType.TYPE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
-                        .addDataType(DataType.AGGREGATE_CALORIES_EXPENDED, FitnessOptions.ACCESS_READ)
-                        .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-                        .build();
-        val gsa = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
-        val response = Fitness.getHistoryClient(this, gsa).readData(request)
-                .addOnFailureListener(object :OnFailureListener{
-                    override fun onFailure(p0: Exception) {
-                        Log.i(TAG, p0.toString())
-                        Log.i(TAG, "AGGREGATE_" +"onFailure")
-                        Log.i(TAG, "localizedMessage :" +p0.localizedMessage)
-                        Log.i(TAG, "message :" +p0.message)
-                    }
-                })
-                .addOnCompleteListener(object : OnCompleteListener<DataReadResponse>{
-                    override fun onComplete(p0: Task<DataReadResponse>) {
-                        Log.i(TAG, "AGGREGATE_" + "onComplete")
-                    }
-                })
-                .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
-                    override fun onSuccess(p0: DataReadResponse?) {
-                        Log.i(TAG, "AGGREGATE_" + "onSuccess")
-                        printData(p0!!)
-                    }
-                })
-        Tasks.await(response)
+        val response = Fitness.HistoryApi.readData(mClient, request)
+        printData(response.await())
     }
     fun readRequest_custom(){
         Log.i(TAG, "readRequest_custom")
@@ -922,36 +914,12 @@ private fun setSelectedAccountName(accountName:String) {
                 .read(custom_Type)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
-        val fitnessOptions =
-                FitnessOptions.builder()
-                        .addDataType(custom_Type!!, FitnessOptions.ACCESS_READ)
-                        .build();
-        val gsa = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
-        val response = Fitness.getHistoryClient(this, gsa).readData(request)
-                .addOnFailureListener(object :OnFailureListener{
-                    override fun onFailure(p0: Exception) {
-                        Log.i(TAG, p0.toString())
-                        Log.i(TAG, "readRequest_custom_" +"onFailure")
-                        Log.i(TAG, "localizedMessage :" +p0.localizedMessage)
-                        Log.i(TAG, "message :" +p0.message)
-                    }
-                })
-                .addOnCompleteListener(object : OnCompleteListener<DataReadResponse>{
-                    override fun onComplete(p0: Task<DataReadResponse>) {
-                        Log.i(TAG, "readRequest_custom_" + "onComplete")
-                    }
-                })
-                .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
-                    override fun onSuccess(p0: DataReadResponse?) {
-                        Log.i(TAG, "readRequest_custom_" + "onSuccess")
-                        printData(p0!!)
-                    }
-                })
-        Tasks.await(response)
+        val response = Fitness.HistoryApi.readData(mClient, request)
+        printData(response.await())
     }
 
     @SuppressLint("SimpleDateFormat")
-    fun printData(dataReadResult: DataReadResponse) {
+    fun printData(dataReadResult: DataReadResult) {
         Log.i(TAG+ "printData", "dataReadResult.getBuckets()" + dataReadResult.getBuckets().size.toString())
         Log.i(TAG+ "printData", "dataReadResult.getDataSets()" + dataReadResult.getDataSets().size.toString())
         Log.i(TAG+ "printData", "dataReadResult.status" + dataReadResult.status.toString())
