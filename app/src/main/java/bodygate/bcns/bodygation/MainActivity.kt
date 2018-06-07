@@ -126,7 +126,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var data: MutableList<SearchResult> = arrayListOf()
     override var last_position = 0
     override var current_position = 0
-    private val AUTH_PENDING = "auth_state_pending"
     var accountname = ""
 
     override var display_label:MutableList<String> =  ArrayList()
@@ -419,7 +418,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .requestEmail()
                 .requestId()
                 .requestProfile()
-                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestIdToken(getString(R.string.web_client_id))
                 .build()
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
         cPb = ProgressDialog(this)
@@ -432,6 +431,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build()
+        mClient!!.connect()
         if(GoogleSignIn.getLastSignedInAccount(this) == null){
             signIn()
         }else{
@@ -633,12 +633,27 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 Log.i(TAG, "REQUEST_OAUTH")
                 if (resultCode == Activity.RESULT_OK) {
                     // Make sure the app is not already connected or attempting to connectTask<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-                   // val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                   // getProfileInformation(task.result);
+                   val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                   handleSignInResult(task);
                     Log.i(TAG, data.toString())
                 }
             }
         }
+    }
+
+    private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
+        try {
+            val account = completedTask.getResult(ApiException::class.java)
+
+            // Signed in successfully, show authenticated UI.
+            getProfileInformation(account)
+        } catch (e: ApiException) {
+            // The ApiException status code indicates the detailed failure reason.
+            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            Log.w(TAG, "signInResult:failed code=" + e.statusCode)
+            getProfileInformation(null)
+        }
+
     }
 private fun setSelectedAccountName(accountName:String) {
     val editor:SharedPreferences.Editor = defaultSharedPreferences.edit()
@@ -657,7 +672,7 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "체중 있음")
                     last_position = weight_series.size - 1
                     display_label = weight_Label
-                    for(i:Int in 0..weight_series.size){
+                    for(i:Int in 0..last_position){
                         display_series.add(weight_series[i].y.toString())
                     }
                     val set1 = BarDataSet(weight_series, getString(R.string.weight))
@@ -673,7 +688,7 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "걷기자료 있음")
                     last_position = walk_series.size - 1
                     display_label = walk_Label
-                    for(i:Int in 0..walk_series.size){
+                    for(i:Int in 0..last_position){
                         display_series.add(walk_series[i].y.toString())
                     }
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
@@ -692,7 +707,7 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "칼로리 있음")
                     last_position = kcal_series.size - 1
                     display_label = kcal_Label
-                    for(i:Int in 0..kcal_series.size){
+                    for(i:Int in 0..last_position){
                         display_series.add(kcal_series[i].y.toString())
                     }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
@@ -711,7 +726,7 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "체지방비율 있음")
                     last_position = fat_series.size - 1
                     display_label = fat_Label
-                    for(i:Int in 0..fat_series.size){
+                    for(i:Int in 0..last_position){
                         display_series.add(fat_series[i].y.toString())
                     }
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
@@ -730,7 +745,7 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "골격근 있음")
                     last_position = muscle_series.size - 1
                     display_label = muscle_Label
-                    for(i:Int in 0..muscle_series.size){
+                    for(i:Int in 0..last_position){
                         display_series.add(muscle_series[i].y.toString())
                     }
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
@@ -749,7 +764,7 @@ private fun setSelectedAccountName(accountName:String) {
                     Log.i(TAG, "BMI 있음")
                     last_position = bmi_series.size - 1
                     display_label = bmi_Label
-                    for(i:Int in 0..bmi_series.size){
+                    for(i:Int in 0..last_position){
                         display_series.add(bmi_series[i].y.toString())
                     }
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
@@ -847,49 +862,20 @@ private fun setSelectedAccountName(accountName:String) {
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -1)
         cal.set(2015, 1, 1)
         val startTime = cal.timeInMillis
         val request = DataReadRequest.Builder()
                 .read(DataType.TYPE_WEIGHT)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
-        val fitnessOptions =
-                FitnessOptions.builder()
-                        .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
-                        .build();
-        val gsa = GoogleSignIn.getAccountForExtension(this, fitnessOptions)
         val response = Fitness.HistoryApi.readData(mClient, request)
-                /*
-                .addOnFailureListener(object :OnFailureListener{
-                    override fun onFailure(p0: Exception) {
-                        Log.i(TAG, p0.toString())
-                        Log.i(TAG, "readRequest_weight_" +"onFailure")
-                        Log.i(TAG, "localizedMessage :" +p0.localizedMessage)
-                        Log.i(TAG, "message :" +p0.message)
-                    }
-                })
-                .addOnCompleteListener(object : OnCompleteListener<DataReadResponse>{
-                    override fun onComplete(p0: Task<DataReadResponse>) {
-                        Log.i(TAG, "readRequest_weight_" + "onComplete")
-                    }
-                })
-                .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
-                    override fun onSuccess(p0: DataReadResponse?) {
-                        Log.i(TAG, "readRequest_weight_" + "onSuccess")
-                        printData(p0!!)
-                    }
-                })*/
-       dumpDataSet(response.await().getDataSet(DataType.TYPE_WEIGHT))
+        printData(response.await())
     }
     fun readRequest_arr(){
         Log.i(TAG, "readRequest_AGGREGATE")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -1)
         cal.set(2015, 1, 1)
         val startTime = cal.timeInMillis
         val request = DataReadRequest.Builder()
@@ -906,8 +892,6 @@ private fun setSelectedAccountName(accountName:String) {
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -1)
         cal.set(2015, 1, 1)
         val startTime = cal.timeInMillis
         val request = DataReadRequest.Builder()
@@ -1001,6 +985,7 @@ private fun setSelectedAccountName(accountName:String) {
 
         override fun doInBackground(vararg params: Void): Void? {
             Log.i(TAG, "doInBackground")
+            publishProgress()
             readRequest_weight()
             readRequest_arr()
             if(custom_Type != null) {
@@ -1009,6 +994,14 @@ private fun setSelectedAccountName(accountName:String) {
             return null
         }
 
+        override fun onPostExecute(result: Void?) {
+            super.onPostExecute(result)
+            pB!!.dismiss()
+        }
+        override fun onProgressUpdate(vararg values: Void?) {
+            super.onProgressUpdate(*values)
+            pB = ProgressDialog.show(this@MainActivity, "데이터 받아오는중..", "구글핏 서버로 부터 사용자 데이터를 받아오는 중입니다. 잠시만 기다려 주세요")
+        }
         override fun onPreExecute() {
             super.onPreExecute()
             customDataType()
