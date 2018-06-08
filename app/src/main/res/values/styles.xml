@@ -17,4 +17,8 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:navigationBarColor">@color/bodynavigationbar</item>
     </style>
+    <style name="menuchange" parent="android:Animation">
+    <item name="android:windowEnterAnimation">@anim/menuin</item>
+    <item name="android:windowExitAnimation">@anim/menuout</item>
+</style>
 </resources>

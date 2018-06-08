@@ -252,7 +252,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         l.setTypeface(Typeface.MONOSPACE)
         l.setYOffset(0f)
         l.setXOffset(10f)
-        l.setYEntrySpace(0f)
+        l.setXEntrySpace(5f)
         l.setTextSize(8f)
         val rAxis = graph.getAxisRight()
         rAxis.setEnabled(false)
@@ -276,23 +276,34 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         pre_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
-                Log.i("Button_pre_Btn", mListener!!.current_position.toString() + "\t" +  mListener!!.last_position.toString())
-                if(mListener!!.current_position >0 && mListener!!.current_position < (mListener!!.last_position)&& graph.barData.dataSetCount >0) {
+                if(mListener!!.current_position >0 && mListener!!.current_position < mListener!!.last_position&& graph.barData.dataSetCount >0) {
                     mListener!!.current_position -= 1
                     cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                     when(section){
-                        0->{//bmi
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"}
+                        0-> {//bmi
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         1->{//체중
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         2->{//골격근
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         3->{//체지방
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "%"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "%"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         4->{//소모칼로리
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         5->{//걸음수
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "걸음"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "걸음"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                     }
                 }else if(mListener!!.current_position == 0 && graph.barData.dataSetCount >0){
                     Toast.makeText(mListener!!.context, "첫번째 자료입니다.", Toast.LENGTH_SHORT).show()
@@ -305,22 +316,33 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             override fun onClick(v: View?) {
                 Log.i("Button_next_Btn", "onClick")
                 if(mListener!!.current_position >0 && mListener!!.current_position < mListener!!.last_position&& graph.barData.dataSetCount >0) {
-                    Log.i("Button_next_Btn", mListener!!.current_position.toString() + "\t" +  mListener!!.last_position.toString() + "\t" + graph.barData.dataSetCount.toString())
                     mListener!!.current_position += 1
                     cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                     when(section){
-                        0->{//bmi
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"}
+                        0-> {//bmi
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         1->{//체중
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         2->{//골격근
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         3->{//체지방
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "%"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "%"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         4->{//소모칼로리
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                         5->{//걸음수
-                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "걸음"}
+                            main_lbl.text = mListener!!.display_series.get(mListener!!.current_position)+ "걸음"
+                            cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
+                        }
                     }
                 }else if(mListener!!.current_position == mListener!!.last_position && graph.barData.dataSetCount >0){
                     Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
