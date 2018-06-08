@@ -9,16 +9,15 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
-import android.os.AsyncTask
-import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
+import android.os.*
 import android.provider.Settings
 import android.support.annotation.NonNull
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.PopupMenu
 import android.util.Log
 import android.view.Gravity
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
@@ -101,7 +100,6 @@ import kotlin.collections.ArrayList
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener {
 
-    var sendcheck:Boolean = false
     var pB: ProgressDialog? = null
     private val PREF_ACCOUNT_NAME = "accountName"
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
@@ -109,11 +107,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     private val REQUEST_OAUTH = 1001
     var mClient:GoogleApiClient? = null
     var menu_isShow:Boolean = false
+    var fitloading:Boolean = false
+    var fitsending:Boolean = false
     val ID: String? = null
     val PW: String? = null
     val TAG: String = "MainActivity_"
     var personUrl:Uri? = null
-    var mPopupWindow: PopupWindow? = null
+    var mPopupWindow: PopupMenu? = null
     var page = ""
     override var totalpage = 100
     lateinit var mGoogleSignInClient: GoogleSignInClient//google sign in client
@@ -359,11 +359,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
-        if(mPopupWindow != null &&
-                mPopupWindow!!.isShowing){
-            mPopupWindow!!.dismiss()
-            menu_isShow = false
-        }else {
             // Do something
             when (bottom_navigation.currentItem) {
                 0 -> {
@@ -407,7 +402,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     bottom_navigation.currentItem = 1
                 }
             }
-        }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -527,7 +521,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             override fun onClick(v: View?) {
                 //팝업메뉴
                 if(!menu_isShow) {
-                    menupopup()
+                    menupopup(v!!)
                 }
             }
 
@@ -595,6 +589,27 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+            outState!!.putBoolean("loading", fitloading)
+            outState.putBoolean("sending", fitsending)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if(savedInstanceState != null) {
+            fitloading = savedInstanceState.getBoolean("loading")
+            fitsending = savedInstanceState.getBoolean("sending")
+        }
+        if(fitsending) {
+            val task = insertD()
+            task.execute()
+        }else if(fitloading){
+            val task = fitTask()
+            task.execute()
+        }
+
+    }
     private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
         try {
             val account = completedTask.getResult(ApiException::class.java)
@@ -647,9 +662,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
                     data.addDataSet(set1)
                 }else{
                     Log.i(TAG, "걷기자료 없음")
@@ -666,9 +678,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
                     data.addDataSet(set1)
                 }else{
                     Log.i(TAG, "칼로리 없음")
@@ -685,13 +694,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
                     data.addDataSet(set1)
                 }else{
                     Log.i(TAG, "체지방비율 없음")
-                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
                 }
             }
             4 -> {//골격근
@@ -704,13 +710,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
                     data.addDataSet(set1)
                 }else{
                     Log.i(TAG, "골격근 없음")
-                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
                 }
             }
             5 -> {//BMI
@@ -723,13 +726,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
-                    val xAxis = graph.xAxis
-                    xAxis.setGranularity(1f)
-                    xAxis.setValueFormatter(MyXAxisValueFormatter(walk_Label.toTypedArray()))
                     data.addDataSet(set1)
                 }else{
                     Log.i(TAG, "BMI 없음")
-                    Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -917,7 +917,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     Log.i(TAG+ "printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
                     Log.i(TAG+ "printData", "\tdataSets: " + bucket.dataSets.toString())
                     dumpDataSet(dataset)
-                    ia += 1
+                    ib += 1
                 }
                 Log.i(TAG+ "printData", "\tia : " + ia.toString())
             }
@@ -963,56 +963,55 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         weight_Label.add(label.format(Date(dp.getTimestamp(TimeUnit.MILLISECONDS))))
                     }
                     Field.FIELD_CALORIES.name ->{
-                        kcal_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                        kcal_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                        kcal_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
+                        kcal_Label.add(label.format(Date(dp.getTimestamp(TimeUnit.MILLISECONDS))))
                     }
                     Field.FIELD_STEPS.name ->{
-                        walk_series.add(BarEntry(count.toFloat(), dp.getValue(field).asInt().toFloat()))
-                        walk_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
+                        walk_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asInt().toFloat()))
+                        walk_Label.add(label.format(Date(dp.getTimestamp(TimeUnit.MILLISECONDS))))
                     }
                 }
                 count += 1
             }
         }
     }
-    fun menupopup(){
-        val pop = getLayoutInflater().inflate(R.layout.menu_item, toolbarmenu as ViewGroup)
-        accountcheng_layout.setOnClickListener(object :View.OnClickListener{
-            override fun onClick(v: View?) {
-                chooseAccount()
-                mPopupWindow!!.dismiss()
-                menu_isShow = false
-            }
-        })
-        dataarefresh_layout.setOnClickListener(object :View.OnClickListener{
-            override fun onClick(v: View?) {
-                display_label.clear()
-                display_series.clear()
-                weight_series.clear()
-                muscle_series.clear()
-                walk_series.clear()
-                fat_series.clear()
-                bmi_series.clear()
-                kcal_series.clear()
-                weight_Label.clear()
-                kcal_Label.clear()
-                walk_Label.clear()
-                fat_Label.clear()
-                muscle_Label.clear()
-                bmi_Label.clear()
+    @SuppressLint("InflateParams")
+    fun menupopup(v:View){
+        mPopupWindow = PopupMenu(this, v);
+        mPopupWindow!!.getMenuInflater().inflate(R.menu.menu, mPopupWindow!!.getMenu())
 
-                val task = fitTask()
-                task.execute()
-                mPopupWindow!!.dismiss()
-                menu_isShow = false
+        mPopupWindow!!.setOnMenuItemClickListener(object: PopupMenu.OnMenuItemClickListener{
+            override fun onMenuItemClick(item: MenuItem?): Boolean {
+                when(item!!.itemId){
+                    R.id.accountchange_Btn->{
+                        chooseAccount()
+                        return true
+                    }
+                    R.id.pesnaldatarefresh_Btn->{
+                            display_label.clear()
+                            display_series.clear()
+                            weight_series.clear()
+                            muscle_series.clear()
+                            walk_series.clear()
+                            fat_series.clear()
+                            bmi_series.clear()
+                            kcal_series.clear()
+                            weight_Label.clear()
+                            kcal_Label.clear()
+                            walk_Label.clear()
+                            fat_Label.clear()
+                            muscle_Label.clear()
+                            bmi_Label.clear()
+
+                            val task = fitTask()
+                            task.execute()
+                        return true
+                    }
+                }
+                return false
             }
         })
-        mPopupWindow = PopupWindow(pop, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT, true)
-        mPopupWindow!!.setAnimationStyle(R.style.menuchange)
-        mPopupWindow!!.setFocusable(true)
-        mPopupWindow!!.setOutsideTouchable(true)
-        mPopupWindow!!.showAtLocation(pop, Gravity.END, 0, 0)
-        menu_isShow = true
+        mPopupWindow!!.show()
     }
     @SuppressLint("StaticFieldLeak")
     private inner class fitTask : AsyncTask<Void, Void, Void>() {
@@ -1028,18 +1027,23 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             return null
         }
 
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
-            pB!!.dismiss()
-        }
         override fun onProgressUpdate(vararg values: Void?) {
             super.onProgressUpdate(*values)
             pB = ProgressDialog.show(this@MainActivity, "데이터 받아오는중..", "구글핏 서버로 부터 사용자 데이터를 받아오는 중입니다. 잠시만 기다려 주세요")
         }
         override fun onPreExecute() {
             super.onPreExecute()
+            if(!fitloading)
+                fitloading = true
             if(custom_Type == null)
                 customDataType()
+
+        }
+        override fun onPostExecute(result: Void?) {
+            super.onPostExecute(result)
+            pB!!.dismiss()
+            if(fitloading)
+                fitloading = false
         }
 
     }
@@ -1053,10 +1057,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
         override fun onProgressUpdate(vararg values: Void?) {
             super.onProgressUpdate(*values)
-            pB = ProgressDialog.show(this@MainActivity, "데이터 받아오는중..", "구글핏 서버로 부터 사용자 데이터를 받아오는 중입니다. 잠시만 기다려 주세요")
+            pB = ProgressDialog.show(this@MainActivity, "데이터 보내는 중..", "구글핏 서버로 사용자 데이터를 보내는 중입니다. 잠시만 기다려 주세요")
         }
         override fun onPreExecute() {
             super.onPreExecute()
+            if(!fitsending)
+                fitsending = true
             if(custom_Type == null)
                 customDataType()
 
@@ -1064,6 +1070,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         override fun onPostExecute(result: Void?) {
             super.onPostExecute(result)
             pB!!.dismiss()
+            if(fitsending)
+                fitsending = false
         }
     }
 

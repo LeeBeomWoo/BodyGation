@@ -10,104 +10,98 @@
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    <LinearLayout
-        android:id="@+id/first_layout"
-        android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:layout_weight="0.95"
-        android:orientation="vertical"
-        app:layout_constraintTop_toTopOf="parent">
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_Image"
-            android:layout_width="110dp"
-            android:layout_height="110dp"
-            android:layout_gravity="center"
-            android:layout_margin="2dp"
-            android:layout_marginTop="5dp"
-            android:src="@drawable/logo" />
-
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/linearLayout"
+        <LinearLayout
+            android:id="@+id/first_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="200dp"
+            android:layout_weight="0.95"
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="parent">
 
-
-            <Button
-                android:id="@+id/pre_Btn"
-                android:layout_width="100dp"
-                android:layout_height="30dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/cirfcle"
-                android:gravity="center_vertical"
-                android:text="@string/prev"
-                android:textAlignment="center"
-                android:textColor="@color/colorBottomNavigationActiveColored"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <Button
-                android:id="@+id/next_Btn"
-                android:layout_width="100dp"
-                android:layout_height="30dp"
-                android:layout_marginEnd="20dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/cirfcle"
-                android:gravity="center_vertical"
-                android:text="@string/next"
-                android:textAlignment="center"
-                android:textColor="@color/colorBottomNavigationActiveColored"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/profile_Image"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_gravity="center"
+                android:layout_margin="2dp"
                 android:layout_marginTop="5dp"
-                android:orientation="vertical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/next_Btn"
-                app:layout_constraintStart_toEndOf="@+id/pre_Btn"
-                app:layout_constraintTop_toTopOf="parent">
+                android:src="@drawable/logo" />
 
-                <TextView
-                    android:id="@+id/sub_lbl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="TextView"
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/linearLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <Button
+                    android:id="@+id/pre_Btn"
+                    android:layout_width="100dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="20dp"
+                    android:background="@drawable/cirfcle"
+                    android:gravity="center_vertical"
+                    android:text="@string/prev"
                     android:textAlignment="center"
-                    android:textColor="@android:color/background_light"
-                    android:visibility="gone" />
+                    android:textColor="@color/colorBottomNavigationActiveColored"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-                <TextView
-                    android:id="@+id/cal_lbl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="TextView"
+                <Button
+                    android:id="@+id/next_Btn"
+                    android:layout_width="100dp"
+                    android:layout_height="30dp"
+                    android:layout_marginEnd="20dp"
+                    android:background="@drawable/cirfcle"
+                    android:gravity="center_vertical"
+                    android:text="@string/next"
                     android:textAlignment="center"
-                    android:textColor="@android:color/background_light" />
+                    android:textColor="@color/colorBottomNavigationActiveColored"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-                <TextView
-                    android:id="@+id/main_lbl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="1dp"
-                    android:text="TextView"
-                    android:textAlignment="center"
-                    android:textColor="@color/main_text_color"
-                    android:textSize="24sp" />
-            </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/next_Btn"
+                    app:layout_constraintStart_toEndOf="@+id/pre_Btn"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/cal_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:text="TextView"
+                        android:textAlignment="center"
+                        android:textColor="@android:color/background_light" />
+
+                    <TextView
+                        android:id="@+id/main_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginEnd="1dp"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:text="TextView"
+                        android:textAlignment="center"
+                        android:textColor="@color/main_text_color"
+                        android:textSize="24sp" />
+                </LinearLayout>
 
 
-        </android.support.constraint.ConstraintLayout>
+            </android.support.constraint.ConstraintLayout>
 
-    </LinearLayout>
+        </LinearLayout>
 
-    <LinearLayout
+        <LinearLayout
         android:id="@+id/second_layout"
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -206,16 +200,14 @@
             android:src="@drawable/walk_selector" />
     </LinearLayout>
 
-    <com.github.mikephil.charting.charts.BarChart
-        android:id="@+id/graph"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
-        android:layout_weight="0.75"
-        android:background="@color/colorBottomNavigationActiveColored"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/forth_layout" />
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/graph"
+            android:layout_width="match_parent"
+            android:layout_height="230dp"
+            android:layout_weight="0.75"
+            android:background="@color/colorBottomNavigationActiveColored"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/forth_layout" />
     </android.support.constraint.ConstraintLayout>
 </cn.gavinliu.android.lib.scale.ScaleLinearLayout>

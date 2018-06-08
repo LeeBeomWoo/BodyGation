@@ -14,6 +14,7 @@ import android.view.Surface
 import bodygate.bcns.bodygation.navigationitem.FollowFragment
 import cn.gavinliu.android.lib.scale.config.ScaleConfig
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_play.*
 
 
 @Suppress("DEPRECATED_IDENTITY_EQUALS")
@@ -31,7 +32,6 @@ class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionList
     var video:String? = null
     var videoPath:String? = null
     var category: Int = 0
-    var page_num:Int = 0
     var context: Context = this
     fun setAutoOrientationEnabled(context: Context, enabled: Boolean) {
         Settings.System.putInt(context.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, if (enabled) 1 else 0)

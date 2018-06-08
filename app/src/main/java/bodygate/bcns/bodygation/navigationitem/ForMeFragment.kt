@@ -20,6 +20,7 @@ import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
@@ -102,6 +103,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
                         cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                         main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
+                        section = 1
                     }
                 }
             }
@@ -127,6 +129,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
                         cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                         main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "걸음"
+                        section = 5
                     }
                 }
             }
@@ -152,6 +155,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
                         cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                         main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"
+                        section = 4
                     }
                 }
             }
@@ -177,6 +181,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
                         cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                         main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "%"
+                        section = 3
                     }
                 }
             }
@@ -202,6 +207,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
                         cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                         main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"
+                        section = 0
                     }
                 }
             }
@@ -227,6 +233,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                         Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
                         cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                         main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
+                        section = 2
                     }
                 }
             }
@@ -250,10 +257,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         l.setOrientation(Legend.LegendOrientation.VERTICAL)
         l.setDrawInside(true)
         l.setTypeface(Typeface.MONOSPACE)
-        l.setYOffset(0f)
-        l.setXOffset(10f)
-        l.setXEntrySpace(5f)
-        l.setTextSize(8f)
+        l.setTextSize(11f)
         val rAxis = graph.getAxisRight()
         rAxis.setEnabled(false)
         val xAxis = graph.getXAxis()
@@ -262,6 +266,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         xAxis.setTextColor(Color.DKGRAY);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(false);
+        xAxis.setGranularity(1f)
+        xAxis.setLabelCount(5, true)
         if(mParam1 !=  null){
             Picasso.get().load(Uri.parse(mParam1))
                     .placeholder(R.mipmap.toolbarlogo_round)
@@ -269,14 +275,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         }else{
             Picasso.get().load(R.mipmap.toolbarlogo_round).into(profile_Image)
         }
-        graph.setVisibleXRangeMaximum(5.toFloat())
         graph.setNoDataText("위 버튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
         graph.setNoDataTextColor(R.color.colorPrimaryDark)
         graph.setBackgroundColor(resources.getColor(R.color.whiteback))
         pre_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
-                if(mListener!!.current_position >0 && mListener!!.current_position < mListener!!.last_position&& graph.barData.dataSetCount >0) {
+                Log.i("Button_pre_Btn", "onClick")
+                if(mListener!!.current_position >0 && graph.barData.dataSetCount >0) {
                     mListener!!.current_position -= 1
                     cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                     when(section){
@@ -315,7 +321,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             :View.OnClickListener{
             override fun onClick(v: View?) {
                 Log.i("Button_next_Btn", "onClick")
-                if(mListener!!.current_position >0 && mListener!!.current_position < mListener!!.last_position&& graph.barData.dataSetCount >0) {
+                if(mListener!!.current_position < mListener!!.last_position&& graph.barData.dataSetCount >0) {
                     mListener!!.current_position += 1
                     cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                     when(section){

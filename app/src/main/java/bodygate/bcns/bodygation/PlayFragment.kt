@@ -52,6 +52,7 @@ import java.util.concurrent.TimeUnit
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "url"
 private var param1: String? = null
+var viewalpha:Int = 0
 private var listener: PlayFragment.OnFragmentInteractionListener? = null
 private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
 private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
@@ -254,8 +255,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
+        if(savedInstanceState != null){
+            param1 = savedInstanceState.getString("url")
+            alpha_control.progress = savedInstanceState.getInt("alpha")
+        }else {
+            arguments?.let {
+                param1 = it.getString(ARG_PARAM1)
+            }
         }
     }
     override fun onResume() {
@@ -272,6 +278,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         super.onPause()
         youtube_layout.pauseTimers()
     }
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Log.i(TAG, "onActivityCreated")
@@ -862,6 +869,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
         mMediaRecorder!!.start();
         mIsRecordingVideo = true;
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        viewalpha = alpha_control.progress
+        outState.putString("url", param1)
+        outState.putInt("alpha", viewalpha)
+        super.onSaveInstanceState(outState)
     }
 
     @NonNull

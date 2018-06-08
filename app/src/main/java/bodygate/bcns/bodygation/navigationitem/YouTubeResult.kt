@@ -50,7 +50,7 @@ class YouTubeResult : Fragment() {
         adapter = YoutubeResultListViewAdapter(mListener!!.data, mListener!!.context)
         result_list.setAdapter(adapter)
         result_list.addOnScrollListener(object : RecyclerView.OnScrollListener(){
-            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 if (result_list.isActivated)
                     return
@@ -62,7 +62,7 @@ class YouTubeResult : Fragment() {
                     if(mListener!!.totalpage > 0){
                     runBlocking{mListener!!.getNetxtPage(mListener!!.sendquery.toString(), getString(R.string.API_key), 5,true,0)}
                     adapter!!.setLkItems(mListener!!.data)
-                    result_list.adapter.notifyItemInserted(totalItemCount)
+                    result_list.adapter!!.notifyItemInserted(totalItemCount)
                     mListener!!.stopProgress(0)
                     }
                 }
@@ -70,7 +70,7 @@ class YouTubeResult : Fragment() {
         })
         mListener!!.visableFragment = TAG
         mListener!!.stopProgress(0)
-        Log.i(TAG, result_list.adapter.itemCount.toString())
+        Log.i(TAG, result_list.adapter!!.itemCount.toString())
         Log.i(TAG, "onActivityCreated_final")
     }
 
