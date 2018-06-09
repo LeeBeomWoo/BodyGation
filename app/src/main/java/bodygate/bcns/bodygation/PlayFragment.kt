@@ -826,7 +826,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             matrix.setRectToRect(viewRect, deviceRect, Matrix.ScaleToFit.CENTER);
             val scale = Math.max(
                     (viewHeight/height).toFloat(),
-                    (viewWidth/width).toFloat());
+                    (viewWidth/width).toFloat())
             Log.d("scale :", scale.toString());
             matrix.postScale(scale, scale * 2, deviceRect.centerX(), deviceRect.centerY());
             Log.d("postScale :", (scale * 2).toString() + ":" + (centerX).toString() + ":" + (centerY).toString());

@@ -48,9 +48,10 @@ class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionList
         setContentView(R.layout.activity_item)
         url = intent.getStringExtra("url")
         supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url)).commit()
+        /*
         if (android.provider.Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) != 1){
            setAutoOrientationEnabled(this, true);
-        }
+        }*/
     }
 
     fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera) {

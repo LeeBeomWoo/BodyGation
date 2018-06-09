@@ -1,27 +1,24 @@
 package bodygate.bcns.bodygation
 
-import android.Manifest
 import android.accounts.AccountManager
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ProgressDialog
-import android.content.*
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
-import android.os.*
-import android.provider.Settings
-import android.support.annotation.NonNull
+import android.os.AsyncTask
+import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.PopupMenu
 import android.util.Log
-import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
-import android.widget.PopupWindow
-import android.widget.RelativeLayout
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
@@ -31,70 +28,48 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.data.CombinedData
-import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.GooglePlayServicesUtil
-import com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessOptions
-import com.google.android.gms.fitness.FitnessStatusCodes
 import com.google.android.gms.fitness.data.*
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.DataTypeCreateRequest
-import com.google.android.gms.fitness.request.OnDataPointListener
-import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.fitness.result.DataReadResult
-import com.google.android.gms.tasks.*
+import com.google.android.gms.tasks.Task
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.client.util.ExponentialBackOff
 import com.google.api.services.youtube.YouTube
 import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.SearchListResponse
 import com.google.api.services.youtube.model.SearchResult
 import com.google.common.io.BaseEncoding
-import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.android.synthetic.main.fragment_goal.*
-import kotlinx.android.synthetic.main.menu_item.*
 import kotlinx.android.synthetic.main.toolbar_custom.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
-import org.jetbrains.anko.custom.async
 import org.jetbrains.anko.defaultSharedPreferences
-import pub.devrel.easypermissions.EasyPermissions
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.lang.Exception
 import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
-import java.text.DateFormat.getDateInstance
-import java.text.DateFormat.getTimeInstance
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
-import javax.security.auth.callback.Callback
 import kotlin.collections.ArrayList
-
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN", "CAST_NEVER_SUCCEEDS")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
@@ -117,7 +92,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var page = ""
     override var totalpage = 100
     lateinit var mGoogleSignInClient: GoogleSignInClient//google sign in client
-    var mCredential: GoogleAccountCredential? = null
     var mPb:ProgressDialog? = null
     var pPb:ProgressDialog? = null
     var nPb:ProgressDialog? = null
@@ -359,49 +333,49 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
-            // Do something
-            when (bottom_navigation.currentItem) {
-                0 -> {
-                    doubleBackToExitPressedOnce = false
-                    bottom_navigation.currentItem = 1
-                }
-                1 -> {
-                    if (visableFragment == "YouTubeResult") {
-                        sendquery = null
-                        data.clear()
-                        bottom_navigation.setCurrentItem(1)
+        // Do something
+        when (bottom_navigation.currentItem) {
+            0 -> {
+                doubleBackToExitPressedOnce = false
+                bottom_navigation.currentItem = 1
+            }
+            1 -> {
+                if (visableFragment == "YouTubeResult") {
+                    sendquery = null
+                    data.clear()
+                    bottom_navigation.setCurrentItem(1)
+                } else {
+                    if (doubleBackToExitPressedOnce) {
+                        moveTaskToBack(true)
+                        android.os.Process.killProcess(android.os.Process.myPid())
+                        System.exit(1)
+                        return
                     } else {
-                        if (doubleBackToExitPressedOnce) {
-                            moveTaskToBack(true)
-                            android.os.Process.killProcess(android.os.Process.myPid())
-                            System.exit(1)
-                            return
-                        } else {
-                            val builder = AlertDialog.Builder(this)
-                            if (title != null) builder.setTitle(title)
-                            builder.setMessage("프로그램을 종료하시겠습니까?")
-                            builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
-                                override fun onClick(dialog: DialogInterface?, which: Int) {
-                                    android.os.Process.killProcess(android.os.Process.myPid())
-                                }
-                            })
-                            builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
-                                override fun onClick(dialog: DialogInterface?, which: Int) {
-                                    doubleBackToExitPressedOnce = false
-                                    dialog!!.dismiss()
-                                }
+                        val builder = AlertDialog.Builder(this)
+                        if (title != null) builder.setTitle(title)
+                        builder.setMessage("프로그램을 종료하시겠습니까?")
+                        builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
+                            override fun onClick(dialog: DialogInterface?, which: Int) {
+                                android.os.Process.killProcess(android.os.Process.myPid())
                             }
-                            )
-                            builder.show()
-                            doubleBackToExitPressedOnce = true
+                        })
+                        builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
+                            override fun onClick(dialog: DialogInterface?, which: Int) {
+                                doubleBackToExitPressedOnce = false
+                                dialog!!.dismiss()
+                            }
                         }
+                        )
+                        builder.show()
+                        doubleBackToExitPressedOnce = true
                     }
                 }
-                2 -> {
-                    doubleBackToExitPressedOnce = false
-                    bottom_navigation.currentItem = 1
-                }
             }
+            2 -> {
+                doubleBackToExitPressedOnce = false
+                bottom_navigation.currentItem = 1
+            }
+        }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -417,16 +391,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // pPb = ProgressDialog(this)
         // nPb = ProgressDialog(this)
 
-        if(GoogleSignIn.getLastSignedInAccount(this) == null){
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        cPb = ProgressDialog(this)
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .requestId()
                 .requestProfile()
                 .requestIdToken(getString(R.string.web_client_id))
                 .build()
-            mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
-            cPb = ProgressDialog(this)
-
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+        if(GoogleSignIn.getLastSignedInAccount(this) == null){
             signIn()
         }else{
             getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
@@ -458,6 +431,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
+        }else{
+            val task = fitTask()
+            task.execute()
         }
         mClient!!.connect()
         // Create items
@@ -532,12 +508,31 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, REQUEST_OAUTH)
     }
+    private fun doGoogleSignOut() {
+        mGoogleSignInClient.signOut()?.addOnCompleteListener(this, {
+            Toast.makeText(this, "Google Sign Out done.", Toast.LENGTH_SHORT).show()
+            revokeAccess();
+        })
+    }
 
+    /**
+     * DISCONNECT ACCOUNTS
+     * method to revoke access from this app
+     * call this method after successful sign out
+     * <p>
+     * It is highly recommended that you provide users that signed in with Google the ability to disconnect their Google account from your app. If the user deletes their account, you must delete the information that your app obtained from the Google APIs
+     */
+    @SuppressLint("RestrictedApi")
+    private fun revokeAccess() {
+        mGoogleSignInClient.revokeAccess()?.addOnCompleteListener(this, {
+            Toast.makeText(this, "Google access revoked.", Toast.LENGTH_SHORT).show()
+            getProfileInformation(null)
+        })
+    }
     override fun onStart() {
         super.onStart()
         // Connect to the Fitness API
         Log.i(TAG, "Connecting...")
-        mClient!!.connect()
     }
 
     override fun onStop() {
@@ -545,10 +540,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if (mClient!!.isConnected()) {
             mClient!!.disconnect();
         }
-    }
-    fun chooseAccount() {
-        startActivityForResult(mCredential!!.newChooseAccountIntent(),
-                REQUEST_ACCOUNT_PICKER)
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
@@ -582,7 +573,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 if (resultCode == Activity.RESULT_OK) {
                     // Make sure the app is not already connected or attempting to connectTask<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                     val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                    handleSignInResult(task);
+                    handleSignInResult(task)
                     Log.i(TAG, data.toString())
                 }
             }
@@ -590,8 +581,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
-            outState!!.putBoolean("loading", fitloading)
-            outState.putBoolean("sending", fitsending)
+        outState!!.putBoolean("loading", fitloading)
+        outState.putBoolean("sending", fitsending)
         super.onSaveInstanceState(outState)
     }
 
@@ -628,7 +619,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val editor:SharedPreferences.Editor = defaultSharedPreferences.edit()
         editor.putString(PREF_ACCOUNT_NAME, accountName);
         editor.apply()
-        mCredential!!.setSelectedAccountName(accountName);
         this.accountname = accountName;
     }
     @SuppressLint("SetTextI18n")
@@ -642,7 +632,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     last_position = weight_series.size - 1
                     display_label = weight_Label
                     for(i:Int in 0..last_position){
-                        display_series.add(weight_series[i].y.toString())
+                        display_series.add(String.format("%.1f",weight_series[i].y.toDouble()))
                     }
                     val set1 = BarDataSet(weight_series, getString(R.string.weight))
                     set1.setColors(Color.rgb(65, 192, 193))
@@ -658,7 +648,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     last_position = walk_series.size - 1
                     display_label = walk_Label
                     for(i:Int in 0..last_position){
-                        display_series.add(walk_series[i].y.toString())
+                        display_series.add(String.format("%.0f",walk_series[i].y.toDouble()))
                     }
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
@@ -674,7 +664,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     last_position = kcal_series.size - 1
                     display_label = kcal_Label
                     for(i:Int in 0..last_position){
-                        display_series.add(kcal_series[i].y.toString())
+                        display_series.add(String.format("%.0f",kcal_series[i].y.toDouble()))
                     }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
@@ -690,7 +680,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     last_position = fat_series.size - 1
                     display_label = fat_Label
                     for(i:Int in 0..last_position){
-                        display_series.add(fat_series[i].y.toString())
+                        display_series.add(String.format("%.2f",fat_series[i].y.toDouble()))
                     }
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
@@ -706,7 +696,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     last_position = muscle_series.size - 1
                     display_label = muscle_Label
                     for(i:Int in 0..last_position){
-                        display_series.add(muscle_series[i].y.toString())
+                        display_series.add(String.format("%.0f",muscle_series[i].y.toDouble()))
                     }
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
@@ -722,7 +712,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     last_position = bmi_series.size - 1
                     display_label = bmi_Label
                     for(i:Int in 0..last_position){
-                        display_series.add(bmi_series[i].y.toString())
+                        display_series.add(String.format("%.2f",bmi_series[i].y.toDouble()))
                     }
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
@@ -747,8 +737,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
     override fun onConnected(p0: Bundle?) {
         Log.i(TAG, "Connected!!!");
-        val task = fitTask()
-        task.execute()
     }
     override fun onConnectionFailed(result: ConnectionResult) {
         Log.i(TAG, "Connection failed. Cause: " + result.toString());
@@ -771,7 +759,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addField("fat", Field.FORMAT_FLOAT)
                 .build()
         val pendingResult = Fitness.ConfigApi.createCustomDataType(mClient, request)
-       custom_Type =  pendingResult.await().dataType
+        custom_Type =  pendingResult.await().dataType
     }
 
     override fun onPause() {
@@ -984,27 +972,28 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             override fun onMenuItemClick(item: MenuItem?): Boolean {
                 when(item!!.itemId){
                     R.id.accountchange_Btn->{
-                        chooseAccount()
+                        doGoogleSignOut()
+                        signIn()
                         return true
                     }
                     R.id.pesnaldatarefresh_Btn->{
-                            display_label.clear()
-                            display_series.clear()
-                            weight_series.clear()
-                            muscle_series.clear()
-                            walk_series.clear()
-                            fat_series.clear()
-                            bmi_series.clear()
-                            kcal_series.clear()
-                            weight_Label.clear()
-                            kcal_Label.clear()
-                            walk_Label.clear()
-                            fat_Label.clear()
-                            muscle_Label.clear()
-                            bmi_Label.clear()
+                        display_label.clear()
+                        display_series.clear()
+                        weight_series.clear()
+                        muscle_series.clear()
+                        walk_series.clear()
+                        fat_series.clear()
+                        bmi_series.clear()
+                        kcal_series.clear()
+                        weight_Label.clear()
+                        kcal_Label.clear()
+                        walk_Label.clear()
+                        fat_Label.clear()
+                        muscle_Label.clear()
+                        bmi_Label.clear()
 
-                            val task = fitTask()
-                            task.execute()
+                        val task = fitTask()
+                        task.execute()
                         return true
                     }
                 }
@@ -1029,18 +1018,35 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
         override fun onProgressUpdate(vararg values: Void?) {
             super.onProgressUpdate(*values)
+            Log.i(TAG, "onProgressUpdate")
             pB = ProgressDialog.show(this@MainActivity, "데이터 받아오는중..", "구글핏 서버로 부터 사용자 데이터를 받아오는 중입니다. 잠시만 기다려 주세요")
         }
         override fun onPreExecute() {
             super.onPreExecute()
+            Log.i(TAG, "onPreExecute")
             if(!fitloading)
                 fitloading = true
             if(custom_Type == null)
                 customDataType()
+            if(mClient == null){
+                mClient = GoogleApiClient.Builder(this@MainActivity)
+                        .enableAutoManage(this@MainActivity, this@MainActivity)
+                        .addApi(Fitness.CONFIG_API)
+                        .addApi(Fitness.HISTORY_API)
+                        .addScope(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                        .addScope(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                        .addConnectionCallbacks(this@MainActivity)
+                        .addOnConnectionFailedListener(this@MainActivity)
+                        .build()
+                mClient!!.connect()
+            }else if(!mClient!!.isConnected){
+                mClient!!.connect()
+            }
 
         }
         override fun onPostExecute(result: Void?) {
             super.onPostExecute(result)
+            Log.i(TAG, "onPostExecute")
             pB!!.dismiss()
             if(fitloading)
                 fitloading = false
@@ -1076,6 +1082,4 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
 }
-
-
 

@@ -61,19 +61,19 @@
         android:src="@drawable/record"
         tools:ignore="ContentDescription" />
 
-    <ImageButton
-        android:id="@+id/load_Btn"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_above="@+id/play_Btn"
-        android:layout_margin="5dp"
-        android:layout_marginStart="43dp"
-        android:background="@color/nocolor"
-        android:scaleType="fitCenter"
-        android:src="@drawable/load"
-        tools:ignore="ContentDescription" />
+        <ImageButton
+            android:id="@+id/load_Btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_above="@+id/play_Btn"
+            android:layout_margin="5dp"
+            android:layout_marginStart="43dp"
+            android:background="@color/nocolor"
+            android:scaleType="fitCenter"
+            android:src="@drawable/load"
+            tools:ignore="ContentDescription" />
 
-    <ImageButton
+        <ImageButton
         android:id="@+id/play_Btn"
         android:layout_width="40dp"
         android:layout_height="40dp"
