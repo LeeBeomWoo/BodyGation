@@ -177,13 +177,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
 
-    fun addData(response: SearchListResponse, section:Int) {
+    fun addData(response: SearchListResponse) {
         Log.i(TAG, "addData")
         Log.i("test", "second")
         val body = response.items
         Log.i("query", body.toString())
         Log.i("response", response.toString())
-        if(response.nextPageToken.isNotEmpty()) {
+        if(response.nextPageToken != null) {
             page = response.nextPageToken
             totalpage = (response.pageInfo.totalResults/5)
             Log.i("data_page", page)
@@ -248,7 +248,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     }
     override fun OnGoalInteractionListener() {
-        insertData()
+        val task = insertD()
+        task.execute()
     }
     @SuppressLint("PackageManagerGetSignatures")
     private fun getSHA1(packageName:String):String? {
@@ -309,7 +310,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         query.setOrder(order)
         query.setType(searchType)
         Log.i("test", "first")
-        launch(CommonPool) {addData( query.execute(), section)}.join()
+        launch(CommonPool) {addData( query.execute())}.join()
         Log.i("test", "third")
     }
     override fun OnFollowInteraction(q: ArrayList<String>?, s:Int) {
@@ -397,6 +398,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .requestId()
                 .requestProfile()
                 .requestIdToken(getString(R.string.web_client_id))
+                .requestScopes(Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                .requestScopes(Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
                 .build()
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
         if(GoogleSignIn.getLastSignedInAccount(this) == null){
@@ -413,6 +416,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build()
+        mClient!!.connect()
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
@@ -435,7 +439,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val task = fitTask()
             task.execute()
         }
-        mClient!!.connect()
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
