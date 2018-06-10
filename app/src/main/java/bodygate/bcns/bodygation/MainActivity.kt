@@ -416,7 +416,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build()
-        mClient!!.connect()
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
                 .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
@@ -435,9 +434,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
-        }else{
-            val task = fitTask()
-            task.execute()
         }
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
@@ -536,6 +532,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onStart()
         // Connect to the Fitness API
         Log.i(TAG, "Connecting...")
+        mClient!!.connect()
     }
 
     override fun onStop() {
@@ -552,23 +549,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
                     val task = fitTask()
                     task.execute()
-                }
-            }
-            REQUEST_ACCOUNT_PICKER -> {
-                Log.i(TAG, "REQUEST_ACCOUNT_PICKER")
-                if (resultCode == Activity.RESULT_OK) {
-                    if (data != null && data.getExtras() != null) {
-                        val accountName =
-                                data.getExtras().getString(
-                                        AccountManager.KEY_ACCOUNT_NAME);
-                        if (accountName != null) {
-                            setSelectedAccountName(accountName);
-                            val editor: SharedPreferences.Editor = defaultSharedPreferences.edit()
-                            editor.putString(PREF_ACCOUNT_NAME, accountName)
-                            editor.apply()
-                            // User is authorized.
-                        }
-                    }
                 }
             }
             REQUEST_OAUTH -> {
@@ -617,12 +597,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             getProfileInformation(null)
         }
 
-    }
-    private fun setSelectedAccountName(accountName:String) {
-        val editor:SharedPreferences.Editor = defaultSharedPreferences.edit()
-        editor.putString(PREF_ACCOUNT_NAME, accountName);
-        editor.apply()
-        this.accountname = accountName;
     }
     @SuppressLint("SetTextI18n")
     override fun OnForMeInteraction(section:Int):BarData {
@@ -739,7 +713,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }
     }
     override fun onConnected(p0: Bundle?) {
-        Log.i(TAG, "Connected!!!");
+        Log.i(TAG, "Connected!!!")
+        val task = fitTask()
+        task.execute()
     }
     override fun onConnectionFailed(result: ConnectionResult) {
         Log.i(TAG, "Connection failed. Cause: " + result.toString());
@@ -829,7 +805,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         dataSet.add(dataPoint)
         val response = Fitness.HistoryApi.insertData(mClient, dataSet)
         if(response.await().isSuccess){
-            Toast.makeText(this, "데이터가 정상적으로 입력되었습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@MainActivity, "데이터가 정상적으로 입력되었습니다.", Toast.LENGTH_SHORT).show()
             bottom_navigation.currentItem = 1
         }else {
             makeData()
@@ -848,7 +824,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
-        cal.set(2017, 1, 1)
+        cal.set(Calendar.DAY_OF_YEAR, -400)
         val startTime = cal.timeInMillis
         val request = DataReadRequest.Builder()
                 .read(DataType.TYPE_WEIGHT)
@@ -862,7 +838,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
-        cal.set(2017, 1, 1)
+        cal.set(Calendar.DAY_OF_YEAR, -400)
         val startTime = cal.timeInMillis
         val request = DataReadRequest.Builder()
                 .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
@@ -878,7 +854,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
-        cal.set(2017, 1, 1)
+        cal.set(Calendar.DAY_OF_YEAR, -400)
         val startTime = cal.timeInMillis
         val request = DataReadRequest.Builder()
                 .read(custom_Type)
@@ -955,11 +931,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                     Field.FIELD_CALORIES.name ->{
                         kcal_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
-                        kcal_Label.add(label.format(Date(dp.getTimestamp(TimeUnit.MILLISECONDS))))
+                        kcal_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
                     }
                     Field.FIELD_STEPS.name ->{
                         walk_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asInt().toFloat()))
-                        walk_Label.add(label.format(Date(dp.getTimestamp(TimeUnit.MILLISECONDS))))
+                        walk_Label.add(label.format(Date(dp.getEndTime(TimeUnit.MILLISECONDS))))
                     }
                 }
                 count += 1
@@ -968,7 +944,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
     @SuppressLint("InflateParams")
     fun menupopup(v:View){
-        mPopupWindow = PopupMenu(this, v);
+        mPopupWindow = PopupMenu(this@MainActivity, v);
         mPopupWindow!!.getMenuInflater().inflate(R.menu.menu, mPopupWindow!!.getMenu())
 
         mPopupWindow!!.setOnMenuItemClickListener(object: PopupMenu.OnMenuItemClickListener{

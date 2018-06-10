@@ -124,22 +124,22 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         })
         goal_height_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener {
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
-                if (hasFocus) {
+                if (hasFocus == true) {
                     if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
                         Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
-                        goal_height_txtB.setFocusable(false)
                         goal_height_txtB.text.clear()
+                        goal_height_txtB.setFocusable(false)
                     }
                 }
             }
         })
         my_weight_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
-                if(hasFocus){
+                if(hasFocus== true){
                     if (!man_RBtn.isChecked && !girl_RBtn.isChecked) {
                         Toast.makeText(this@GoalFragment.context, "성별을 먼저 선택하여 주세요", Toast.LENGTH_SHORT).show()
-                        my_weight_txtB.setFocusable(false)
                         my_weight_txtB.text.clear()
+                        my_weight_txtB.setFocusable(false)
                     }else{
                         if (goal_height_txtB.text.isNotEmpty()) {
                         goal_weight_txtB.setText((Math.round(weightCal(goal_height_txtB.text.toString().toDouble() * 0.01) * 100)*0.01).toString())
@@ -158,15 +158,15 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         })
         my_bmi_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
-                if(hasFocus) {
+                if(hasFocus== true) {
                     if(my_weight_txtB.text.isEmpty()) {
                         Toast.makeText(this@GoalFragment.context, "체중을 입력하여 주세요", Toast.LENGTH_SHORT).show()
-                        my_bmi_txtB.setFocusable(false)
                         my_bmi_txtB.text.clear()
+                        my_bmi_txtB.setFocusable(false)
                     }else if(goal_height_txtB.text.isEmpty()){
                         Toast.makeText(this@GoalFragment.context, "신장을 입력하여 주세요", Toast.LENGTH_SHORT).show()
-                        my_bmi_txtB.setFocusable(false)
                         my_bmi_txtB.text.clear()
+                        my_bmi_txtB.setFocusable(false)
                     }else if (my_weight_txtB.text.isNotEmpty() &&goal_height_txtB.text.isNotEmpty()) {
                             my_bmi_txtB.setText((Math.round(BMICal(goal_height_txtB.text.toString().toDouble() * 0.01, my_weight_txtB.text.toString().toDouble()) * 100) * 0.01).toString())
                             goal_weight_musclemass_txtB.setText((Math.round(weight_muscleCal(my_weight_txtB.text.toString().toDouble()) * 100) * 0.01).toString())
@@ -176,30 +176,30 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
             })
         my_musclemass_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
-                if(hasFocus) {
+                if(hasFocus== true) {
                     if(my_weight_txtB.text.isEmpty()) {
                         Toast.makeText(this@GoalFragment.context, "체중을 입력하여 주세요", Toast.LENGTH_SHORT).show()
-                        my_musclemass_txtB.setFocusable(false)
                         goal_height_txtB.text.clear()
+                        my_musclemass_txtB.setFocusable(false)
                     }else if(goal_height_txtB.text.isEmpty()) {
                         Toast.makeText(this@GoalFragment.context, "신장을 입력하여 주세요", Toast.LENGTH_SHORT).show()
-                        my_musclemass_txtB.setFocusable(false)
                         goal_height_txtB.text.clear()
+                        my_musclemass_txtB.setFocusable(false)
                     }
                 }
             }
         })
         my_bodyfat_txtB.setOnFocusChangeListener(object :View.OnFocusChangeListener{
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
-                if(hasFocus) {
+                if(hasFocus== true) {
                     if(my_weight_txtB.text.isEmpty()) {
                         Toast.makeText(this@GoalFragment.context, "체중을 입력하여 주세요", Toast.LENGTH_SHORT).show()
-                        my_bodyfat_txtB.setFocusable(false)
                         my_bodyfat_txtB.text.clear()
+                        my_bodyfat_txtB.setFocusable(false)
                     }else if(goal_height_txtB.text.isEmpty()) {
                         Toast.makeText(this@GoalFragment.context, "신장을 입력하여 주세요", Toast.LENGTH_SHORT).show()
-                        my_bodyfat_txtB.setFocusable(false)
                         my_bodyfat_txtB.text.clear()
+                        my_bodyfat_txtB.setFocusable(false)
                     }
                 }
             }
