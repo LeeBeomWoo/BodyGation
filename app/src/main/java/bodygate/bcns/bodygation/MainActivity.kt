@@ -75,10 +75,7 @@ import kotlin.collections.ArrayList
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener {
 
-    var pB: ProgressDialog? = null
-    private val PREF_ACCOUNT_NAME = "accountName"
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
-    val REQUEST_ACCOUNT_PICKER = 2
     private val REQUEST_OAUTH = 1001
     var mClient:GoogleApiClient? = null
     var menu_isShow:Boolean = false
@@ -96,6 +93,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var pPb:ProgressDialog? = null
     var nPb:ProgressDialog? = null
     var cPb:ProgressDialog? = null
+    var pB: ProgressDialog? = null
     override var visableFragment = ""
     private var doubleBackToExitPressedOnce: Boolean = false
     override val context:Context = this
@@ -103,7 +101,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var data: MutableList<SearchResult> = arrayListOf()
     override var last_position = 0
     override var current_position = 0
-    var accountname = ""
 
     override var display_label:MutableList<String> =  ArrayList()
     override var display_series: MutableList<String> = ArrayList()
@@ -804,12 +801,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val dataSet = DataSet.create(source)
         dataSet.add(dataPoint)
         val response = Fitness.HistoryApi.insertData(mClient, dataSet)
-        if(response.await().isSuccess){
-            Toast.makeText(this@MainActivity, "데이터가 정상적으로 입력되었습니다.", Toast.LENGTH_SHORT).show()
-            bottom_navigation.currentItem = 1
-        }else {
-            makeData()
-        }
+        response.await()
     }
 
     fun customDataType(){
@@ -1042,6 +1034,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
         override fun onProgressUpdate(vararg values: Void?) {
             super.onProgressUpdate(*values)
+            if(pB == null)
             pB = ProgressDialog.show(this@MainActivity, "데이터 보내는 중..", "구글핏 서버로 사용자 데이터를 보내는 중입니다. 잠시만 기다려 주세요")
         }
         override fun onPreExecute() {
@@ -1055,6 +1048,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         override fun onPostExecute(result: Void?) {
             super.onPostExecute(result)
             pB!!.dismiss()
+            Toast.makeText(this@MainActivity, "데이터가 정상적으로 입력되었습니다.", Toast.LENGTH_SHORT).show()
+            bottom_navigation.currentItem = 1
             if(fitsending)
                 fitsending = false
         }
