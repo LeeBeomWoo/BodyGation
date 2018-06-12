@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import bodygate.bcns.bodygation.MainActivity
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.R.id.walk_Btn
 import bodygate.bcns.bodygation.support.CheckableImageButton
@@ -238,6 +239,8 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 }
             }
         }
+        val xA = graph.xAxis
+        xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(mListener!!.display_series.toTypedArray()))
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -413,15 +416,3 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         }
     }
 }// Required empty public constructor
-
-class MyXAxisValueFormatter(private val mValues: Array<String>) : IAxisValueFormatter {
-
-    override fun getFormattedValue(value: Float, axis: AxisBase): String {
-        // "value" represents the position of the label on the axis (x or y)
-        if(value.toInt()<mValues.size){
-            return mValues[value.toInt()]
-        }else{
-            return ""
-        }
-    }
-}
