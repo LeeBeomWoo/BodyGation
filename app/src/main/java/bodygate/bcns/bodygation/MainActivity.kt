@@ -13,6 +13,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
+import android.support.annotation.NonNull
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.PopupMenu
@@ -39,6 +40,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.ResultCallback
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessOptions
@@ -804,7 +806,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val dataSet = DataSet.create(source)
         dataSet.add(dataPoint)
         val response = Fitness.HistoryApi.insertData(mClient, dataSet)
-        response.await()
+        if(response.await().isSuccess.not()){
+            makeData()
+        }
     }
 
     fun customDataType(){

@@ -240,7 +240,7 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
             }
         }
         val xA = graph.xAxis
-        xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(mListener!!.display_series.toTypedArray()))
+        xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(mListener!!.display_label.toTypedArray()))
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
