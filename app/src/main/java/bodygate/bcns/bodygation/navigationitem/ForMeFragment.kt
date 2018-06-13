@@ -96,12 +96,14 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                     bmi_Btn.setChecked(!check)
                 if (weight_Btn.isChecked){
                     graph.setData(mListener!!.OnForMeInteraction(0))
+                    Log.i(TAG, "display_label_3 :" + mListener!!.display_label.size.toString())
                     graph.data.notifyDataChanged()
                     graph.notifyDataSetChanged()
                     graph.invalidate()
                     if (mListener!!.last_position > 0) {
                         mListener!!.current_position = mListener!!.last_position
                         Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
+                        Log.i(TAG, "display_label_4 :" + mListener!!.display_label.size.toString())
                         cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
                         main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
                         section = 1
@@ -239,8 +241,6 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
                 }
             }
         }
-        val xA = graph.xAxis
-        xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(mListener!!.display_label.toTypedArray()))
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
