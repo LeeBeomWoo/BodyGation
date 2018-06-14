@@ -60,6 +60,10 @@ import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.SearchListResponse
 import com.google.api.services.youtube.model.SearchResult
 import com.google.common.io.BaseEncoding
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.android.synthetic.main.fragment_goal.*
@@ -95,6 +99,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var page = ""
     override var totalpage = 100
     lateinit var mGoogleSignInClient: GoogleSignInClient//google sign in client
+    var mAuth: FirebaseAuth? = null
+    var email: String? = null
     var mPb:ProgressDialog? = null
     var pPb:ProgressDialog? = null
     var nPb:ProgressDialog? = null
@@ -251,8 +257,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     }
     override fun OnGoalInteractionListener() {
-        val task = insertD()
-        task.execute()
+      //  val task = insertD()
+      //  task.execute()
     }
     @SuppressLint("PackageManagerGetSignatures")
     private fun getSHA1(packageName:String):String? {
@@ -394,7 +400,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         //mPb = ProgressDialog(this)
         // pPb = ProgressDialog(this)
         // nPb = ProgressDialog(this)
-
+        mAuth = FirebaseAuth.getInstance()
         cPb = ProgressDialog(this)
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
@@ -418,6 +424,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addExtension(fitnessOptions)
                 .build()
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+        if(mAuth!!.currentUser == null){
+            signIn()
+        }
         if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
             GoogleSignIn.requestPermissions(
                     this,
@@ -425,9 +434,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     GoogleSignIn.getLastSignedInAccount(this),
                     fitnessOptions)
         } else {
-            getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
-            val task = fitTask()
-            task.execute()
+            accessGoogleFit(GoogleSignIn.getLastSignedInAccount(this)!!)
+           // val task = fitTask()
+          //  task.execute()
         }
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
@@ -527,6 +536,22 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // Connect to the Fitness API
         Log.i(TAG, "Connecting...")
     }
+    fun accessGoogleFit(acc:GoogleSignInAccount){
+        val credential = GoogleAuthProvider.getCredential(acc.idToken, null)
+        mAuth!!.signInWithCredential(credential)
+                .addOnCompleteListener(object : OnCompleteListener<AuthResult>{
+                    override fun onComplete(p0: Task<AuthResult>) {
+                        if(p0.isSuccessful){
+                            val user = mAuth!!.currentUser
+                            getProfileInformation(user!!)
+                            val a = readRequest_weight(acc)
+                            val b =  readRequest_arr(acc)
+                        }else{
+                            getProfileInformation(null)
+                        }
+                    }
+                })
+    }
 
     override fun onStop() {
         super.onStop()
@@ -536,9 +561,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             GOOGLE_FIT_PERMISSIONS_REQUEST_CODE -> {
                 Log.i(TAG, "GOOGLE_FIT_PERMISSIONS_REQUEST_CODE")
                 if (resultCode == Activity.RESULT_OK) {
-                    getProfileInformation(GoogleSignIn.getLastSignedInAccount(this))
-                    val task = fitTask()
-                    task.execute()
+                    accessGoogleFit(GoogleSignIn.getLastSignedInAccount(this)!!)
                 }
             }
             REQUEST_OAUTH -> {
@@ -566,11 +589,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             fitsending = savedInstanceState.getBoolean("sending")
         }
         if(fitsending) {
-            val task = insertD()
-            task.execute()
+          //  val task = insertD()
+           // task.execute()
         }else if(fitloading){
-            val task = fitTask()
-            task.execute()
+           // val task = fitTask()
+           // task.execute()
         }
 
     }
@@ -579,7 +602,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val account = completedTask.getResult(ApiException::class.java)
 
             // Signed in successfully, show authenticated UI.
-            getProfileInformation(account)
+            accessGoogleFit(account)
         } catch (e: ApiException) {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
@@ -713,7 +736,31 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             result.startResolutionForResult(this, REQUEST_OAUTH)
         }
     }
-    fun makeData(){
+
+    override fun onPause() {
+        super.onPause()
+        if(pB != null)
+            if(pB!!.isShowing)
+                pB!!.dismiss()
+    }
+
+    private fun getProfileInformation(acct: FirebaseUser?) {
+        //if account is not null fetch the information
+        if (acct != null) {
+            //user display name
+            val personName = acct.getDisplayName()
+
+
+            //user email id
+            val personEmail = acct.getEmail()
+
+            //user profile pic
+            personUrl = acct.photoUrl
+            Log.i("profile", "getProfileInformation : " + personName + "\t" + acct.photoUrl.toString() + "\t"+ personEmail +"\t" + acct.toString())
+        }
+    }
+
+    fun makeData(acc:GoogleSignInAccount):Task<DataType>{
         Log.i(TAG, "makeData")
         val request = DataTypeCreateRequest.Builder()
                 // The prefix of your data type name must match your app's package name
@@ -722,7 +769,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addField("muscle", Field.FORMAT_FLOAT)
                 .addField("fat", Field.FORMAT_FLOAT)
                 .build()
-        val pendingResult = Fitness.getConfigClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).createCustomDataType(request)
+        return Fitness.getConfigClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).createCustomDataType(request)
                 .addOnSuccessListener(object :OnSuccessListener<DataType>{
                     override fun onSuccess(p0: DataType?) {
                         Log.i(TAG, "readDataType onSuccess")
@@ -733,7 +780,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onFailure(p0: Exception) {
                         Log.i(TAG, "readDataType OnFailureListener")
                         Log.i(TAG, p0.message)
-                        launch { makeData() }
+                        makeData(acc)
                     }
                 })
                 .addOnCompleteListener(object :OnCompleteListener<DataType>{
@@ -742,41 +789,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
                     }
                 })
-        custom_Type = Tasks.await(pendingResult)
     }
 
-    override fun onPause() {
-        super.onPause()
-        if(pB != null)
-            if(pB!!.isShowing)
-                pB!!.dismiss()
-    }
-
-    private fun getProfileInformation(acct: GoogleSignInAccount?) {
-        //if account is not null fetch the information
-        if (acct != null) {
-            //user display name
-            val personName = acct.getDisplayName()
-
-            //user first name
-            val personGivenName = acct.getGivenName()
-
-            //user last name
-            val personFamilyName = acct.getFamilyName()
-
-            //user email id
-            val personEmail = acct.getEmail()
-
-            //user unique id
-            val personId = acct.getId()
-
-            //user profile pic
-            personUrl = acct.photoUrl
-            Log.i("profile", "getProfileInformation : " + personName + "\t" + acct.photoUrl.toString() + "\t"+ personEmail +"\t" + personId + "\t" + acct.toString())
-        }
-    }
-
-   fun insertData():Task<Void> {
+   fun insertData(acc:GoogleSignInAccount):Task<Void> {
         val cal = Calendar.getInstance()
         val now = Date()
         cal.time = now
@@ -818,7 +833,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onFailure(p0: Exception) {
                         Log.i(TAG, "insertData OnFailureListener")
                         Log.i(TAG, p0.message)
-                        launch { makeData() }
+                        makeData(acc)
                     }
                 })
                 .addOnCompleteListener(object :OnCompleteListener<Void>{
@@ -830,7 +845,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
        return response
     }
 
-    fun customDataType():Task<DataType>{
+    fun customDataType(acc:GoogleSignInAccount):Task<DataType>{
         Log.i(TAG, "customDataType")
         val pendingResult_custom = Fitness.getConfigClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).readDataType("bodygate.bcns.bodygation.personal")
                 .addOnSuccessListener(object :OnSuccessListener<DataType>{
@@ -843,7 +858,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onFailure(p0: Exception) {
                         Log.i(TAG, "readDataType OnFailureListener")
                         Log.i(TAG, p0.message)
-                        launch { makeData() }
+                         makeData(acc)
                     }
                 })
                 .addOnCompleteListener(object :OnCompleteListener<DataType>{
@@ -856,7 +871,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         return pendingResult_custom
     }
 
-    fun readRequest_weight() :Task<DataReadResponse> {
+    fun readRequest_weight(acc:GoogleSignInAccount) :Task<DataReadResponse> {
         Log.i(TAG, "readRequest_weight")
         val cal = Calendar.getInstance()
         val now = Date()
@@ -867,7 +882,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .read(DataType.TYPE_WEIGHT)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
-        return Fitness.getHistoryClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).readData(request)
+        return Fitness.getHistoryClient(this, acc).readData(request)
                 .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                     override fun onSuccess(p0: DataReadResponse?) {
                         printData(p0!!)
@@ -877,7 +892,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onFailure(p0: Exception) {
                         Log.i(TAG, "readDataType OnFailureListener")
                         Log.i(TAG, p0.message)
-                        launch { makeData() }
+                         makeData(acc)
                     }
                 })
                 .addOnCompleteListener(object :OnCompleteListener<DataReadResponse>{
@@ -887,7 +902,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 })
     }
-    fun readRequest_arr():Task<DataReadResponse>{
+    fun readRequest_arr(acc:GoogleSignInAccount):Task<DataReadResponse>{
         Log.i(TAG, "readRequest_AGGREGATE")
         val cal = Calendar.getInstance()
         val now = Date()
@@ -900,7 +915,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .bucketByTime(1, TimeUnit.DAYS)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
-        return Fitness.getHistoryClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).readData(request)
+        return Fitness.getHistoryClient(this, acc).readData(request)
                 .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                     override fun onSuccess(p0: DataReadResponse?) {
                         printData(p0!!)
@@ -910,7 +925,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onFailure(p0: Exception) {
                         Log.i(TAG, "readDataType OnFailureListener")
                         Log.i(TAG, p0.message)
-                        launch { makeData() }
+                         makeData(acc)
                     }
                 })
                 .addOnCompleteListener(object :OnCompleteListener<DataReadResponse>{
@@ -920,7 +935,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 })
     }
-    fun readRequest_custom():Task<DataReadResponse>{
+    fun readRequest_custom(acc:GoogleSignInAccount):Task<DataReadResponse>{
         Log.i(TAG, "readRequest_custom")
         val cal = Calendar.getInstance()
         val now = Date()
@@ -941,7 +956,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onFailure(p0: Exception) {
                         Log.i(TAG, "readDataType OnFailureListener")
                         Log.i(TAG, p0.message)
-                        launch { makeData() }
+                         makeData(acc)
                     }
                 })
                 .addOnCompleteListener(object :OnCompleteListener<DataReadResponse>{
@@ -1055,8 +1070,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         muscle_Label.clear()
                         bmi_Label.clear()
 
-                        val task = fitTask()
-                        task.execute()
+                      //  val task = fitTask()
+                      //  task.execute()
                         return true
                     }
                 }
@@ -1065,6 +1080,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         })
         mPopupWindow!!.show()
     }
+    /*
     @SuppressLint("StaticFieldLeak")
     private inner class fitTask : AsyncTask<Void, Void, Void>() {
 
@@ -1131,7 +1147,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 fitsending = false
         }
     }
-
+*/
     class MyXAxisValueFormatter(private var mValues: Array<String>) : IAxisValueFormatter {
 
         override fun getFormattedValue(value: Float, axis: AxisBase): String {
