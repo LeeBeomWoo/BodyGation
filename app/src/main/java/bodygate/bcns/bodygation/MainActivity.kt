@@ -31,6 +31,7 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IAxisValueFormatter
+import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -257,8 +258,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     }
     override fun OnGoalInteractionListener() {
-      //  val task = insertD()
-      //  task.execute()
+        if(mGoogleSignInClient.silentSignIn().isSuccessful){
+            val acc = mGoogleSignInClient.silentSignIn().result
+            insertData(acc)
+        }
     }
     @SuppressLint("PackageManagerGetSignatures")
     private fun getSHA1(packageName:String):String? {
@@ -424,19 +427,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addExtension(fitnessOptions)
                 .build()
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
-        if(mAuth!!.currentUser == null){
+        if(mGoogleSignInClient.silentSignIn().isSuccessful){
+            accessGoogleFit(mGoogleSignInClient.silentSignIn().result)
+        }else{
             signIn()
-        }
-        if (!GoogleSignIn.hasPermissions(GoogleSignIn.getLastSignedInAccount(this), fitnessOptions)) {
-            GoogleSignIn.requestPermissions(
-                    this,
-                    GOOGLE_FIT_PERMISSIONS_REQUEST_CODE,
-                    GoogleSignIn.getLastSignedInAccount(this),
-                    fitnessOptions)
-        } else {
-            accessGoogleFit(GoogleSignIn.getLastSignedInAccount(this)!!)
-           // val task = fitTask()
-          //  task.execute()
         }
         // Create items
         val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
@@ -483,8 +477,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         bottom_navigation.setTitleState(AHBottomNavigation.TitleState.SHOW_WHEN_ACTIVE)
         bottom_navigation.setCurrentItem(1)
         bottom_navigation.setForceTint(true)
-        bottom_navigation.setAccentColor(Color.parseColor("#41c0c1"));
-        bottom_navigation.setInactiveColor(Color.parseColor("#696969"));
+        bottom_navigation.setAccentColor(Color.parseColor("#41c0c1"))
+        bottom_navigation.setInactiveColor(Color.parseColor("#696969"))
         bottom_navigation.setTranslucentNavigationEnabled(true)
         toolbarhome.setOnClickListener(object :View.OnClickListener{
             override fun onClick(v: View?) {
@@ -546,12 +540,19 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             getProfileInformation(user!!)
                             val a = readRequest_weight(acc)
                             val b =  readRequest_arr(acc)
+                            val c =  customDataType(acc)
+                            if(c.isSuccessful){
+                                val d = readRequest_custom(acc)
+                            }else{
+                                val e = makeData(acc)
+                            }
                         }else{
                             getProfileInformation(null)
                         }
                     }
                 })
     }
+
 
     override fun onStop() {
         super.onStop()
@@ -626,7 +627,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     last_position = weight_series.size - 1
                     display_label = weight_Label
                     for(i:Int in 0..last_position){
-                        display_series.add(String.format("%.1f",weight_series[i].y.toDouble()))
+                        display_series.add(String.format("%.1f", weight_series[i].y.toDouble()))
                     }
                     val set1 = BarDataSet(weight_series, getString(R.string.weight))
                     Log.i(TAG, "display_label_1 :" + display_label.size.toString())
