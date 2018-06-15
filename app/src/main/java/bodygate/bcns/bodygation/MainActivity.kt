@@ -837,9 +837,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .setType(DataSource.TYPE_RAW)
                 .build()
         val weight_dataPoint = DataPoint.create(weight_source)
+        weight_dataPoint.setTimestamp(nowTime,  TimeUnit.MILLISECONDS)
         weight_dataPoint.getValue(Field.FIELD_WEIGHT).setFloat(my_weight_txtB.text.toString().toFloat())
         val weight_Set = DataSet.create(weight_source)
-        weight_Set.createDataPoint().setTimestamp(nowTime,  TimeUnit.MILLISECONDS)
         weight_Set.add(weight_dataPoint)
         return Fitness.getHistoryClient(this, acc).insertData(weight_Set)
                 .addOnSuccessListener(object :OnSuccessListener<Void>{
