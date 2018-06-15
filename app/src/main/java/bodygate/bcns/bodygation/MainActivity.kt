@@ -266,6 +266,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 pB = ProgressDialog.show(this@MainActivity, "데이터 보내기", "구글 핏으로 부터 데이터를 보내는 중입니다...")
                 fitsending = true
                 insertData(acc)
+                insert_second(acc)
                 pB!!.dismiss()
                 fitsending = false
             }.join()
@@ -619,6 +620,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     launch(UI) {
                         pB = ProgressDialog.show(this@MainActivity, "데이터 보내기", "구글 핏으로 부터 데이터를 보내는 중입니다...")
                         insertData(acc)
+                        insert_second(acc)
                         pB!!.dismiss()
                         fitsending = false
                     }.join()
@@ -824,6 +826,39 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 })
     }
 
+    suspend fun insert_second(acc:GoogleSignInAccount):Task<Void>{
+        val cal = Calendar.getInstance()
+        val now = Date()
+        cal.time = now
+        val nowTime = cal.timeInMillis
+        val weight_source = DataSource.Builder()
+                .setDataType(DataType.TYPE_WEIGHT)
+                .setAppPackageName(this@MainActivity.context.packageName)
+                .setType(DataSource.TYPE_RAW)
+                .build()
+        val weight_dataPoint = DataPoint.create(weight_source)
+        weight_dataPoint.getValue(Field.FIELD_WEIGHT).setFloat(my_weight_txtB.text.toString().toFloat())
+        val weight_Set = DataSet.create(weight_source)
+        weight_Set.createDataPoint().setTimestamp(nowTime,  TimeUnit.MILLISECONDS)
+        weight_Set.add(weight_dataPoint)
+        return Fitness.getHistoryClient(this, acc).insertData(weight_Set)
+                .addOnSuccessListener(object :OnSuccessListener<Void>{
+                    override fun onSuccess(p0: Void?) {
+                        Log.i(TAG, "insert_second onSuccess")
+                    }
+                })
+                .addOnFailureListener(object :OnFailureListener{
+                    override fun onFailure(p0: Exception) {
+                        Log.i(TAG, "insert_second OnFailureListener")
+                        Log.i(TAG, p0.message)
+                    }
+                })
+                .addOnCompleteListener(object :OnCompleteListener<Void>{
+                    override fun onComplete(p0: Task<Void>) {
+                        Log.i(TAG, "insertData OnCompleteListener")
+                    }
+                })
+    }
     suspend fun insertData(acc:GoogleSignInAccount):Task<Void> {
         val cal = Calendar.getInstance()
         val now = Date()
@@ -852,11 +887,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
         }
-        dataPoint.getValue(Field.FIELD_WEIGHT).setFloat(my_weight_txtB.text.toString().toFloat())
         dataPoint.setTimestamp(nowTime, TimeUnit.MILLISECONDS)
         val dataSet = DataSet.create(source)
         dataSet.add(dataPoint)
-        val response = Fitness.getHistoryClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).insertData(dataSet)
+        return Fitness.getHistoryClient(this, acc).insertData(dataSet)
                 .addOnSuccessListener(object :OnSuccessListener<Void>{
                     override fun onSuccess(p0: Void?) {
                         Log.i(TAG, "insertData onSuccess")
@@ -871,6 +905,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             val a = makeData(acc)
                             if(a.isSuccessful) {
                                 insertData(acc)
+                                insert_second(acc)
                             }
                         }
 
@@ -882,7 +917,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         accessGoogleFit(acc)
                     }
                 })
-       return response
     }
 
     suspend fun customDataType(acc:GoogleSignInAccount):Task<DataType>{
