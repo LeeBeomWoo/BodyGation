@@ -1066,7 +1066,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             return dialog;
         }
 
-        override fun onCreateDialog(savedInstanceState:Bundle): Dialog {
+        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
             val activity = getActivity();
             return AlertDialog.Builder(activity!!)
                     .setMessage(getArguments()!!.getString(ARG_MESSAGE))
@@ -1082,7 +1082,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     public class ConfirmationDialog : DialogFragment() {
 
-       override fun onCreateDialog(savedInstanceState:Bundle):Dialog {
+       override fun onCreateDialog(savedInstanceState:Bundle?):Dialog {
             val parent = getParentFragment();
             return AlertDialog.Builder(getActivity()!!)
                     .setMessage(R.string.permission_request)

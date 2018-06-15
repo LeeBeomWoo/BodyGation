@@ -539,7 +539,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // Connect to the Fitness API
         Log.i(TAG, "Connecting...")
        val currentUser = mAuth!!.getCurrentUser()
-        getProfileInformation(currentUser!!)
+        if(currentUser != null)
+        getProfileInformation(currentUser)
     }
     fun accessGoogleFit(acc:GoogleSignInAccount){
         val credential = GoogleAuthProvider.getCredential(acc.idToken, null)
@@ -851,6 +852,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
         }
+        dataPoint.getValue(Field.FIELD_WEIGHT).setFloat(my_weight_txtB.text.toString().toFloat())
         dataPoint.setTimestamp(nowTime, TimeUnit.MILLISECONDS)
         val dataSet = DataSet.create(source)
         dataSet.add(dataPoint)
