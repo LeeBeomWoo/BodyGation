@@ -199,7 +199,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     /**
      * MediaRecorder
      */
-    private var mMediaRecorder: MediaRecorder? = null
+    var mMediaRecorder: MediaRecorder? = null
     /**
      * Whether the app is recording video now
      */
@@ -867,7 +867,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         } catch (e: IOException) {
             Log.e(TAG, "prepare() failed = " + e.toString());
         }
-        mMediaRecorder!!.start();
+        mMediaRecorder!!.start()
         mIsRecordingVideo = true;
     }
 
@@ -889,8 +889,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             return;
         }
         try {
-            closePreviewSession();
-            setUpMediaRecorder();
+            closePreviewSession()
+            setUpMediaRecorder()
             val texture = AutoView.getSurfaceTexture();
             assert(texture != null)
             texture.setDefaultBufferSize(mPreviewSize!!.getWidth(), mPreviewSize!!.getHeight());

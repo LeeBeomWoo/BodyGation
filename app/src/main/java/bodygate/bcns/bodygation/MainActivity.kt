@@ -856,6 +856,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnCompleteListener(object :OnCompleteListener<Void>{
                     override fun onComplete(p0: Task<Void>) {
                         Log.i(TAG, "insertData OnCompleteListener")
+                        Toast.makeText(this@MainActivity, "전송이 완료되었습니다 매달 체크하여 건강하고 행복하세요~", Toast.LENGTH_SHORT).show()
+                        accessGoogleFit(acc)
+                        bottom_navigation.currentItem = 1
                     }
                 })
     }
@@ -905,7 +908,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             val a = makeData(acc)
                             if(a.isSuccessful) {
                                 insertData(acc)
-                                insert_second(acc)
                             }
                         }
 
@@ -914,7 +916,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnCompleteListener(object :OnCompleteListener<Void>{
                     override fun onComplete(p0: Task<Void>) {
                         Log.i(TAG, "insertData OnCompleteListener")
-                        accessGoogleFit(acc)
                     }
                 })
     }
