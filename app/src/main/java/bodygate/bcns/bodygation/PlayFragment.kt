@@ -50,42 +50,6 @@ import java.util.concurrent.TimeUnit
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "url"
-private var param1: String? = null
-var viewalpha:Int = 0
-private var listener: PlayFragment.OnFragmentInteractionListener? = null
-private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
-private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
-private val DEFAULT_ORIENTATIONS = SparseIntArray()
-private val INVERSE_ORIENTATIONS = SparseIntArray()
-private val FURL = "<html><body><iframe width=\"1280\" height=\"720\" src=\""
-private val BURL = "\" frameborder=\"0\" allowfullscreen></iframe></html></body>"
-private val CHANGE = "https://www.youtube.com/embed/"
-private val TAG = "Item_follow_fragment_21"
-private val REQUEST_VIDEO_PERMISSIONS = 1
-private val FRAGMENT_DIALOG = "dialog"
-//ScaleRelativeLayout button_layout;
-//ScaleFrameLayout cameraLayout;
-var page_num: Int = 0
-var LandButton: ScaleRelativeLayout.LayoutParams? = null
-var LandCamera:ScaleRelativeLayout.LayoutParams? = null
-var LandWebView:ScaleRelativeLayout.LayoutParams? = null
-var playlayout:ScaleRelativeLayout.LayoutParams? = null
-var recordlayout:ScaleRelativeLayout.LayoutParams? = null
-var switchlayout:ScaleRelativeLayout.LayoutParams? = null
-var loadlayout:ScaleRelativeLayout.LayoutParams? = null
-var play_recordlayout:ScaleRelativeLayout.LayoutParams? = null
-var play_record: Boolean? = true //true 가 촬영모드, false 가 재생모드
-val CAMERA_FRONT = "1"
-val CAMERA_BACK = "0"
-var change: String? = null
-var temp:String? = null
-var videoString:String? = null
-var videopath: Uri? = null
-private var cameraId = CAMERA_FRONT
-@SuppressLint("StaticFieldLeak")
-private val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
 /**
  * A simple [Fragment] subclass.
  * Activities that contain this fragment must implement the
@@ -96,6 +60,46 @@ private val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.per
  *
  */
 class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeListener {
+    override fun onStartTrackingTouch(p0: SeekBar?) {
+
+    }
+
+    override fun onStopTrackingTouch(p0: SeekBar?) {
+    }
+
+    private val ARG_PARAM1 = "url"
+    private var param1: String? = null
+    var viewalpha:Int = 0
+    private var listener: PlayFragment.OnFragmentInteractionListener? = null
+    private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
+    private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
+    private val DEFAULT_ORIENTATIONS = SparseIntArray()
+    private val INVERSE_ORIENTATIONS = SparseIntArray()
+    private val FURL = "<html><body><iframe width=\"1280\" height=\"720\" src=\""
+    private val BURL = "\" frameborder=\"0\" allowfullscreen></iframe></html></body>"
+    private val CHANGE = "https://www.youtube.com/embed/"
+    private val TAG = "Item_follow_fragment_21"
+    //ScaleRelativeLayout button_layout;
+//ScaleFrameLayout cameraLayout;
+    var page_num: Int = 0
+    var LandButton: ScaleRelativeLayout.LayoutParams? = null
+    var LandCamera:ScaleRelativeLayout.LayoutParams? = null
+    var LandWebView:ScaleRelativeLayout.LayoutParams? = null
+    var playlayout:ScaleRelativeLayout.LayoutParams? = null
+    var recordlayout:ScaleRelativeLayout.LayoutParams? = null
+    var switchlayout:ScaleRelativeLayout.LayoutParams? = null
+    var loadlayout:ScaleRelativeLayout.LayoutParams? = null
+    var play_recordlayout:ScaleRelativeLayout.LayoutParams? = null
+    var play_record: Boolean? = true //true 가 촬영모드, false 가 재생모드
+    val CAMERA_FRONT = "1"
+    val CAMERA_BACK = "0"
+    var change: String? = null
+    var temp:String? = null
+    var videoString:String? = null
+    var videopath: Uri? = null
+    private var cameraId = CAMERA_FRONT
+
+
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
         Thread(object:Runnable {
             override fun run() {
@@ -113,13 +117,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     }
 
-    override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
-    }
-
-    override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
-    }
 
     fun defaultOrientation()
     {
@@ -199,7 +196,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     /**
      * MediaRecorder
      */
-    var mMediaRecorder: MediaRecorder? = null
+    lateinit var mMediaRecorder: MediaRecorder
     /**
      * Whether the app is recording video now
      */
@@ -309,9 +306,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                               savedInstanceState: Bundle?): View? {
         Log.i(TAG, "onCreateView")
         // Inflate the layout for this fragment
-        if (!hasPermissionsGranted(VIDEO_PERMISSIONS)) {
-            requestVideoPermissions();
-        }
         return inflater.inflate(R.layout.fragment_play, container, false)
     }
 
@@ -626,51 +620,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     /**
      * Requests permissions needed for recording video.
      */
-    private fun requestVideoPermissions() {
-        if (shouldShowRequestPermissionRationale(VIDEO_PERMISSIONS)) {
-            ConfirmationDialog().show(getActivity()!!.getSupportFragmentManager(), FRAGMENT_DIALOG);
-        } else {
-            ActivityCompat.requestPermissions(getActivity()!!, VIDEO_PERMISSIONS, REQUEST_VIDEO_PERMISSIONS);
-        }
-    }
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        Log.d(TAG, "onRequestPermissionsResult");
-        if (requestCode == REQUEST_VIDEO_PERMISSIONS) {
-            if (grantResults.size == VIDEO_PERMISSIONS.size) {
-                for (result:Int in grantResults) {
-                    if (result != PackageManager.PERMISSION_GRANTED) {
-                        ErrorDialog().newInstance(getString(R.string.permission_request_camera))
-                                .show(getChildFragmentManager(), FRAGMENT_DIALOG);
-                        break;
-                    }
-                }
-            } else {
-                ErrorDialog().newInstance(getString(R.string.permission_request_camera))
-                        .show(getChildFragmentManager(), FRAGMENT_DIALOG);
-            }
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
-    }
-
-    private fun hasPermissionsGranted(permissions:Array<String>):Boolean {
-        for (permission : String in permissions) {
-            if (ActivityCompat.checkSelfPermission(getActivity()!!, permission)
-                    != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     /**
      * Tries to open a {@link CameraDevice}. The result is listened by `mStateCallback`.
      */
     private fun openCamera(width: Int, height:Int) {
-        if (!hasPermissionsGranted(VIDEO_PERMISSIONS)) {
-            requestVideoPermissions();
-            return;
-        }
+
         val activity = getActivity();
         if (null == activity || activity.isFinishing()) {
             return;
@@ -709,7 +664,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
             ErrorDialog().newInstance(getString(R.string.camera_error))
-                    .show(getActivity()!!.getSupportFragmentManager(), FRAGMENT_DIALOG);
+                    .show(getActivity()!!.getSupportFragmentManager(), TAG)
         } catch (e:InterruptedException) {
             throw RuntimeException("Interrupted while trying to lock camera opening.");
         }
@@ -717,16 +672,14 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     private fun closeCamera() {
         try {
-            mCameraOpenCloseLock.acquire();
+            mCameraOpenCloseLock.acquire()
             closePreviewSession();
             if (null != mCameraDevice) {
-                mCameraDevice!!.close();
+                mCameraDevice!!.close()
                 mCameraDevice = null;
             }
-            if (null != mMediaRecorder) {
-                mMediaRecorder!!.release();
-                mMediaRecorder = null;
-            }
+                mMediaRecorder.release()
+
         } catch ( e:InterruptedException) {
             throw RuntimeException("Interrupted while trying to lock camera closing.");
         } finally {
@@ -738,21 +691,21 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
      */
     private fun startPreview() {
         if (null == mCameraDevice || !AutoView.isAvailable() || null == mPreviewSize) {
-            return;
+            return
         }
         try {
-            closePreviewSession();
-            val texture = AutoView.getSurfaceTexture();
+            closePreviewSession()
+            val texture = AutoView.getSurfaceTexture()
             assert(texture != null)
             texture.setDefaultBufferSize(mPreviewSize!!.getWidth(), mPreviewSize!!.getHeight());
             mPreviewBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
 
-            val previewSurface = Surface(texture);
-            mPreviewBuilder!!.addTarget(previewSurface);
+            val previewSurface = Surface(texture)
+            mPreviewBuilder!!.addTarget(previewSurface)
 
             mCameraDevice!!.createCaptureSession(Arrays.asList(previewSurface), object : CameraCaptureSession.StateCallback() {
                 override fun onConfigureFailed(session: CameraCaptureSession?) {
-                    val activity = getActivity();
+                    val activity = getActivity()
                     if (null != activity) {
                         Toast.makeText(activity, "Failed", Toast.LENGTH_SHORT).show();
                     }
@@ -804,7 +757,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (null == AutoView || null == mPreviewSize || null == activity) {
             return;
         }
-        val rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        val rotation = activity.getWindowManager().getDefaultDisplay().getRotation()
+        /*
         val matrix = Matrix();
         val display = getActivity()!!.getWindowManager().getDefaultDisplay();
         val size = Point();
@@ -835,6 +789,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
         AutoView.setTransform(matrix);
         Log.d("AutoView :", (AutoView.getWidth()).toString() + "*" + (AutoView.getHeight()).toString());
+        */
+        if(Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation)
+        {
+            AutoView.setAspectRatio(3, 4)
+        }else{
+            AutoView.setAspectRatio(16, 10)
+        }
     }
 
     private fun setUpMediaRecorder() {
@@ -842,32 +803,30 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (null == activity) {
             return;
         }
+        try {
         mMediaRecorder = MediaRecorder();
-        mMediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mMediaRecorder!!.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        mMediaRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath!!.isEmpty()) {
-            mNextVideoAbsolutePath = getVideoFilePath(getActivity()!!);
+            mNextVideoAbsolutePath = getVideoFilePath();
         }
-        mMediaRecorder!!.setOutputFile(mNextVideoAbsolutePath);
-        mMediaRecorder!!.setVideoEncodingBitRate(10000000);
-        mMediaRecorder!!.setVideoFrameRate(30);
-        mMediaRecorder!!.setVideoSize(mVideoSize!!.getWidth(), mVideoSize!!.getHeight());
-        mMediaRecorder!!.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mMediaRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        val rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        mMediaRecorder.setOutputFile(mNextVideoAbsolutePath)
+        mMediaRecorder.setVideoSize(mVideoSize!!.getWidth(), mVideoSize!!.getHeight())
+        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+        val rotation = activity.getWindowManager().getDefaultDisplay().getRotation()
         when (mSensorOrientation) {
             SENSOR_ORIENTATION_DEFAULT_DEGREES ->{
-                mMediaRecorder!!.setOrientationHint(DEFAULT_ORIENTATIONS.get(rotation));}
+                mMediaRecorder.setOrientationHint(DEFAULT_ORIENTATIONS.get(rotation));}
             SENSOR_ORIENTATION_INVERSE_DEGREES->{
-                mMediaRecorder!!.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));}
+                mMediaRecorder.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));}
         }
-        try {
-            mMediaRecorder!!.prepare();
+            mMediaRecorder.prepare()
         } catch (e: IOException) {
             Log.e(TAG, "prepare() failed = " + e.toString());
         }
-        mMediaRecorder!!.start()
+        mMediaRecorder.start()
         mIsRecordingVideo = true;
     }
 
@@ -879,7 +838,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
 
     @NonNull
-    private fun getVideoFilePath(context:Context) :String{
+    private fun getVideoFilePath() :String{
         val dir = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         var myDir = ""
         if(dir == null){
@@ -912,7 +871,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             mPreviewBuilder!!.addTarget(previewSurface);
 
             // Set up Surface for the MediaRecorder
-            val recorderSurface = mMediaRecorder!!.getSurface();
+            val recorderSurface = mMediaRecorder.getSurface()
             surfaces.add(recorderSurface);
             mPreviewBuilder!!.addTarget(recorderSurface);
 
@@ -934,9 +893,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                             // UI
                             Log.d("Video_", "Start")
                             record_Btn.setImageResource(R.drawable.stop)
-                            //mIsRecordingVideo = true;
+                            mIsRecordingVideo = true
                             // Start recording
-                            //mMediaRecorder.start();
+                            mMediaRecorder.start()
                         }
                     })
                 }
@@ -949,7 +908,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     private fun closePreviewSession() {
         if (mPreviewSession != null) {
-            mPreviewSession!!.close();
+            mPreviewSession!!.close()
             mPreviewSession = null;
         }
     }
@@ -959,8 +918,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         mIsRecordingVideo = false;
         // Stop recording
         record_Btn.setImageResource(R.drawable.record);
-        mMediaRecorder!!.stop();
-        mMediaRecorder!!.reset();
+        mMediaRecorder.stop();
+        mMediaRecorder.reset();
         // CameraHelper.getOutputMediaFile(2);
 
         val activity = getActivity();
@@ -1089,28 +1048,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     }
 
-    public class ConfirmationDialog : DialogFragment() {
-
-       override fun onCreateDialog(savedInstanceState:Bundle?):Dialog {
-            val parent = getParentFragment();
-            return AlertDialog.Builder(getActivity()!!)
-                    .setMessage(R.string.permission_request)
-                    .setPositiveButton(android.R.string.ok, object : DialogInterface.OnClickListener {
-                        override fun onClick(dialog: DialogInterface?, which: Int) {
-                            requestPermissions(VIDEO_PERMISSIONS,
-                                    REQUEST_VIDEO_PERMISSIONS);
-                        }
-                    })
-                    .setNegativeButton(android.R.string.cancel,
-                            object : DialogInterface.OnClickListener {
-                                override fun onClick(dialog: DialogInterface?, which: Int) {
-                                    parent!!.getActivity()!!.finish();
-                                }
-                            })
-                    .create();
-        }
-
-    }
     companion object {
         /**
          * Use this factory method to create a new instance of
