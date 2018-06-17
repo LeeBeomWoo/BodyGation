@@ -880,8 +880,17 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     @NonNull
     private fun getVideoFilePath(context:Context) :String{
-        val dir = context.getExternalFilesDir( null);
-        return (if (dir == null) "" else (Environment.getExternalStorageDirectory().toString() + "/" + Environment.DIRECTORY_MOVIES + "/")) + "ViewBody_" + System.currentTimeMillis() + ".mp4"
+        val dir = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        var myDir = ""
+        if(dir == null){
+            myDir = dir.toString() +  "/BodyGation/"
+        }else{
+            val dire = android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI
+            myDir = dire.toString() +  "/BodyGation/"
+        }
+        val sciezka = File(myDir)
+        sciezka.mkdirs()
+        return myDir + "BodyGation_" + System.currentTimeMillis() + ".mp4"
     }
 
     fun startRecordingVideo() {

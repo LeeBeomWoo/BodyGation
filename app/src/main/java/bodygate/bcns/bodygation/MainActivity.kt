@@ -1,19 +1,15 @@
 package bodygate.bcns.bodygation
 
-import android.accounts.AccountManager
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Bundle
-import android.support.annotation.NonNull
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.PopupMenu
@@ -31,7 +27,6 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IAxisValueFormatter
-import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -41,7 +36,6 @@ import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.common.api.ResultCallback
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessOptions
@@ -49,15 +43,15 @@ import com.google.android.gms.fitness.data.*
 import com.google.android.gms.fitness.request.DataReadRequest
 import com.google.android.gms.fitness.request.DataTypeCreateRequest
 import com.google.android.gms.fitness.result.DataReadResponse
-import com.google.android.gms.fitness.result.DataReadResult
-import com.google.android.gms.tasks.*
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.Task
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
-import com.google.api.services.youtube.YouTubeScopes
 import com.google.api.services.youtube.model.SearchListResponse
 import com.google.api.services.youtube.model.SearchResult
 import com.google.common.io.BaseEncoding
@@ -72,7 +66,6 @@ import kotlinx.android.synthetic.main.toolbar_custom.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
-import org.jetbrains.anko.defaultSharedPreferences
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -82,6 +75,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
+
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN", "CAST_NEVER_SUCCEEDS")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
@@ -118,6 +112,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override var display_label:MutableList<String> =  ArrayList()
     override var display_series: MutableList<String> = ArrayList()
+    var custom_Type:DataType? = null
 
     val weight_series: MutableList<BarEntry> = ArrayList()
     val muscle_series: MutableList<BarEntry> = ArrayList()
@@ -126,7 +121,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val bmi_series: MutableList<BarEntry> = ArrayList()
     val kcal_series: MutableList<BarEntry> = ArrayList()
 
-    var custom_Type:DataType? = null
     val weight_Label:MutableList<String> =  ArrayList()
     val kcal_Label:MutableList<String> =  ArrayList()
     val walk_Label:MutableList<String> =  ArrayList()
@@ -555,14 +549,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                                 launch(UI) {
                                     pB = ProgressDialog.show(this@MainActivity, "데이터 받아오기", "구글 핏으로 부터 데이터를 받아오는 중입니다...")
                                     fitloading = true
-                                val a = readRequest_weight(acc)
-                                val b =  readRequest_arr(acc)
-                                val c =  customDataType(acc)
-                                if(c.isSuccessful){
-                                    val d = readRequest_custom(acc)
-                                }else{
-                                    val e = makeData(acc)
-                                }
+                                    val a = readRequest_weight(acc)
+                                    val b =  readRequest_arr(acc)
+                                    val c =  customDataType(acc)
                                     pB!!.dismiss()
 
                                     fitloading = false
@@ -579,6 +568,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     override fun onStop() {
         super.onStop()
+    }
+    fun setDataType(type:DataType){
+        custom_Type = type
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
@@ -653,8 +645,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val data = BarData()
         display_label.clear()
         display_series.clear()
-        Log.i(TAG, "display_label_0 :" + display_label.size.toString())
-        Log.i(TAG, "weight_Label_0 :" + weight_Label.size.toString())
         when (section) {
             0 -> {//체중
                 if(weight_series.size >0) {
@@ -798,6 +788,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
    suspend fun makeData(acc:GoogleSignInAccount):Task<DataType>{
         Log.i(TAG, "makeData")
+       Log.i(TAG, "custom_routine" + "makeData")
         val request = DataTypeCreateRequest.Builder()
                 // The prefix of your data type name must match your app's package name
                 .setName("bodygate.bcns.bodygation.personal")
@@ -809,7 +800,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnSuccessListener(object :OnSuccessListener<DataType>{
                     override fun onSuccess(p0: DataType?) {
                         Log.i(TAG, "readDataType onSuccess")
-                        custom_Type = p0
+                        setDataType(p0!!)
                     }
                 })
                 .addOnFailureListener(object :OnFailureListener{
@@ -868,65 +859,71 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         cal.time = now
         val nowTime = cal.timeInMillis
         // Create a new dataset and insertion request.
-        val source = DataSource.Builder()
-                .setName("bodygate.bcns.bodygation.personal")
-                .setDataType(custom_Type)
-                .setAppPackageName(this@MainActivity.context.packageName)
-                .setType(DataSource.TYPE_DERIVED)
-                .build()
-        val dataPoint = DataPoint.create(source)
-        // Set values for the data point
-        // This data type has two custom fields (int, float) and a common field
-        for (s: Int in 0..(custom_Type!!.fields.size - 1)) {
-            when (custom_Type!!.fields[s].name) {
-                "bmi" -> {
-                    dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bmi_txtB.text.toString().toFloat())
-                }
-                "muscle" -> {
-                    dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_musclemass_txtB.text.toString().toFloat())
-                }
-                "fat" -> {
-                    dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bodyfat_txtB.text.toString().toFloat())
+            if (custom_Type == null) {
+                launch {
+                val a = makeData(acc)
                 }
             }
-        }
-        dataPoint.setTimestamp(nowTime, TimeUnit.MILLISECONDS)
-        val dataSet = DataSet.create(source)
-        dataSet.add(dataPoint)
-        return Fitness.getHistoryClient(this, acc).insertData(dataSet)
-                .addOnSuccessListener(object :OnSuccessListener<Void>{
-                    override fun onSuccess(p0: Void?) {
-                        Log.i(TAG, "insertData onSuccess")
-
+            val source = DataSource.Builder()
+                    .setName("bodygate.bcns.bodygation.personal")
+                    .setDataType(custom_Type)
+                    .setAppPackageName(this@MainActivity.context.packageName)
+                    .setType(DataSource.TYPE_DERIVED)
+                    .build()
+            val dataPoint = DataPoint.create(source)
+            // Set values for the data point
+            // This data type has two custom fields (int, float) and a common field
+            for (s: Int in 0..(custom_Type!!.fields.size - 1)) {
+                when (custom_Type!!.fields[s].name) {
+                    "bmi" -> {
+                        dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bmi_txtB.text.toString().toFloat())
                     }
-                })
-                .addOnFailureListener(object :OnFailureListener{
-                    override fun onFailure(p0: Exception) {
-                        Log.i(TAG, "insertData OnFailureListener")
-                        Log.i(TAG, p0.message)
-                        launch(UI) {
-                            val a = makeData(acc)
-                            if(a.isSuccessful) {
-                                insertData(acc)
-                            }
+                    "muscle" -> {
+                        dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_musclemass_txtB.text.toString().toFloat())
+                    }
+                    "fat" -> {
+                        dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bodyfat_txtB.text.toString().toFloat())
+                    }
+                }
+            }
+            dataPoint.setTimestamp(nowTime, TimeUnit.MILLISECONDS)
+            val dataSet = DataSet.create(source)
+            dataSet.add(dataPoint)
+            return Fitness.getHistoryClient(this, acc).insertData(dataSet)
+                    .addOnSuccessListener(object : OnSuccessListener<Void> {
+                        override fun onSuccess(p0: Void?) {
+                            Log.i(TAG, "insertData onSuccess")
+
                         }
+                    })
+                    .addOnFailureListener(object : OnFailureListener {
+                        override fun onFailure(p0: Exception) {
+                            Log.i(TAG, "insertData OnFailureListener")
+                            Log.i(TAG, p0.message)
+                            launch(UI) {
+                                val a = makeData(acc)
+                                if (a.isSuccessful) {
+                                    insertData(acc)
+                                }
+                            }
 
-                    }
-                })
-                .addOnCompleteListener(object :OnCompleteListener<Void>{
-                    override fun onComplete(p0: Task<Void>) {
-                        Log.i(TAG, "insertData OnCompleteListener")
-                    }
-                })
+                        }
+                    })
+                    .addOnCompleteListener(object : OnCompleteListener<Void> {
+                        override fun onComplete(p0: Task<Void>) {
+                            Log.i(TAG, "insertData OnCompleteListener")
+                        }
+                    })
     }
 
     suspend fun customDataType(acc:GoogleSignInAccount):Task<DataType>{
         Log.i(TAG, "customDataType")
-        val pendingResult_custom = Fitness.getConfigClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).readDataType("bodygate.bcns.bodygation.personal")
+        Log.i(TAG, "custom_routine" + "customDataType")
+        return Fitness.getConfigClient(this, acc).readDataType("bodygate.bcns.bodygation.personal")
                 .addOnSuccessListener(object :OnSuccessListener<DataType>{
                     override fun onSuccess(p0: DataType?) {
                         Log.i(TAG, "readDataType onSuccess")
-                        custom_Type = p0
+                        readRequest_custom(acc, p0!!)
                     }
                 })
                 .addOnFailureListener(object :OnFailureListener{
@@ -947,8 +944,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
                     }
                 })
-        Log.i(TAG, custom_Type.toString())
-        return pendingResult_custom
     }
 
    suspend fun readRequest_weight(acc:GoogleSignInAccount) :Task<DataReadResponse> {
@@ -1013,20 +1008,22 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 })
     }
-    suspend fun readRequest_custom(acc:GoogleSignInAccount):Task<DataReadResponse>{
+    fun readRequest_custom(acc:GoogleSignInAccount, type:DataType):Task<DataReadResponse>{
         Log.i(TAG, "readRequest_custom")
+        Log.i(TAG, "custom_routine" + "readRequest_custom")
         val cal = Calendar.getInstance()
         val now = Date()
         val endTime = now.time
         cal.set(Calendar.DAY_OF_YEAR, -400)
         val startTime = cal.timeInMillis
         val request = DataReadRequest.Builder()
-                .read(custom_Type)
+                .read(type)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
        return Fitness.getHistoryClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).readData(request)
                 .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                     override fun onSuccess(p0: DataReadResponse?) {
+                        Log.i(TAG, p0.toString())
                         printData(p0!!)
                     }
                 })
@@ -1034,11 +1031,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     override fun onFailure(p0: Exception) {
                         Log.i(TAG, "readDataType OnFailureListener")
                         Log.i(TAG, p0.message)
-                        launch(UI) {
-                            val a = makeData(acc)
-                            if(a.isSuccessful)
-                            readRequest_custom(acc)
-                        }
                     }
                 })
                 .addOnCompleteListener(object :OnCompleteListener<DataReadResponse>{
@@ -1051,28 +1043,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
     @SuppressLint("SimpleDateFormat")
     fun printData(dataReadResult: DataReadResponse) {
-        Log.i(TAG+ "printData", "dataReadResult.getBuckets()" + dataReadResult.getBuckets().size.toString())
-        Log.i(TAG+ "printData", "dataReadResult.getDataSets()" + dataReadResult.getDataSets().size.toString())
-        Log.i(TAG+ "printData", "dataReadResult.status" + dataReadResult.status.toString())
         val label = SimpleDateFormat("MM/dd")
         ib =0
         if (dataReadResult.buckets.size > 0) {
-            Log.i(TAG+ "printData", "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size)
             for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.getBuckets()) {
                 for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
-                    Log.i(TAG+ "printData", "dumpDataSet")
-                    Log.i(TAG+ "printData", dataset.toString())
-                    Log.i(TAG+ "printData", "Bucket point:");
-                    Log.i(TAG+ "printData", "bucket : " + bucket.toString())
-                    Log.i(TAG+ "printData", "\tStart: " + label.format(bucket.getStartTime(TimeUnit.MILLISECONDS)))
-                    Log.i(TAG+ "printData", "\tEnd: " + label.format(bucket.getEndTime(TimeUnit.MILLISECONDS)))
-                    Log.i(TAG+ "printData", "\tdataSets: " + bucket.dataSets.toString())
                     dumpDataSet(dataset)
                     ib += 1
                 }
             }
         } else if (dataReadResult.getDataSets().size > 0) {
-            Log.i(TAG+ "printData", "Number of returned DataSets is: " + dataReadResult.getDataSets().size);
             for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.getDataSets()) {
                 dumpDataSet(dataSet)
             }
@@ -1082,17 +1062,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     fun dumpDataSet(dataSet:DataSet) {
         var count = 0
         val label = SimpleDateFormat("MM/dd")
-        Log.i(TAG + "DataSet", dataSet.toString())
-        Log.i(TAG + "DataSet", dataSet.dataPoints.size.toString())
         for ( dp :com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints)
         {
-            Log.i(TAG+ "DataSet", "\tType: " + dp.dataType.name)
-            Log.i(TAG+ "DataSet", "\tStart: " + label.format(dp.getStartTime(TimeUnit.MILLISECONDS)))
-            Log.i(TAG+ "DataSet", "\tEnd: " + label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
-            Log.i(TAG+ "DataSet", "\tField: " + dp.dataType.fields.toString())
             for (field:com.google.android.gms.fitness.data.Field in dp.dataType.fields)
             {
-                Log.i(TAG+ "_DataSet", "\tField: " + field.name + " Value: " + dp.getValue(field))
                 when(field.name){
                     "bmi" -> {
                         bmi_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
@@ -1152,8 +1125,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         muscle_Label.clear()
                         bmi_Label.clear()
 
-                      //  val task = fitTask()
-                      //  task.execute()
                         return true
                     }
                 }
@@ -1162,74 +1133,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         })
         mPopupWindow!!.show()
     }
-    /*
-    @SuppressLint("StaticFieldLeak")
-    private inner class fitTask : AsyncTask<Void, Void, Void>() {
 
-        override fun doInBackground(vararg params: Void): Void? {
-            Log.i(TAG, "doInBackground")
-            publishProgress()
-            readRequest_weight()
-            readRequest_arr()
-            if(custom_Type != null) {
-                readRequest_custom()
-            }
-            return null
-        }
-
-        override fun onProgressUpdate(vararg values: Void?) {
-            super.onProgressUpdate(*values)
-            Log.i(TAG, "onProgressUpdate")
-            pB = ProgressDialog.show(this@MainActivity, "데이터 받아오는중..", "구글핏 서버로 부터 사용자 데이터를 받아오는 중입니다. 잠시만 기다려 주세요")
-        }
-        override fun onPreExecute() {
-            super.onPreExecute()
-            Log.i(TAG, "onPreExecute")
-            if(!fitloading)
-                fitloading = true
-            if(custom_Type == null)
-               customDataType()
-
-        }
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
-            Log.i(TAG, "onPostExecute")
-            pB!!.dismiss()
-            if(fitloading)
-                fitloading = false
-        }
-
-    }
-    @SuppressLint("StaticFieldLeak")
-    private inner class insertD:AsyncTask<Void, Void, Void>(){
-        override fun doInBackground(vararg params: Void?): Void? {
-            publishProgress()
-            insertData()
-            return null
-        }
-
-        override fun onProgressUpdate(vararg values: Void?) {
-            super.onProgressUpdate(*values)
-            if(pB == null)
-            pB = ProgressDialog.show(this@MainActivity, "데이터 보내는 중..", "구글핏 서버로 사용자 데이터를 보내는 중입니다. 잠시만 기다려 주세요")
-        }
-        override fun onPreExecute() {
-            super.onPreExecute()
-            if(!fitsending)
-                fitsending = true
-            if(custom_Type == null)
-                customDataType()
-        }
-        override fun onPostExecute(result: Void?) {
-            super.onPostExecute(result)
-            pB!!.dismiss()
-            Toast.makeText(this@MainActivity, "데이터가 정상적으로 입력되었습니다.", Toast.LENGTH_SHORT).show()
-            bottom_navigation.currentItem = 1
-            if(fitsending)
-                fitsending = false
-        }
-    }
-*/
     class MyXAxisValueFormatter(private var mValues: Array<String>) : IAxisValueFormatter {
 
         override fun getFormattedValue(value: Float, axis: AxisBase): String {
