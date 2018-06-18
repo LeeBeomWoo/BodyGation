@@ -936,10 +936,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             }
                 if (AutoView != null) {
                 if (mIsRecordingVideo) {
-                    stopRecordingVideo();
+                    stopRecordingVideo()
                 } else {
                     video_View.setVisibility(View.INVISIBLE);
                     AutoView.setVisibility(View.VISIBLE);
+                    mMediaRecorder = MediaRecorder()
                     startRecordingVideo()
                 }
             }
