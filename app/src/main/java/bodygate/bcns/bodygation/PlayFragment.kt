@@ -2,6 +2,7 @@ package bodygate.bcns.bodygation
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
@@ -13,7 +14,6 @@ import android.graphics.Matrix
 import android.graphics.Point
 import android.graphics.RectF
 import android.net.Uri
-import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.widget.SeekBar
 import cn.gavinliu.android.lib.scale.ScaleRelativeLayout
@@ -21,15 +21,15 @@ import cn.gavinliu.android.lib.scale.ScaleFrameLayout
 import android.widget.ImageButton
 import android.util.SparseIntArray
 import android.graphics.SurfaceTexture
+import android.hardware.Camera
 import android.hardware.camera2.*
 import bodygate.bcns.bodygation.camerause.AutoFitTextureView
 import android.view.*
 import android.media.MediaPlayer
 import android.support.annotation.NonNull
-import android.os.HandlerThread
 import android.media.MediaRecorder
-import android.os.Environment
-import android.os.Handler
+import android.os.*
+import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.DialogFragment
 import android.support.v7.app.AlertDialog
@@ -196,7 +196,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     /**
      * MediaRecorder
      */
-    lateinit var mMediaRecorder: MediaRecorder
+    var mMediaRecorder: MediaRecorder? = null
     /**
      * Whether the app is recording video now
      */
@@ -279,28 +279,28 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Log.i(TAG, "onActivityCreated")
-        onConfigurationChanged(getActivity()!!.getResources().getConfiguration());
-        startBackgroundThread();
-        ButtonImageSetUp();
+        onConfigurationChanged(getActivity()!!.getResources().getConfiguration())
+        startBackgroundThread()
+        ButtonImageSetUp()
         viewSet()
-        startPreview();
+        startPreview()
         alpha_control.setMax(100)
-        youtube_layout.setWebChromeClient(WebChromeClient());
-        youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND);
-        youtube_layout.setWebViewClient(WebViewClient());
-        val settings = youtube_layout.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
-        settings.setJavaScriptCanOpenWindowsAutomatically(true);
-        settings.setPluginState(WebSettings.PluginState.ON);
-        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
-        youtube_layout.getSettings().setSupportMultipleWindows(true);
-        settings.setLoadWithOverviewMode(true);
-        settings.setUseWideViewPort(true);
+        youtube_layout.setWebChromeClient(WebChromeClient())
+        youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
+        youtube_layout.setWebViewClient(WebViewClient())
+        val settings = youtube_layout.getSettings()
+        settings.setJavaScriptEnabled(true)
+        settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN)
+        settings.setJavaScriptCanOpenWindowsAutomatically(true)
+        settings.setPluginState(WebSettings.PluginState.ON)
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK)
+        youtube_layout.getSettings().setSupportMultipleWindows(true)
+        settings.setLoadWithOverviewMode(true)
+        settings.setUseWideViewPort(true)
         URL = FURL + CHANGE + param1 + BURL;
-        Log.d(TAG, "temp : " + temp + "," + "tr_id : " + tr_id );
-        youtube_layout.loadData(URL, "text/html", "charset=utf-8");
-        alpha_control.setOnSeekBarChangeListener(this);
+        Log.d(TAG, "temp : " + temp + "," + "tr_id : " + tr_id )
+        youtube_layout.loadData(URL, "text/html", "charset=utf-8")
+        alpha_control.setOnSeekBarChangeListener(this)
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -341,8 +341,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
      * for more information.
      */
     interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
+        fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera)
+        fun requestVideoPermissions(permission:String)
         fun onFragmentInteraction(uri: Uri)
+        fun hasPermissionsGranted(permissions:Array<String>):Boolean
     }
 /**
      * In this sample, we choose a video size with 3x4 aspect ratio. Also, we don't use sizes
@@ -583,7 +585,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (AutoView.isAvailable()) {
             openCamera(AutoView.getWidth(), AutoView.getHeight());
         } else {
-            AutoView.setSurfaceTextureListener(mSurfaceTextureListener);
+            AutoView.setSurfaceTextureListener(mSurfaceTextureListener)
         }
     }
     /**
@@ -600,21 +602,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 e.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Gets whether you should show UI with rationale for requesting permissions.
-     *
-     * @param permissions The permissions your app wants to request.
-     * @return Whether you can show permission rationale UI.
-     */
-    private fun shouldShowRequestPermissionRationale(permissions: Array<String> ):Boolean {
-        for (permission: String in permissions) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity()!!, permission)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -654,7 +641,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
-                return;
+                if (!listener!!.hasPermissionsGranted(VIDEO_PERMISSIONS)) {
+                    for(permission: String in VIDEO_PERMISSIONS)
+                        listener!!.requestVideoPermissions(permission)
+                }
+                return
             }
             manager.openCamera(cameraId, mStateCallback, null);
         } catch (e:CameraAccessException) {
@@ -678,7 +669,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 mCameraDevice!!.close()
                 mCameraDevice = null;
             }
-                mMediaRecorder.release()
+            if(mMediaRecorder != null){
+                mMediaRecorder!!.release()
+            }
 
         } catch ( e:InterruptedException) {
             throw RuntimeException("Interrupted while trying to lock camera closing.");
@@ -792,9 +785,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         */
         if(Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation)
         {
-            AutoView.setAspectRatio(3, 4)
+            AutoView.setAspectRatio(4, 3)
         }else{
-            AutoView.setAspectRatio(16, 10)
+            AutoView.setAspectRatio(10, 16)
         }
     }
 
@@ -804,29 +797,29 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             return;
         }
         try {
-        mMediaRecorder = MediaRecorder();
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mMediaRecorder = MediaRecorder()
+        mMediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mMediaRecorder!!.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mMediaRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath!!.isEmpty()) {
             mNextVideoAbsolutePath = getVideoFilePath();
         }
-        mMediaRecorder.setOutputFile(mNextVideoAbsolutePath)
-        mMediaRecorder.setVideoSize(mVideoSize!!.getWidth(), mVideoSize!!.getHeight())
-        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+        mMediaRecorder!!.setOutputFile(mNextVideoAbsolutePath)
+        mMediaRecorder!!.setVideoSize(mVideoSize!!.getWidth(), mVideoSize!!.getHeight())
+        mMediaRecorder!!.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+        mMediaRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
         val rotation = activity.getWindowManager().getDefaultDisplay().getRotation()
         when (mSensorOrientation) {
             SENSOR_ORIENTATION_DEFAULT_DEGREES ->{
-                mMediaRecorder.setOrientationHint(DEFAULT_ORIENTATIONS.get(rotation));}
+                mMediaRecorder!!.setOrientationHint(DEFAULT_ORIENTATIONS.get(rotation));}
             SENSOR_ORIENTATION_INVERSE_DEGREES->{
-                mMediaRecorder.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));}
+                mMediaRecorder!!.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));}
         }
-            mMediaRecorder.prepare()
+            mMediaRecorder!!.prepare()
         } catch (e: IOException) {
             Log.e(TAG, "prepare() failed = " + e.toString());
         }
-        mMediaRecorder.start()
+        mMediaRecorder!!.start()
         mIsRecordingVideo = true;
     }
 
@@ -871,7 +864,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             mPreviewBuilder!!.addTarget(previewSurface);
 
             // Set up Surface for the MediaRecorder
-            val recorderSurface = mMediaRecorder.getSurface()
+            val recorderSurface = mMediaRecorder!!.getSurface()
             surfaces.add(recorderSurface);
             mPreviewBuilder!!.addTarget(recorderSurface);
 
@@ -895,7 +888,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                             record_Btn.setImageResource(R.drawable.stop)
                             mIsRecordingVideo = true
                             // Start recording
-                            mMediaRecorder.start()
+                            mMediaRecorder!!.start()
                         }
                     })
                 }
@@ -918,8 +911,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         mIsRecordingVideo = false;
         // Stop recording
         record_Btn.setImageResource(R.drawable.record);
-        mMediaRecorder.stop();
-        mMediaRecorder.reset();
+        mMediaRecorder!!.stop();
+        mMediaRecorder!!.reset();
         // CameraHelper.getOutputMediaFile(2);
 
         val activity = getActivity();
@@ -947,7 +940,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 } else {
                     video_View.setVisibility(View.INVISIBLE);
                     AutoView.setVisibility(View.VISIBLE);
-                    startRecordingVideo();
+                    startRecordingVideo()
                 }
             }
         }
@@ -1065,5 +1058,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         putString(ARG_PARAM1, param1)
                     }
                 }
+
     }
 }

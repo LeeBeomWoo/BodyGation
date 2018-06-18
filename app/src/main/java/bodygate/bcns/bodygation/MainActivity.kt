@@ -331,7 +331,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
     override fun OnFollowInteraction(q: ArrayList<String>?, s:Int) {
         Log.i(TAG, "OnFollowInteraction")
-        Log.i("test", "다섯번 째")
         sendquery = q
         supportFragmentManager
                 .beginTransaction()
@@ -628,7 +627,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val account = completedTask.getResult(ApiException::class.java)
 
             // Signed in successfully, show authenticated UI.
-            if(kcal_series.isEmpty())
             accessGoogleFit(account)
         } catch (e: ApiException) {
             // The ApiException status code indicates the detailed failure reason.
@@ -1020,7 +1018,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .read(type)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build()
-       return Fitness.getHistoryClient(this, GoogleSignIn.getLastSignedInAccount(this)!!).readData(request)
+       return Fitness.getHistoryClient(this, acc).readData(request)
                 .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
                     override fun onSuccess(p0: DataReadResponse?) {
                         Log.i(TAG, p0.toString())

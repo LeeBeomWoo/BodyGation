@@ -19,13 +19,14 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Surface
+import bodygate.bcns.bodygation.PlayFragment.OnFragmentInteractionListener
 import cn.gavinliu.android.lib.scale.config.ScaleConfig
 
 val REQUEST_VIDEO_PERMISSIONS = 1
 val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
 @Suppress("DEPRECATED_IDENTITY_EQUALS")
-class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionListener {
+class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override fun onFragmentInteraction(uri: Uri) {
 
     }
@@ -55,15 +56,12 @@ class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionList
                 (3).toFloat(),    // Design FontScale
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_item)
-        if (!hasPermissionsGranted(VIDEO_PERMISSIONS)) {
-            for(i:Int in 0..VIDEO_PERMISSIONS.size)
-            requestVideoPermissions(VIDEO_PERMISSIONS[i]);
-        }
+        val s = VIDEO_PERMISSIONS.size-1
         url = intent.getStringExtra("url")
         supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url)).commit()
     }
     @RequiresApi(Build.VERSION_CODES.M)
-    private fun requestVideoPermissions(permission:String) {
+    override fun requestVideoPermissions(permission:String) {
         if (shouldShowRequestPermissionRationale(permission)) {
             ConfirmationDialog().show(this.getSupportFragmentManager(), FRAGMENT_DIALOG)
         } else {
@@ -72,7 +70,7 @@ class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionList
     }
 
 
-    private fun hasPermissionsGranted(permissions:Array<String>):Boolean {
+    override fun hasPermissionsGranted(permissions:Array<String>):Boolean {
         for (permission : String in permissions) {
             if (ActivityCompat.checkSelfPermission(this, permission)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -100,7 +98,7 @@ class ItemActivity : AppCompatActivity(), PlayFragment.OnFragmentInteractionList
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
-    fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera) {
+    override fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera) {
         val info = Camera.CameraInfo()
         Camera.getCameraInfo(cameraId, info)
         val rotation = activity.getWindowManager().getDefaultDisplay()
