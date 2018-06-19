@@ -206,4 +206,5 @@
     <string name="menu">menu</string>
     <string name="pesnaldatarefresh">사용자 데이터 새로고침</string>
     <string name="accountchange">계정바꾸기</string>
+    <string name="request_permission">카메라에 대한 사용을 요청합니다.</string>
 </resources>

@@ -1,19 +1,21 @@
 package bodygate.bcns.bodygation.camerause
 
-
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.TextureView
 import android.view.View
 
 /**
  * A [TextureView] that can be adjusted to a specified aspect ratio.
  */
-class AutoFitTextureView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : TextureView(context, attrs, defStyle) {
+class AutoFitTextureView @JvmOverloads constructor(
+        context: Context,
+        attrs: AttributeSet? = null,
+        defStyle: Int = 0
+) : TextureView(context, attrs, defStyle) {
 
-    private var mRatioWidth = 0
-    private var mRatioHeight = 0
+    private var ratioWidth = 0
+    private var ratioHeight = 0
 
     /**
      * Sets the aspect ratio for this view. The size of the view will be measured based on the ratio
@@ -27,8 +29,8 @@ class AutoFitTextureView @JvmOverloads constructor(context: Context, attrs: Attr
         if (width < 0 || height < 0) {
             throw IllegalArgumentException("Size cannot be negative.")
         }
-        mRatioWidth = width
-        mRatioHeight = height
+        ratioWidth = width
+        ratioHeight = height
         requestLayout()
     }
 
@@ -36,15 +38,13 @@ class AutoFitTextureView @JvmOverloads constructor(context: Context, attrs: Attr
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         val width = View.MeasureSpec.getSize(widthMeasureSpec)
         val height = View.MeasureSpec.getSize(heightMeasureSpec)
-        if (0 == mRatioWidth || 0 == mRatioHeight) {
+        if (ratioWidth == 0 || ratioHeight == 0) {
             setMeasuredDimension(width, height)
         } else {
-            if (width < height * mRatioWidth / mRatioHeight) {
-                setMeasuredDimension(width, width * mRatioHeight / mRatioWidth)
-                Log.d("mode:", "세로" + width.toString() + "*" + (width * mRatioHeight / mRatioWidth).toString())
+            if (width < height * ratioWidth / ratioHeight) {
+                setMeasuredDimension(width, width * ratioHeight / ratioWidth)
             } else {
-                setMeasuredDimension(height * mRatioWidth / mRatioHeight, height)
-                Log.d("mode:", "가로" + (height * mRatioWidth / mRatioHeight).toString() + "*" + height.toString())
+                setMeasuredDimension(height * ratioWidth / ratioHeight, height)
             }
         }
     }

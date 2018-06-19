@@ -22,8 +22,6 @@ import android.view.Surface
 import bodygate.bcns.bodygation.PlayFragment.OnFragmentInteractionListener
 import cn.gavinliu.android.lib.scale.config.ScaleConfig
 
-val REQUEST_VIDEO_PERMISSIONS = 1
-val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
 @Suppress("DEPRECATED_IDENTITY_EQUALS")
 class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
@@ -56,47 +54,8 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
                 (3).toFloat(),    // Design FontScale
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_item)
-        val s = VIDEO_PERMISSIONS.size-1
         url = intent.getStringExtra("url")
         supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url)).commit()
-    }
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun requestVideoPermissions(permission:String) {
-        if (shouldShowRequestPermissionRationale(permission)) {
-            ConfirmationDialog().show(this.getSupportFragmentManager(), FRAGMENT_DIALOG)
-        } else {
-            ActivityCompat.requestPermissions(this, VIDEO_PERMISSIONS, REQUEST_VIDEO_PERMISSIONS)
-        }
-    }
-
-
-    override fun hasPermissionsGranted(permissions:Array<String>):Boolean {
-        for (permission : String in permissions) {
-            if (ActivityCompat.checkSelfPermission(this, permission)
-                    != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
-        }
-        return true;
-    }
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        Log.d(TAG, "onRequestPermissionsResult");
-        if (requestCode == REQUEST_VIDEO_PERMISSIONS) {
-            if (grantResults.size == VIDEO_PERMISSIONS.size) {
-                for (result:Int in grantResults) {
-                    if (result != PackageManager.PERMISSION_GRANTED) {
-                        PlayFragment.ErrorDialog().newInstance(getString(R.string.permission_request_camera))
-                                .show(supportFragmentManager, FRAGMENT_DIALOG)
-                        break;
-                    }
-                }
-            } else {
-                PlayFragment.ErrorDialog().newInstance(getString(R.string.permission_request_camera))
-                        .show(supportFragmentManager, FRAGMENT_DIALOG)
-            }
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
     }
     override fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera) {
         val info = Camera.CameraInfo()
@@ -127,26 +86,4 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivity(intent)
     }
-}
-class ConfirmationDialog : DialogFragment() {
-
-    override fun onCreateDialog(savedInstanceState:Bundle?): Dialog {
-        val parent = getParentFragment();
-        return AlertDialog.Builder(getActivity()!!)
-                .setMessage(R.string.permission_request)
-                .setPositiveButton(android.R.string.ok, object : DialogInterface.OnClickListener {
-                    override fun onClick(dialog: DialogInterface?, which: Int) {
-                        requestPermissions(VIDEO_PERMISSIONS,
-                                REQUEST_VIDEO_PERMISSIONS);
-                    }
-                })
-                .setNegativeButton(android.R.string.cancel,
-                        object : DialogInterface.OnClickListener {
-                            override fun onClick(dialog: DialogInterface?, which: Int) {
-                                parent!!.getActivity()!!.finish();
-                            }
-                        })
-                .create();
-    }
-
 }
