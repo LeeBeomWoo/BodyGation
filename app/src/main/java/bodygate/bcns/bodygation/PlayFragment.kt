@@ -32,6 +32,7 @@ import android.os.*
 import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.DialogFragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.util.AttributeSet
 import android.util.Log
@@ -79,6 +80,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private val BURL = "\" frameborder=\"0\" allowfullscreen></iframe></html></body>"
     private val CHANGE = "https://www.youtube.com/embed/"
     private val TAG = "Item_follow_fragment_21"
+    var baseDir = ""
     //ScaleRelativeLayout button_layout;
 //ScaleFrameLayout cameraLayout;
     var page_num: Int = 0
@@ -259,6 +261,14 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             arguments?.let {
                 param1 = it.getString(ARG_PARAM1)
             }
+        }
+
+        val state = Environment.getExternalStorageState()
+        if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
+            //Retrieve the primary External Storage:
+            baseDir = Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").path
+        }else{
+            baseDir = Environment.DIRECTORY_MOVIES
         }
     }
     override fun onResume() {
@@ -797,29 +807,28 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             return;
         }
         try {
-        mMediaRecorder = MediaRecorder()
-        mMediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mMediaRecorder!!.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        mMediaRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath!!.isEmpty()) {
-            mNextVideoAbsolutePath = getVideoFilePath();
-        }
-        mMediaRecorder!!.setOutputFile(mNextVideoAbsolutePath)
-        mMediaRecorder!!.setVideoSize(mVideoSize!!.getWidth(), mVideoSize!!.getHeight())
-        mMediaRecorder!!.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-        mMediaRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        val rotation = activity.getWindowManager().getDefaultDisplay().getRotation()
-        when (mSensorOrientation) {
-            SENSOR_ORIENTATION_DEFAULT_DEGREES ->{
-                mMediaRecorder!!.setOrientationHint(DEFAULT_ORIENTATIONS.get(rotation));}
-            SENSOR_ORIENTATION_INVERSE_DEGREES->{
-                mMediaRecorder!!.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));}
-        }
+            mMediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mMediaRecorder!!.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+            mMediaRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mMediaRecorder!!.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+            mMediaRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            if (mNextVideoAbsolutePath == null) {
+                mNextVideoAbsolutePath = getVideoFilePath()
+                Log.i(TAG, "file set = " + mNextVideoAbsolutePath)
+            }
+            mMediaRecorder!!.setOutputFile(mNextVideoAbsolutePath)
+            mMediaRecorder!!.setVideoSize(mVideoSize!!.getWidth(), mVideoSize!!.getHeight())
+            val rotation = activity.getWindowManager().getDefaultDisplay().getRotation()
+            when (mSensorOrientation) {
+                SENSOR_ORIENTATION_DEFAULT_DEGREES ->{
+                    mMediaRecorder!!.setOrientationHint(DEFAULT_ORIENTATIONS.get(rotation));}
+                SENSOR_ORIENTATION_INVERSE_DEGREES->{
+                    mMediaRecorder!!.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));}
+            }
             mMediaRecorder!!.prepare()
         } catch (e: IOException) {
             Log.e(TAG, "prepare() failed = " + e.toString());
         }
-        mMediaRecorder!!.start()
         mIsRecordingVideo = true;
     }
 
@@ -832,17 +841,50 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     @NonNull
     private fun getVideoFilePath() :String{
-        val dir = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val state = Environment.getExternalStorageState()
         var myDir = ""
-        if(dir == null){
-            myDir = dir.toString() +  "/BodyGation/"
-        }else{
-            val dire = android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI
-            myDir = dire.toString() +  "/BodyGation/"
+        if (ContextCompat.checkSelfPermission(this.requireActivity(), // request permission when it is not granted.
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.d("myAppName", "permission:WRITE_EXTERNAL_STORAGE: NOT granted!");
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this.requireActivity(),
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this.requireActivity(),
+                        VIDEO_PERMISSIONS,1
+                        )
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
         }
-        val sciezka = File(myDir)
-        sciezka.mkdirs()
-        return myDir + "BodyGation_" + System.currentTimeMillis() + ".mp4"
+        if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
+
+        myDir = baseDir + File.separator + "bodygation" + File.separator
+        if(!File(myDir).exists()) {
+            val sciezka = File(myDir)
+            sciezka.mkdirs()
+        }
+}else {
+            myDir = baseDir
+            //Retrieve the External Storages root directory:
+
+            myDir += File.separator + "bodygation" + File.separator
+            if(!File(myDir).exists()) {
+                val sciezka = File(myDir)
+                sciezka.mkdirs()
+            }
+        }
+        return myDir + "bodygation_" + System.currentTimeMillis() + ".mp4"
     }
 
     fun startRecordingVideo() {
@@ -851,6 +893,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
         try {
             closePreviewSession()
+            mMediaRecorder = MediaRecorder()
             setUpMediaRecorder()
             val texture = AutoView.getSurfaceTexture();
             assert(texture != null)
@@ -938,9 +981,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 if (mIsRecordingVideo) {
                     stopRecordingVideo()
                 } else {
-                    video_View.setVisibility(View.INVISIBLE);
-                    AutoView.setVisibility(View.VISIBLE);
-                    mMediaRecorder = MediaRecorder()
+                    video_View.setVisibility(View.INVISIBLE)
+                    AutoView.setVisibility(View.VISIBLE)
                     startRecordingVideo()
                 }
             }
@@ -964,11 +1006,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 videoString = null;
                 videopath = null;
                 val intent = Intent(Intent.ACTION_GET_CONTENT);
-                val uri = Uri . parse (Environment.getExternalStorageDirectory().getPath()
-                        + File.separator + Environment.DIRECTORY_MOVIES + File.separator);
+                val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                 intent.setType("video/mp4");
                 intent.putExtra(Intent.EXTRA_STREAM, uri);
-                startActivityForResult(Intent.createChooser(intent, "Select Video"), 2);
+                startActivityForResult(Intent.createChooser(intent, "Select Video"), 2)
             }
             R.id.play_record_Btn//파일과 카메라간 변환
                 -> {
