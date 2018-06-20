@@ -22,6 +22,7 @@ import android.util.SparseIntArray
 import android.hardware.Camera
 import android.hardware.camera2.*
 import android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+import android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION
 import android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW
 import android.hardware.camera2.CameraDevice.TEMPLATE_RECORD
 import android.media.ImageReader
@@ -111,8 +112,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     /**
      * An [AutoFitTextureView] for camera preview.
      */
-    private lateinit var textureView: AutoFitTextureView
-
     /**
      * A [CameraCaptureSession] for camera preview.
      */
@@ -203,7 +202,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             cameraOpenCloseLock.release()
             this@PlayFragment.cameraDevice = cameraDevice
             startPreview()
-            configureTransform(textureView.width, textureView.height)
+            configureTransform(AutoView.width, AutoView.height)
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
@@ -319,10 +318,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
-        if (textureView.isAvailable) {
-            openCamera(textureView.width, textureView.height)
+        if (AutoView.isAvailable) {
+            openCamera(AutoView.width, AutoView.height)
         } else {
-            textureView.surfaceTextureListener = surfaceTextureListener
+            AutoView.surfaceTextureListener = surfaceTextureListener
         }
         youtube_layout.resumeTimers()
     }
@@ -334,11 +333,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         youtube_layout.pauseTimers()
     }
     private fun requestCameraPermission() {
-        if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-            ConfirmationDialog().show(childFragmentManager, FRAGMENT_DIALOG)
-        } else {
-            requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_VIDEO_PERMISSIONS)
+        for(s:String in VIDEO_PERMISSIONS) {
+            if (shouldShowRequestPermissionRationale(s)) {
+                ConfirmationDialog().show(childFragmentManager, FRAGMENT_DIALOG)
+            }
         }
+        requestPermissions(VIDEO_PERMISSIONS, REQUEST_VIDEO_PERMISSIONS)
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -440,15 +440,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             super.onConfigurationChanged(newConfig);
         Log.i(TAG, "onConfigurationChanged")
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            PortrainSet();
-            if (AutoView != null && AutoView!!.isAvailable()) {
-                configureTransform(AutoView!!.getWidth(), AutoView!!.getHeight());
-            }
+            PortrainSet()
         } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
-            LandSet();
-            if (AutoView != null && AutoView!!.isAvailable()) {
-                configureTransform(AutoView!!.getHeight(), AutoView!!.getWidth());
-            }
+            LandSet()
+        }
+        if (AutoView != null && AutoView!!.isAvailable()) {
+            configureTransform(AutoView!!.getWidth(), AutoView!!.getHeight())
         }
     }
     private fun LandSet(){
@@ -574,125 +571,52 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             record_Btn.setImageResource(R.drawable.record);
         }
     }
-    private fun setUpCameraOutputs(width: Int, height: Int) {
-        val manager = activity!!.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        try {
-                val characteristics = manager.getCameraCharacteristics(cameraId)
 
-            val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
-            throw RuntimeException("Cannot get available preview/video sizes")
-                // For still image captures, we use the largest available size.
-                val largest = Collections.max(
-                        Arrays.asList(*map.getOutputSizes(ImageFormat.JPEG)),
-                        CompareSizesByArea())
-                imageReader = ImageReader.newInstance(largest.width, largest.height,
-                        ImageFormat.JPEG, /*maxImages*/ 2).apply {
-                    setOnImageAvailableListener(onImageAvailableListener, backgroundHandler)
-                }
-
-                // Find out if we need to swap dimension to get the preview size relative to sensor
-                // coordinate.
-                val displayRotation = activity!!.windowManager.defaultDisplay.rotation
-
-                sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
-                val swappedDimensions = areDimensionsSwapped(displayRotation)
-
-            videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
-            previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
-                    width, height, videoSize)
-                val displaySize = Point()
-                activity!!.windowManager.defaultDisplay.getSize(displaySize)
-                val rotatedPreviewWidth = if (swappedDimensions) height else width
-                val rotatedPreviewHeight = if (swappedDimensions) width else height
-                var maxPreviewWidth = if (swappedDimensions) displaySize.y else displaySize.x
-                var maxPreviewHeight = if (swappedDimensions) displaySize.x else displaySize.y
-
-                if (maxPreviewWidth > MAX_PREVIEW_WIDTH) maxPreviewWidth = MAX_PREVIEW_WIDTH
-                if (maxPreviewHeight > MAX_PREVIEW_HEIGHT) maxPreviewHeight = MAX_PREVIEW_HEIGHT
-
-                // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
-                // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
-                // garbage capture data.
-                previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
-                        rotatedPreviewWidth, rotatedPreviewHeight,
-                        maxPreviewWidth, maxPreviewHeight,
-                        largest)
-
-                // We fit the aspect ratio of TextureView to the size of preview we picked.
-                if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    textureView.setAspectRatio(previewSize.width, previewSize.height)
-                } else {
-                    textureView.setAspectRatio(previewSize.height, previewSize.width)
-                }
-
-                // Check if the flash is supported.
-                flashSupported =
-                        characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-
-                // We've found a viable camera and finished setting up member variables,
-                // so we don't need to iterate through other available cameras.
-                return
-        } catch (e: CameraAccessException) {
-            Log.e(TAG, e.toString())
-        } catch (e: NullPointerException) {
-            // Currently an NPE is thrown when the Camera2API is used but not supported on the
-            // device this code runs.
-            ErrorDialog.newInstance(getString(R.string.camera_error))
-                    .show(childFragmentManager, FRAGMENT_DIALOG)
-        }
-
-    }
-    /**
-     * Determines if the dimensions are swapped given the phone's current rotation.
-     *
-     * @param displayRotation The current rotation of the display
-     *
-     * @return true if the dimensions are swapped, false otherwise.
-     */
-    private fun areDimensionsSwapped(displayRotation: Int): Boolean {
-        var swappedDimensions = false
-        when (displayRotation) {
-            Surface.ROTATION_0, Surface.ROTATION_180 -> {
-                if (sensorOrientation == 90 || sensorOrientation == 270) {
-                    swappedDimensions = true
-                }
-            }
-            Surface.ROTATION_90, Surface.ROTATION_270 -> {
-                if (sensorOrientation == 0 || sensorOrientation == 180) {
-                    swappedDimensions = true
-                }
-            }
-            else -> {
-                Log.e(TAG, "Display rotation is invalid: $displayRotation")
-            }
-        }
-        return swappedDimensions
-    }
+    @SuppressLint("MissingPermission")
     private fun openCamera(width: Int, height: Int) {
-        val permission = ContextCompat.checkSelfPermission(activity!!, Manifest.permission.CAMERA)
-        if (permission != PackageManager.PERMISSION_GRANTED) {
+        if (!hasPermissionsGranted(VIDEO_PERMISSIONS)) {
             requestCameraPermission()
             return
         }
+
         val cameraActivity = activity
         if (cameraActivity == null || cameraActivity.isFinishing) return
 
         val manager = cameraActivity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
-            // Wait for camera to open - 2.5 seconds is sufficient
             if (!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw RuntimeException("Time out waiting to lock camera opening.")
             }
-            setUpCameraOutputs(width, height)
+            val cameraId = manager.cameraIdList[0]
+
+            // Choose the sizes for camera preview and video recording
+            val characteristics = manager.getCameraCharacteristics(cameraId)
+            val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
+            throw RuntimeException("Cannot get available preview/video sizes")
+            sensorOrientation = characteristics.get(SENSOR_ORIENTATION)
+            videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
+            previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
+                    width, height, videoSize)
+
+            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                AutoView.setAspectRatio(previewSize.width, previewSize.height)
+            } else {
+                AutoView.setAspectRatio(previewSize.height, previewSize.width)
+            }
             configureTransform(width, height)
             mediaRecorder = MediaRecorder()
-            manager.openCamera(cameraId, stateCallback, backgroundHandler)
+            manager.openCamera(cameraId, stateCallback, null)
         } catch (e: CameraAccessException) {
-            Log.e(TAG, e.toString())
+            showToast("Cannot access the camera.")
+            cameraActivity.finish()
+        } catch (e: NullPointerException) {
+            // Currently an NPE is thrown when the Camera2API is used but not supported on the
+            // device this code runs.
+            ErrorDialog.newInstance(getString(R.string.camera_error))
+                    .show(childFragmentManager, FRAGMENT_DIALOG)
         } catch (e: InterruptedException) {
-            throw RuntimeException("Interrupted while trying to lock camera opening.", e)
+            throw RuntimeException("Interrupted while trying to lock camera opening.")
         }
-
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -719,12 +643,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (cameraId.equals(CAMERA_FRONT)) {
             cameraId = CAMERA_BACK;
             closeCamera()
-            openCamera(textureView.width, textureView.height)
+            openCamera(AutoView.width, AutoView.height)
 
         } else if (cameraId.equals(CAMERA_BACK)) {
             cameraId = CAMERA_FRONT;
             closeCamera()
-            openCamera(textureView.width, textureView.height)
+            openCamera(AutoView.width, AutoView.height)
         }
     }
     /**
@@ -746,11 +670,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     private fun startPreview() {
-        if (cameraDevice == null || !textureView.isAvailable) return
+        if (cameraDevice == null || !AutoView.isAvailable) return
 
         try {
             closePreviewSession()
-            val texture = textureView.surfaceTexture
+            val texture = AutoView.surfaceTexture
             texture.setDefaultBufferSize(previewSize.width, previewSize.height)
             previewRequestBuilder = cameraDevice!!.createCaptureRequest(TEMPLATE_PREVIEW)
 
@@ -847,12 +771,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     private fun startRecordingVideo() {
-        if (cameraDevice == null || !textureView.isAvailable) return
+        if (cameraDevice == null || !AutoView.isAvailable) return
 
         try {
             closePreviewSession()
             setUpMediaRecorder()
-            val texture = textureView.surfaceTexture.apply {
+            val texture = AutoView.surfaceTexture.apply {
                 setDefaultBufferSize(previewSize.width, previewSize.height)
             }
 
@@ -954,12 +878,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     /**
-     * Configures the necessary [android.graphics.Matrix] transformation to `textureView`.
+     * Configures the necessary [android.graphics.Matrix] transformation to `AutoView`.
      * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `textureView` is fixed.
+     * setUpCameraOutputs and also the size of `AutoView` is fixed.
      *
-     * @param viewWidth  The width of `textureView`
-     * @param viewHeight The height of `textureView`
+     * @param viewWidth  The width of `AutoView`
+     * @param viewHeight The height of `AutoView`
      */
     private fun configureTransform(viewWidth: Int, viewHeight: Int) {
         activity ?: return
@@ -983,11 +907,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180f, centerX, centerY)
         }
-        textureView.setTransform(matrix)
+        AutoView.setTransform(matrix)
     }
-
-
-
     override fun onSaveInstanceState(outState: Bundle) {
         viewalpha = alpha_control.progress
         outState.putString("url", param1)
@@ -1036,6 +957,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 sciezka.mkdirs()
             }
         }
+        Log.i("Path", myDir + "bodygation_" + System.currentTimeMillis() + ".mp4")
         return myDir + "bodygation_" + System.currentTimeMillis() + ".mp4"
     }
 
@@ -1062,12 +984,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 Log.d(TAG, "play_Btn thouch");
                 if(video_View.isPlaying()){
                     video_View.pause();
-                    play_record_Btn.setImageResource(R.drawable.play);
+                    play_record_Btn.setImageResource(R.drawable.play)
                 }else {
                     video_View.start();
-                    play_record_Btn.setImageResource(R.drawable.pause);
-                    AutoView.setVisibility(View.INVISIBLE);
-                    video_View.setVisibility(View.VISIBLE);
+                    play_record_Btn.setImageResource(R.drawable.pause)
+                    AutoView.setVisibility(View.INVISIBLE)
+                    video_View.setVisibility(View.VISIBLE)
                 }
                 }
 
@@ -1088,8 +1010,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         stopRecordingVideo()
                     }
                     closeCamera();
-                    AutoView.setVisibility(View.INVISIBLE);
-                    video_View.setVisibility(View.VISIBLE);
+                    AutoView.setVisibility(View.INVISIBLE)
+                    video_View.setVisibility(View.VISIBLE)
                     play_record = false;
                 } else {
                     if (video_View.isPlaying()) {
@@ -1194,8 +1116,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
          *
          * @param choices           The list of sizes that the camera supports for the intended
          *                          output class
-         * @param textureViewWidth  The width of the texture view relative to sensor coordinate
-         * @param textureViewHeight The height of the texture view relative to sensor coordinate
+         * @param AutoViewWidth  The width of the texture view relative to sensor coordinate
+         * @param AutoViewHeight The height of the texture view relative to sensor coordinate
          * @param maxWidth          The maximum width that can be chosen
          * @param maxHeight         The maximum height that can be chosen
          * @param aspectRatio       The aspect ratio
@@ -1203,8 +1125,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
          */
         @JvmStatic private fun chooseOptimalSize(
                 choices: Array<Size>,
-                textureViewWidth: Int,
-                textureViewHeight: Int,
+                AutoViewWidth: Int,
+                AutoViewHeight: Int,
                 maxWidth: Int,
                 maxHeight: Int,
                 aspectRatio: Size
@@ -1219,7 +1141,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             for (option in choices) {
                 if (option.width <= maxWidth && option.height <= maxHeight &&
                         option.height == option.width * h / w) {
-                    if (option.width >= textureViewWidth && option.height >= textureViewHeight) {
+                    if (option.width >= AutoViewWidth && option.height >= AutoViewHeight) {
                         bigEnough.add(option)
                     } else {
                         notBigEnough.add(option)
