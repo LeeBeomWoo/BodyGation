@@ -28,7 +28,7 @@ android {
             storePassword 'dlqjadn1482**'
             //D:/BCNS/APK/BodyGation.jks
             //E:/personal/APK/BodyGation.jks
-            storeFile file('E:/personal/APK/BodyGation.jks')
+            storeFile file('D:/BCNS/APK/BodyGation.jks')
         }
     }
     compileSdkVersion 28

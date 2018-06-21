@@ -14,10 +14,8 @@ import android.content.res.Configuration.ORIENTATION_PORTRAIT
 import android.graphics.*
 import android.net.Uri
 import android.support.v4.app.Fragment
-import android.widget.SeekBar
 import cn.gavinliu.android.lib.scale.ScaleRelativeLayout
 import cn.gavinliu.android.lib.scale.ScaleFrameLayout
-import android.widget.ImageButton
 import android.util.SparseIntArray
 import android.hardware.Camera
 import android.hardware.camera2.*
@@ -44,11 +42,13 @@ import android.util.Log
 import android.util.Size
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
+import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
+import android.widget.*
 import android.widget.Toast.LENGTH_SHORT
 import bodygate.bcns.bodygation.camerause.*
 import kotlinx.android.synthetic.main.fragment_play.*
+import org.jetbrains.anko.configuration
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -74,6 +74,15 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
     }
+    lateinit var autOView:AutoFitTextureView
+    lateinit var videoView:VideoView
+    lateinit var webView:WebView
+    lateinit var alPha:SeekBar
+    lateinit var rEcord:ImageButton
+    lateinit var switch:ImageButton
+    lateinit var lOad:ImageButton
+    lateinit var pLay:ImageButton
+    lateinit var play_reCord:ImageButton
 
     val REQUEST_VIDEO_PERMISSIONS = 1
     val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -106,6 +115,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var temp:String? = null
     var videoString:String? = null
     var videopath: Uri? = null
+
 
     private lateinit var cameraId: String
 
@@ -202,7 +212,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             cameraOpenCloseLock.release()
             this@PlayFragment.cameraDevice = cameraDevice
             startPreview()
-            configureTransform(AutoView.width, AutoView.height)
+            if (this@PlayFragment.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
+                configureTransform(land_AutoView.width, land_AutoView.height)
+            }else{
+                configureTransform(AutoView.width, AutoView.height)
+            }
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
@@ -229,7 +243,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         // 메시지 큐에 저장될 메시지의 내용;
                         val a = progress / 100.0
                         val b = a.toFloat()
-                        youtube_layout.setAlpha(b)
+                        if (this@PlayFragment.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
+                            webView.setAlpha(b)
+                        }else{
+                            youtube_layout.setAlpha(b)
+                        }
                     }
                 })
             }
@@ -294,7 +312,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         Log.d(TAG, "onCreate")
         if(savedInstanceState != null){
             param1 = savedInstanceState.getString("url")
-            alpha_control.progress = savedInstanceState.getInt("alpha")
+            }
+            if(this.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+                if (savedInstanceState!!.getInt("alpha") != null) {
+                    alpha_control.progress = savedInstanceState!!.getInt("alpha")
+                }
         }else {
             arguments?.let {
                 param1 = it.getString(ARG_PARAM1)
@@ -332,58 +354,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
        stopBackgroundThread()
         youtube_layout.pauseTimers()
     }
-    private fun requestCameraPermission() {
-        for(s:String in VIDEO_PERMISSIONS) {
-            if (shouldShowRequestPermissionRationale(s)) {
-                ConfirmationDialog().show(childFragmentManager, FRAGMENT_DIALOG)
-            }
-        }
-        requestPermissions(VIDEO_PERMISSIONS, REQUEST_VIDEO_PERMISSIONS)
-    }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Log.i(TAG, "onActivityCreated")
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        onConfigurationChanged(getActivity()!!.getResources().getConfiguration())
-        startBackgroundThread()
-        ButtonImageSetUp()
-        initui()
-        viewSet()
-        alpha_control.setMax(100)
-        youtube_layout.setWebChromeClient(WebChromeClient())
-        youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
-        youtube_layout.setWebViewClient(WebViewClient())
-        val settings = youtube_layout.getSettings()
-        settings.setJavaScriptEnabled(true)
-        settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN)
-        settings.setJavaScriptCanOpenWindowsAutomatically(true)
-        settings.setPluginState(WebSettings.PluginState.ON)
-        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK)
-        youtube_layout.getSettings().setSupportMultipleWindows(true)
-        settings.setLoadWithOverviewMode(true)
-        settings.setUseWideViewPort(true)
-        URL = FURL + CHANGE + param1 + BURL;
-        Log.d(TAG, "temp : " + temp + "," + "tr_id : " + tr_id )
-        youtube_layout.loadData(URL, "text/html", "charset=utf-8")
-        alpha_control.setOnSeekBarChangeListener(this)
-    }
-    fun initui(){
-        if(this.activity!!.requestedOrientation == Configuration.ORIENTATION_PORTRAIT){
-        this.activity!!.setContentView(R.layout.fragment_play)
-            youtube_layout.setZ(0.toFloat())
-            video_layout.setZ(0.toFloat())
-            AutoView.setZ(0.toFloat())
-    }else if (this.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-        this.activity!!.setContentView(R.layout.fragment_land_play)
-            youtube_layout.setZ(2.toFloat())
-            video_layout.setZ(0.toFloat())
-            AutoView.setZ(0.toFloat())
-    }
-}
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>,
                                             grantResults: IntArray) {
@@ -452,17 +428,17 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
     override fun onConfigurationChanged(newConfig: Configuration) {
             super.onConfigurationChanged(newConfig)
-        initui()
+       /* initui()
         Log.i(TAG, "onConfigurationChanged")
-        /*
+
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             PortrainSet()
         } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
             LandSet()
-        }*/
+        }
         if (AutoView != null && AutoView!!.isAvailable()) {
             configureTransform(AutoView!!.getWidth(), AutoView!!.getHeight())
-        }
+        }*/
     }
     private fun LandSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -494,23 +470,25 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         viewChange_Btn.setLayoutParams(switchlayout);
         LandCamera!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout);
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM);
+        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
         video_layout.setLayoutParams(LandCamera);
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control);
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout);
-        youtube_layout.setLayoutParams(LandWebView);
+        webView.setLayoutParams(LandWebView);
         seek.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
         seek.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout);
-        alpha_control.setLayoutParams(seek);
-        alpha_control.setProgress(50);
-        alpha_control.setVisibility(View.VISIBLE);
-        alpha_control.setZ(2.toFloat());
-        youtube_layout.setAlpha((0.5).toFloat());
-        youtube_layout.setZ(2.toFloat());
+        alPha.setLayoutParams(seek);
+        alPha.setProgress(50);
+        alPha.setVisibility(View.VISIBLE);
+        alPha.setZ(2.toFloat());
+        webView.setAlpha((0.5).toFloat());
+        webView.setZ(2.toFloat());
         video_layout.setZ(0.toFloat());
         AutoView.setZ(0.toFloat());
-        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        AutoView.setLayoutParams(ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        val temp_layout= video_View.layoutParams
+        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        AutoView.setLayoutParams(LandCamera)
         video_View.setZ(1.toFloat());
     }
     private fun PortrainSet(){
@@ -525,53 +503,100 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_START);
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM);
-        youtube_layout.setLayoutParams(LandWebView);
-        LandButton!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout);
+        webView.setLayoutParams(LandWebView);
+        LandButton!!.addRule(ScaleRelativeLayout.ABOVE, R.id.webView);
         LandButton!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
         button_layout.setLayoutParams(LandButton);
         playlayout!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM);
         playlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
         play_Btn.setLayoutParams(playlayout);
-        recordlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
-        recordlayout!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP);
-        record_Btn.setLayoutParams(recordlayout);
-        loadlayout!!.addRule(ScaleRelativeLayout.ABOVE, R.id.play_Btn);
-        loadlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
-        load_Btn.setLayoutParams(loadlayout);
-        play_recordlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL);
-        play_recordlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
-        play_record_Btn.setLayoutParams(play_recordlayout);
-        switchlayout!!.addRule(ScaleRelativeLayout.BELOW, R.id.record_Btn);
-        switchlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
-        viewChange_Btn.setLayoutParams(switchlayout);
-        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_START);
-        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP);
-        LandCamera!!.addRule(ScaleRelativeLayout.START_OF, R.id.button_layout);
-        LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout);
-        video_layout.setLayoutParams(LandCamera);
-        alpha_control.setVisibility(View.GONE);
-        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        AutoView.setLayoutParams(ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        youtube_layout.setAlpha((1).toFloat());
+        recordlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item))
+        recordlayout!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP)
+        record_Btn.setLayoutParams(recordlayout)
+        loadlayout!!.addRule(ScaleRelativeLayout.ABOVE, R.id.play_Btn)
+        loadlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item))
+        load_Btn.setLayoutParams(loadlayout)
+        play_recordlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL)
+        play_recordlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item))
+        play_record_Btn.setLayoutParams(play_recordlayout)
+        switchlayout!!.addRule(ScaleRelativeLayout.BELOW, R.id.record_Btn)
+        switchlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item))
+        viewChange_Btn.setLayoutParams(switchlayout)
+        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_START)
+        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP)
+        LandCamera!!.addRule(ScaleRelativeLayout.START_OF, R.id.button_layout)
+        LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.webView)
+        video_layout.setLayoutParams(LandCamera)
+        alPha.setVisibility(View.GONE)
+        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        AutoView.setLayoutParams(LandCamera)
+        webView.setAlpha((1).toFloat())
+    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        cameraId = CAMERA_FRONT
+        onConfigurationChanged(getActivity()!!.getResources().getConfiguration())
+        startBackgroundThread()
+        ButtonImageSetUp()
+        //initui()
+        viewSet()
+
+        if(this.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            autOView = land_AutoView
+            videoView = land_video_View
+            webView = land_youtube_layout
+            alPha = land_alpha_control
+            rEcord = land_record_Btn
+            switch = land_viewChange_Btn
+            lOad = land_load_Btn
+            pLay = land_play_Btn
+            play_reCord = play_land_record_Btn
+        }else{
+            autOView = AutoView
+            webView = webView
+            alPha = alpha_control
+            rEcord = record_Btn
+            switch = viewChange_Btn
+            lOad = load_Btn
+            pLay = play_Btn
+            play_reCord = land_record_Btn
+        }
+        alPha.setMax(100)
+        webView.setWebChromeClient(WebChromeClient())
+        webView.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
+        webView.setWebViewClient(WebViewClient())
+        val settings = webView.getSettings()
+        settings.setJavaScriptEnabled(true)
+        settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN)
+        settings.setJavaScriptCanOpenWindowsAutomatically(true)
+        settings.setPluginState(WebSettings.PluginState.ON)
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK)
+        webView.getSettings().setSupportMultipleWindows(true)
+        settings.setLoadWithOverviewMode(true)
+        settings.setUseWideViewPort(true)
+        URL = FURL + CHANGE + param1 + BURL;
+        Log.d(TAG, "temp : " + temp + "," + "tr_id : " + tr_id )
+        webView.loadData(URL, "text/html", "charset=utf-8")
+        alPha.setOnSeekBarChangeListener(this)
     }
     private fun viewSet(){
-        record_Btn.setOnClickListener(this);
-        load_Btn.setOnClickListener(this);
-        play_Btn.setOnClickListener(this);
-        play_record_Btn.setOnClickListener(this);
-        viewChange_Btn.setOnClickListener(this);
-        video_View.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
+        rEcord.setOnClickListener(this);
+        lOad.setOnClickListener(this);
+        pLay.setOnClickListener(this);
+        play_reCord.setOnClickListener(this);
+        switch.setOnClickListener(this);
+        videoView.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
             override fun onCompletion(mp: MediaPlayer?) {
-                play_Btn.setImageResource(R.drawable.play);
+                pLay.setImageResource(R.drawable.play);
             }
         });
          if(getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
             openCamera(AutoView.getWidth(), AutoView.getHeight());
-            youtube_layout.setAlpha((1).toFloat());
+            webView.setAlpha((1).toFloat());
         }else {
             openCamera(AutoView.getHeight(), AutoView.getWidth());
-             alpha_control.setProgress(50);
-             youtube_layout.setAlpha((0.5).toFloat());
+             alPha.setProgress(50);
+             webView.setAlpha((0.5).toFloat());
         }
 
     }
@@ -591,7 +616,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     @SuppressLint("MissingPermission")
     private fun openCamera(width: Int, height: Int) {
         if (!hasPermissionsGranted(VIDEO_PERMISSIONS)) {
-            requestCameraPermission()
+            ActivityCompat.requestPermissions(this.requireActivity(), VIDEO_PERMISSIONS, REQUEST_VIDEO_PERMISSIONS)
             return
         }
 
@@ -603,7 +628,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             if (!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw RuntimeException("Time out waiting to lock camera opening.")
             }
-            val cameraId = manager.cameraIdList[0]
+            val cameraId = cameraId
 
             // Choose the sizes for camera preview and video recording
             val characteristics = manager.getCameraCharacteristics(cameraId)
@@ -652,19 +677,19 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
 
     private fun video_ViewSetup(path: Uri) {
-        video_View.setVideoURI(path)
+        videoView.setVideoURI(path)
     }
 
     fun switchCamera() {
         if (cameraId.equals(CAMERA_FRONT)) {
             cameraId = CAMERA_BACK;
             closeCamera()
-            openCamera(AutoView.width, AutoView.height)
+            openCamera(autOView.width, autOView.height)
 
         } else if (cameraId.equals(CAMERA_BACK)) {
             cameraId = CAMERA_FRONT;
             closeCamera()
-            openCamera(AutoView.width, AutoView.height)
+            openCamera(autOView.width, autOView.height)
         }
     }
     /**
@@ -686,11 +711,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     private fun startPreview() {
-        if (cameraDevice == null || !AutoView.isAvailable) return
+        if (cameraDevice == null || !autOView.isAvailable) return
 
         try {
             closePreviewSession()
-            val texture = AutoView.surfaceTexture
+            val texture = autOView.surfaceTexture
             texture.setDefaultBufferSize(previewSize.width, previewSize.height)
             previewRequestBuilder = cameraDevice!!.createCaptureRequest(TEMPLATE_PREVIEW)
 
@@ -787,12 +812,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     private fun startRecordingVideo() {
-        if (cameraDevice == null || !AutoView.isAvailable) return
+        if (cameraDevice == null || !autOView.isAvailable) return
 
         try {
             closePreviewSession()
             setUpMediaRecorder()
-            val texture = AutoView.surfaceTexture.apply {
+            val texture = autOView.surfaceTexture.apply {
                 setDefaultBufferSize(previewSize.width, previewSize.height)
             }
 
@@ -894,9 +919,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     /**
-     * Configures the necessary [android.graphics.Matrix] transformation to `AutoView`.
+     * Configures the necessary [android.graphics.Matrix] transformation to `autOView`.
      * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `AutoView` is fixed.
+     * setUpCameraOutputs and also the size of `autOView` is fixed.
      *
      * @param viewWidth  The width of `AutoView`
      * @param viewHeight The height of `AutoView`
@@ -926,7 +951,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         AutoView.setTransform(matrix)
     }
     override fun onSaveInstanceState(outState: Bundle) {
-        viewalpha = alpha_control.progress
+        viewalpha = alPha.progress
         outState.putString("url", param1)
         outState.putInt("alpha", viewalpha)
         super.onSaveInstanceState(outState)
@@ -1178,3 +1203,4 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
 }
+

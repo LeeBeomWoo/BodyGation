@@ -1,71 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<cn.gavinliu.android.lib.scale.ScaleRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <SeekBar
-        android:id="@+id/alpha_control"
+        android:id="@+id/land_alpha_control"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="false"
         android:layout_alignParentTop="true"
-        android:visibility="visible"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:visibility="visible" />
 
     <WebView
-        android:id="@+id/youtube_layout"
+        android:id="@+id/land_youtube_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/alpha_control" />
+        android:visibility="visible" />
 
     <bodygate.bcns.bodygation.camerause.AutoFitTextureView
-        android:id="@+id/AutoView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_toStartOf="@+id/button_layout"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button_layout"
-        app:layout_constraintTop_toTopOf="@+id/alpha_control" />
+        android:id="@+id/land_AutoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toStartOf="@+id/land_button_layout"
+        android:layout_below="@+id/land_alpha_control"
+        android:translationZ="0dp"
+        android:visibility="visible" />
 
     <cn.gavinliu.android.lib.scale.ScaleFrameLayout
-        android:id="@+id/video_layout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:id="@+id/land_video_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:translationZ="2dp"
         android:visibility="invisible"
-        android:layout_toStartOf="@+id/button_layout"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button_layout"
-        app:layout_constraintTop_toTopOf="@+id/alpha_control"
+        android:layout_toStartOf="@+id/land_button_layout"
+        android:layout_below="@+id/land_alpha_control"
         tools:ignore="MissingConstraints">
 
         <VideoView
-            android:id="@+id/video_View"
+            android:id="@+id/land_video_View"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </cn.gavinliu.android.lib.scale.ScaleFrameLayout>
 
     <cn.gavinliu.android.lib.scale.ScaleRelativeLayout
-        android:id="@+id/button_layout"
+        android:id="@+id/land_button_layout"
         android:layout_width="50dp"
         android:layout_height="0dp"
-        android:layout_above="@+id/youtube_layout"
-        android:layout_alignParentEnd="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/youtube_layout">
+        android:layout_above="@+id/land_youtube_layout"
+        android:layout_alignParentEnd="true">
 
         <ImageButton
-            android:id="@+id/record_Btn"
+            android:id="@+id/land_record_Btn"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_alignParentTop="true"
@@ -76,10 +62,10 @@
             tools:ignore="ContentDescription" />
 
         <ImageButton
-            android:id="@+id/load_Btn"
+            android:id="@+id/land_load_Btn"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_above="@+id/play_Btn"
+            android:layout_above="@+id/land_play_Btn"
             android:layout_margin="5dp"
             android:layout_marginStart="43dp"
             android:background="@color/nocolor"
@@ -88,7 +74,7 @@
             tools:ignore="ContentDescription" />
 
         <ImageButton
-            android:id="@+id/play_Btn"
+            android:id="@+id/land_play_Btn"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_alignParentBottom="true"
@@ -100,10 +86,10 @@
             tools:ignore="ContentDescription" />
 
         <ImageButton
-            android:id="@+id/viewChange_Btn"
+            android:id="@+id/land_viewChange_Btn"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_below="@+id/record_Btn"
+            android:layout_below="@+id/land_record_Btn"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
             android:scaleType="fitCenter"
@@ -111,7 +97,7 @@
             tools:ignore="ContentDescription" />
 
         <ImageButton
-            android:id="@+id/play_record_Btn"
+            android:id="@+id/play_land_record_Btn"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_centerVertical="true"
@@ -123,4 +109,4 @@
             tools:ignore="ContentDescription" />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
-</android.support.constraint.ConstraintLayout>
+</cn.gavinliu.android.lib.scale.ScaleRelativeLayout>

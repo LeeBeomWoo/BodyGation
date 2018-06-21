@@ -21,6 +21,7 @@ import android.util.Log
 import android.view.Surface
 import bodygate.bcns.bodygation.PlayFragment.OnFragmentInteractionListener
 import cn.gavinliu.android.lib.scale.config.ScaleConfig
+import kotlinx.android.synthetic.main.fragment_play.*
 
 
 @Suppress("DEPRECATED_IDENTITY_EQUALS")
@@ -28,7 +29,9 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override fun onFragmentInteraction(uri: Uri) {
 
     }
-
+    companion object {
+        private const val SELECTED_LOCATION_INDEX = "selectedLocationIndex"
+    }
     var url = ""
     private val FRAGMENT_DIALOG = "dialog"
     val REQUEST_CAMERA = 1
@@ -40,9 +43,6 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     var videoPath:String? = null
     var category: Int = 0
     var context: Context = this
-    fun setAutoOrientationEnabled(context: Context, enabled: Boolean) {
-        Settings.System.putInt(context.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, if (enabled) 1 else 0)
-    }
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,8 +54,19 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
                 (3).toFloat(),    // Design FontScale
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_item)
-        url = intent.getStringExtra("url")
+        if (savedInstanceState != null) {
+            val index = savedInstanceState.getString("url")
+            val alpha = savedInstanceState.getInt("alpha")
+            url = index
+        }else{
+            url = intent.getStringExtra("url")
+        }
         supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url)).commit()
+    }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("url", url)
+        outState.putInt("alpha", alpha_control.progress)
     }
     override fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera) {
         val info = Camera.CameraInfo()
