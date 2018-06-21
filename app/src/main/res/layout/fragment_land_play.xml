@@ -5,7 +5,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
     <SeekBar
         android:id="@+id/alpha_control"
         android:layout_width="match_parent"
@@ -18,7 +17,7 @@
     <WebView
         android:id="@+id/youtube_layout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -30,26 +29,23 @@
         android:id="@+id/AutoView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_above="@+id/youtube_layout"
-        android:layout_marginEnd="8dp"
         android:layout_toStartOf="@+id/button_layout"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@+id/youtube_layout"
-        app:layout_constraintEnd_toEndOf="@+id/youtube_layout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/button_layout"
-        app:layout_constraintTop_toTopOf="@+id/youtube_layout" />
+        app:layout_constraintTop_toTopOf="@+id/alpha_control" />
 
     <cn.gavinliu.android.lib.scale.ScaleFrameLayout
         android:id="@+id/video_layout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_above="@+id/youtube_layout"
-        android:layout_toStartOf="@+id/button_layout"
         android:visibility="invisible"
+        android:layout_toStartOf="@+id/button_layout"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/youtube_layout"
-        app:layout_constraintStart_toStartOf="@+id/AutoView"
-        app:layout_constraintTop_toTopOf="@+id/youtube_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/button_layout"
+        app:layout_constraintTop_toTopOf="@+id/alpha_control"
         tools:ignore="MissingConstraints">
 
         <VideoView
@@ -127,5 +123,4 @@
             tools:ignore="ContentDescription" />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
-
 </android.support.constraint.ConstraintLayout>

@@ -351,6 +351,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         onConfigurationChanged(getActivity()!!.getResources().getConfiguration())
         startBackgroundThread()
         ButtonImageSetUp()
+        initui()
         viewSet()
         alpha_control.setMax(100)
         youtube_layout.setWebChromeClient(WebChromeClient())
@@ -370,6 +371,19 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         youtube_layout.loadData(URL, "text/html", "charset=utf-8")
         alpha_control.setOnSeekBarChangeListener(this)
     }
+    fun initui(){
+        if(this.activity!!.requestedOrientation == Configuration.ORIENTATION_PORTRAIT){
+        this.activity!!.setContentView(R.layout.fragment_play)
+            youtube_layout.setZ(0.toFloat())
+            video_layout.setZ(0.toFloat())
+            AutoView.setZ(0.toFloat())
+    }else if (this.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
+        this.activity!!.setContentView(R.layout.fragment_land_play)
+            youtube_layout.setZ(2.toFloat())
+            video_layout.setZ(0.toFloat())
+            AutoView.setZ(0.toFloat())
+    }
+}
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>,
                                             grantResults: IntArray) {
@@ -437,13 +451,15 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         fun onFragmentInteraction(uri: Uri)
     }
     override fun onConfigurationChanged(newConfig: Configuration) {
-            super.onConfigurationChanged(newConfig);
+            super.onConfigurationChanged(newConfig)
+        initui()
         Log.i(TAG, "onConfigurationChanged")
+        /*
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             PortrainSet()
         } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
             LandSet()
-        }
+        }*/
         if (AutoView != null && AutoView!!.isAvailable()) {
             configureTransform(AutoView!!.getWidth(), AutoView!!.getHeight())
         }
