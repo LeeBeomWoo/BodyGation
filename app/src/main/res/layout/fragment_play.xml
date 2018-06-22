@@ -94,7 +94,7 @@
             android:background="@drawable/cirfcle"
             android:scaleType="centerCrop"
             android:src="@mipmap/frontcamera_round" />"
-    />
+        />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
 

@@ -459,21 +459,22 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         video_View.setZ(1.toFloat())
     }
     private fun PortrainSet(){
-        LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        LandButton = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        LandButton = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portwidthbtn), getResources().getDimensionPixelSize(R.dimen.portbtn));
         LandCamera = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         playlayout = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item));
         recordlayout = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item));
         switchlayout = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item));
         play_recordlayout = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item));
         loadlayout = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item));
+        LandButton!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
+        LandButton!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP)
+        button_layout.setLayoutParams(LandButton);
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_START)
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
+        LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.button_layout)
         youtube_layout.setLayoutParams(LandWebView)
-        LandButton!!.addRule(ScaleRelativeLayout.ABOVE, R.id.alpha_control);
-        LandButton!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
-        button_layout.setLayoutParams(LandButton);
         playlayout!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
         playlayout!!.addRule(ScaleRelativeLayout.CENTER_HORIZONTAL)
         playlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
