@@ -80,7 +80,7 @@
             android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
-            android:scaleType="fitCenter"
+            android:scaleType="centerInside"
             android:src="@drawable/camerachange"
             tools:ignore="ContentDescription" />
 
@@ -91,11 +91,10 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_margin="5dp"
-            android:background="@color/nocolor"
-            android:scaleType="fitCenter"
-            android:src="@mipmap/frontcamera_round"
-            android:visibility="visible"
-            tools:ignore="ContentDescription" />
+            android:background="@drawable/cirfcle"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/frontcamera_round" />"
+    />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
 

@@ -23,7 +23,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="color" value="68c7d3" />
+                                                <entry key="color" value="fdfffd" />
                                                 <entry key="scalingPercent" value="87" />
                                               </map>
                                             </option>
@@ -35,7 +35,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
-                                                <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/image/ic_camera_rear_black_24dp.xml" />
+                                                <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/image/ic_camera_front_black_24dp.xml" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -68,11 +68,11 @@
                                   <option name="values">
                                     <map>
                                       <entry key="backgroundAssetType" value="COLOR" />
-                                      <entry key="backgroundColor" value="ffffff" />
-                                      <entry key="backgroundLayerName" value="ic_launcher_background" />
+                                      <entry key="backgroundColor" value="68c7d3" />
+                                      <entry key="backgroundLayerName" value="ic_backcamera" />
                                       <entry key="foregroundAssetType" value="CLIP_ART" />
-                                      <entry key="foregroundLayerName" value="backcamera_ic" />
-                                      <entry key="outputName" value="backcamera" />
+                                      <entry key="foregroundLayerName" value="frontcamera_ic" />
+                                      <entry key="outputName" value="frontcamera" />
                                     </map>
                                   </option>
                                 </PersistentState>

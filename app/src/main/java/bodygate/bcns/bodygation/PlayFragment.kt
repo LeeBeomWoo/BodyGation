@@ -588,11 +588,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
             previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
                     width, height, videoSize)
-            if(this.requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-                AutoView.setAspectRatio(16, 9)
-            }else{
-                AutoView.setAspectRatio(3, 4)
-            }
             configureTransform(width, height)
             mediaRecorder = MediaRecorder()
             manager.openCamera(cameraId, stateCallback, null)
@@ -912,6 +907,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             matrix.postRotate(180f, centerX, centerY)
         }
         AutoView.setTransform(matrix)
+        if(this.requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
+            AutoView.setAspectRatio(16, 9)
+        }else{
+            AutoView.setAspectRatio(3, 4)
+        }
     }
     override fun onSaveInstanceState(outState: Bundle) {
         viewalpha = alpha_control.progress
@@ -1009,33 +1009,33 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             }
             R.id.play_record_Btn//파일과 카메라간 변환
                 -> {
-                if (play_record!!) {
-                    if (isRecordingVideo) {
-                        stopRecordingVideo()
-                    }
-                    closeCamera();
-                    AutoView.setVisibility(View.INVISIBLE)
-                    video_View.setVisibility(View.VISIBLE)
-                    play_record = false;
-                } else {
-                    if (video_View.isPlaying()) {
-                        video_View.stopPlayback();
-                    }
-                    if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-                        openCamera(AutoView.getWidth(), AutoView.getHeight());
-                    } else {
-                        openCamera(AutoView.getHeight(), AutoView.getWidth());
-                    }
-                    AutoView.setVisibility(View.VISIBLE);
-                    video_View.setVisibility(View.INVISIBLE);
-                    play_record = true;
-                }
-                ButtonImageSetUp();
+                Log.d(TAG, "viewChange_Btn thouch");
+                switchCamera();
             }
              R.id.viewChange_Btn//전후면 카메라변환
                -> {
-                   Log.d(TAG, "viewChange_Btn thouch");
-                   switchCamera();
+                 if (play_record!!) {
+                     if (isRecordingVideo) {
+                         stopRecordingVideo()
+                     }
+                     closeCamera();
+                     AutoView.setVisibility(View.INVISIBLE)
+                     video_View.setVisibility(View.VISIBLE)
+                     play_record = false;
+                 } else {
+                     if (video_View.isPlaying()) {
+                         video_View.stopPlayback();
+                     }
+                     if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
+                         openCamera(AutoView.getWidth(), AutoView.getHeight());
+                     } else {
+                         openCamera(AutoView.getHeight(), AutoView.getWidth());
+                     }
+                     AutoView.setVisibility(View.VISIBLE);
+                     video_View.setVisibility(View.INVISIBLE);
+                     play_record = true;
+                 }
+                 ButtonImageSetUp();
                }
         }
     }
