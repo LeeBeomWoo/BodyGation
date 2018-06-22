@@ -7,17 +7,6 @@
     tools:context=".PlayFragment"
     android:id="@+id/item_mainLayout">
 
-    <WebView
-        android:id="@+id/youtube_layout"
-        android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:layout_toStartOf="@+id/button_layout"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
-
     <SeekBar
         android:id="@+id/alpha_control"
         android:layout_width="match_parent"
@@ -28,48 +17,28 @@
 
     <bodygate.bcns.bodygation.camerause.AutoFitTextureView
         android:id="@+id/AutoView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_above="@+id/youtube_layout"
-        android:layout_toStartOf="@+id/button_layout"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/youtube_layout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button_layout"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <cn.gavinliu.android.lib.scale.ScaleFrameLayout
-        android:id="@+id/video_layout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_above="@+id/youtube_layout"
-        android:layout_toStartOf="@+id/button_layout"
-        app:layout_constraintBottom_toTopOf="@+id/youtube_layout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button_layout"
-        app:layout_constraintTop_toTopOf="parent"
-        android:visibility="invisible">
-
-        <VideoView
-            android:id="@+id/video_View"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </cn.gavinliu.android.lib.scale.ScaleFrameLayout>
+        android:layout_alignEnd="@+id/video_layout"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:visibility="visible" />
 
     <cn.gavinliu.android.lib.scale.ScaleRelativeLayout
         android:id="@+id/button_layout"
-        android:layout_width="50dp"
-        android:layout_height="0dp"
-        android:layout_above="@+id/youtube_layout"
+        android:layout_width="90dp"
+        android:layout_height="360dp"
         android:layout_alignParentEnd="true"
-        app:layout_constraintBottom_toTopOf="@+id/youtube_layout"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_alignParentTop="true">
 
         <ImageButton
             android:id="@+id/record_Btn"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
             android:scaleType="fitCenter"
@@ -81,6 +50,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_above="@+id/play_Btn"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
             android:scaleType="fitCenter"
@@ -92,6 +63,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
             android:scaleType="fitCenter"
@@ -103,6 +76,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_below="@+id/record_Btn"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
             android:scaleType="fitCenter"
@@ -113,13 +88,38 @@
             android:id="@+id/play_record_Btn"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
             android:scaleType="fitCenter"
-            android:src="@drawable/play_record"
+            android:src="@mipmap/frontcamera_round"
             android:visibility="visible"
             tools:ignore="ContentDescription" />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
+
+    <cn.gavinliu.android.lib.scale.ScaleFrameLayout
+        android:id="@+id/video_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/youtube_layout"
+        android:layout_toStartOf="@+id/button_layout"
+        android:visibility="invisible">
+
+        <VideoView
+            android:id="@+id/video_View"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </cn.gavinliu.android.lib.scale.ScaleFrameLayout>
+
+    <WebView
+        android:id="@+id/youtube_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button_layout"
+        android:layout_marginTop="2dp"
+        android:visibility="visible" />
+
 </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>

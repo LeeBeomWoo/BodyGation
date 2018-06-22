@@ -56,7 +56,6 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         setContentView(R.layout.activity_item)
         if (savedInstanceState != null) {
             val index = savedInstanceState.getString("url")
-            val alpha = savedInstanceState.getInt("alpha")
             url = index
         }else{
             url = intent.getStringExtra("url")
@@ -66,7 +65,6 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("url", url)
-        outState.putInt("alpha", alpha_control.progress)
     }
     override fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera) {
         val info = Camera.CameraInfo()
