@@ -409,7 +409,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
     private fun LandSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        LandButton = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.btnlayoutSiz_item), ViewGroup.LayoutParams.MATCH_PARENT);
+        LandButton = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), ViewGroup.LayoutParams.MATCH_PARENT);
         LandCamera = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         playlayout = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.imageBtnsize_item), getResources().getDimensionPixelSize(R.dimen.imageBtnsize_item));
         recordlayout = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.imageBtnsize_item), getResources().getDimensionPixelSize(R.dimen.imageBtnsize_item));
@@ -418,44 +418,48 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         loadlayout = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.imageBtnsize_item), getResources().getDimensionPixelSize(R.dimen.imageBtnsize_item));
         val seek = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         LandButton!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP);
-        //LandButton.addRule(ScaleRelativeLayout.ALIGN_PARENT_START);
+        LandButton!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_START);
         button_layout.setLayoutParams(LandButton);
+        seek.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
+        seek.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout);
+        alpha_control.setLayoutParams(seek);
         playlayout!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP);
+        playlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL);
         playlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
         play_Btn.setLayoutParams(playlayout);
         recordlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
         recordlayout!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM);
+        recordlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL);
         record_Btn.setLayoutParams(recordlayout);
         loadlayout!!.addRule(ScaleRelativeLayout.BELOW, R.id.play_Btn);
+        loadlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL);
         loadlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
         load_Btn.setLayoutParams(loadlayout);
         play_recordlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL);
         play_recordlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
+        play_recordlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL);
         play_record_Btn.setLayoutParams(play_recordlayout);
-        switchlayout!!.addRule(ScaleRelativeLayout.ABOVE, R.id.record_Btn);
-        switchlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item));
+        switchlayout!!.addRule(ScaleRelativeLayout.ABOVE, R.id.record_Btn)
+        switchlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL)
+        switchlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item))
         viewChange_Btn.setLayoutParams(switchlayout);
-        LandCamera!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout);
-        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM);
-        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
+        LandCamera!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
+        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
+        LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         video_layout.setLayoutParams(LandCamera);
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control)
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout);
         youtube_layout.setLayoutParams(LandWebView);
-        seek.addRule(ScaleRelativeLayout.ALIGN_PARENT_END);
-        seek.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout);
-        alpha_control.setLayoutParams(seek);
+        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        AutoView.setLayoutParams(LandCamera)
         alpha_control.setProgress(50);
         alpha_control.setVisibility(View.VISIBLE);
         alpha_control.setZ(2.toFloat());
         youtube_layout.setAlpha((0.5).toFloat());
         youtube_layout.setZ(2.toFloat());
         video_layout.setZ(0.toFloat());
-        AutoView.setZ(0.toFloat());
-        val temp_layout= video_View.layoutParams
-        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        AutoView.setLayoutParams(LandCamera)
+        AutoView.setZ(0.toFloat())
         video_View.setZ(1.toFloat())
     }
     private fun PortrainSet(){
@@ -501,7 +505,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout)
         video_layout.setLayoutParams(LandCamera)
         alpha_control.setVisibility(View.GONE)
-        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         AutoView.setLayoutParams(LandCamera)
         youtube_layout.setAlpha((1).toFloat())
     }
@@ -557,11 +561,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }else{
             play_Btn.setImageResource(R.drawable.play);
         }
-        if(isRecordingVideo){
-            record_Btn.setImageResource(R.drawable.stop);
-        }else {
-            record_Btn.setImageResource(R.drawable.record);
-        }
     }
 
     @SuppressLint("MissingPermission")
@@ -610,7 +609,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         Log.d("requestCode", requestCode.toString());
         Log.d("resultCode", resultCode.toString());
         //if (resultCode != RESULT_OK)
-        if (requestCode == 2 && data != null) {
+        if (requestCode == 3 && data != null) {
             val mVideoURI = data.getData();
             videopath = mVideoURI;
             videoString = videopath.toString();
@@ -630,12 +629,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             cameraId = CAMERA_BACK;
             closeCamera()
             openCamera(AutoView.width, AutoView.height)
-            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.mipmap.backcamera_round))
+            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.camera_back_24dp))
         } else if (cameraId.equals(CAMERA_BACK)) {
             cameraId = CAMERA_FRONT;
             closeCamera()
             openCamera(AutoView.width, AutoView.height)
-            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.mipmap.frontcamera_round))
+            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.camera_front_24dp))
         }
     }
     /**
@@ -761,6 +760,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (cameraDevice == null || !AutoView.isAvailable) return
 
         try {
+            record_Btn.setImageResource(R.drawable.record);
             closePreviewSession()
             setUpMediaRecorder()
             val texture = AutoView.surfaceTexture.apply {
@@ -814,6 +814,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     private fun stopRecordingVideo() {
         isRecordingVideo = false
+        record_Btn.setImageResource(R.drawable.stop);
         record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.record))
         mediaRecorder?.apply {
             stop()
@@ -971,14 +972,15 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             R.id.record_Btn ->//녹화
             {
                 Log.d(TAG, "record_Btn thouch");
-            if (AutoView.getVisibility() == View.INVISIBLE) {
+            if (AutoView.getVisibility() == View.GONE) {
                 AutoView.setVisibility(View.VISIBLE)
+                video_View.setVisibility(View.GONE)
             }
                 if (AutoView != null) {
                 if (isRecordingVideo) {
                     stopRecordingVideo()
                 } else {
-                    video_View.setVisibility(View.INVISIBLE)
+                    video_View.setVisibility(View.GONE)
                     AutoView.setVisibility(View.VISIBLE)
                     startRecordingVideo()
                 }
@@ -986,15 +988,26 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
             R.id.play_Btn//재생
                 ->{
-                Log.d(TAG, "play_Btn thouch");
-                if(video_View.isPlaying()){
-                    video_View.pause();
-                    play_record_Btn.setImageResource(R.drawable.play)
-                }else {
-                    video_View.start();
-                    play_record_Btn.setImageResource(R.drawable.pause)
-                    AutoView.setVisibility(View.INVISIBLE)
+                if (video_View.getVisibility() == View.GONE) {
                     video_View.setVisibility(View.VISIBLE)
+                    AutoView.setVisibility(View.GONE)
+                }
+                Log.d(TAG, "play_Btn thouch")
+                if(videoString == null){
+                    val intent = Intent(Intent.ACTION_GET_CONTENT);
+                    val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
+                    intent.setType("video/mp4");
+                    intent.putExtra(Intent.EXTRA_STREAM, uri);
+                    startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
+                }
+                if(video_View.isPlaying()){
+                    video_View.pause()
+                    play_Btn.setImageResource(R.drawable.play)
+                }else {
+                    play_Btn.setImageResource(R.drawable.pause)
+                    AutoView.setVisibility(View.GONE)
+                    video_View.setVisibility(View.VISIBLE)
+                    video_View.start()
                 }
                 }
 
@@ -1006,7 +1019,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                 intent.setType("video/mp4");
                 intent.putExtra(Intent.EXTRA_STREAM, uri);
-                startActivityForResult(Intent.createChooser(intent, "Select Video"), 2)
+                startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
             }
             R.id.play_record_Btn//파일과 카메라간 변환
                 -> {

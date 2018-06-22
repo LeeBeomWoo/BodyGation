@@ -595,6 +595,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onSaveInstanceState(outState: Bundle?) {
         outState!!.putBoolean("loading", fitloading)
         outState.putBoolean("sending", fitsending)
+        outState.putString("bmi", my_bmi_txtB.text.toString())
+        outState.putString("weight", my_weight_txtB.text.toString())
+        outState.putString("muscle", my_musclemass_txtB.text.toString())
+        outState.putString("fat", my_bodyfat_txtB.text.toString())
         super.onSaveInstanceState(outState)
     }
 
@@ -603,11 +607,15 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if(savedInstanceState != null) {
             fitloading = savedInstanceState.getBoolean("loading")
             fitsending = savedInstanceState.getBoolean("sending")
-        }
-        if(mGoogleSignInClient.silentSignIn().isSuccessful){
-        val acc = mGoogleSignInClient.silentSignIn().result
-        if(fitsending) {
-                launch {
+                if(mGoogleSignInClient.silentSignIn().isSuccessful){
+                    val acc = mGoogleSignInClient.silentSignIn().result
+
+                    my_bmi_txtB.text = savedInstanceState.getString("bmi")
+                    my_weight_txtB.setText(savedInstanceState.getString("weight"))
+                    my_musclemass_txtB.setText(savedInstanceState.getString("muscle"))
+                    my_bodyfat_txtB.setText(savedInstanceState.getString("fat"))
+                    if(fitsending) {
+                    launch {
                     launch(UI) {
                         pB = ProgressDialog.show(this@MainActivity, "데이터 보내기", "구글 핏으로 부터 데이터를 보내는 중입니다...")
                         insertData(acc)
@@ -616,8 +624,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         fitsending = false
                     }.join()
                 }
-        }else if(fitloading){
-            accessGoogleFit(acc)
+            }else if(fitloading){
+                accessGoogleFit(acc)
+            }
         }
         }
 

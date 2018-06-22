@@ -27,7 +27,7 @@
 
     <cn.gavinliu.android.lib.scale.ScaleRelativeLayout
         android:id="@+id/button_layout"
-        android:layout_width="90dp"
+        android:layout_width="wrap_content"
         android:layout_height="360dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true">
@@ -41,7 +41,7 @@
             android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
-            android:scaleType="fitCenter"
+            android:scaleType="centerInside"
             android:src="@drawable/record"
             tools:ignore="ContentDescription" />
 
@@ -54,7 +54,7 @@
             android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
-            android:scaleType="fitCenter"
+            android:scaleType="centerInside"
             android:src="@drawable/load"
             tools:ignore="ContentDescription" />
 
@@ -67,7 +67,7 @@
             android:layout_centerVertical="true"
             android:layout_margin="5dp"
             android:background="@color/nocolor"
-            android:scaleType="fitCenter"
+            android:scaleType="centerInside"
             android:src="@drawable/play"
             tools:ignore="ContentDescription" />
 
@@ -91,10 +91,8 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_margin="5dp"
-            android:background="@drawable/cirfcle"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/frontcamera_round" />"
-        />
+            android:background="@drawable/cirfcle_fill"
+            android:src="@drawable/camera_front_24dp" />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
 
@@ -104,7 +102,7 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/youtube_layout"
         android:layout_toStartOf="@+id/button_layout"
-        android:visibility="invisible">
+        android:visibility="gone">
 
         <VideoView
             android:id="@+id/video_View"
