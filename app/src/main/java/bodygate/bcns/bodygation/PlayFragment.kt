@@ -89,6 +89,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private val CHANGE = "https://www.youtube.com/embed/"
     private val TAG = "Item_follow_fragment_21"
     var baseDir = ""
+
+    private var mediaController: MediaController? = null
     //ScaleRelativeLayout button_layout;
 //ScaleFrameLayout cameraLayout;
     var page_num: Int = 0
@@ -613,15 +615,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             val mVideoURI = data.getData();
             videopath = mVideoURI;
             videoString = videopath.toString();
+            configureVideoView(videoString!!)
             Log.d("onActivityResult", mVideoURI.toString());
             Log.d("Result videoString", videoString);
             //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI));
-            video_ViewSetup(mVideoURI);
         }
-    }
-
-    private fun video_ViewSetup(path: Uri) {
-        video_View.setVideoURI(path)
     }
 
     fun switchCamera() {
@@ -1002,11 +1000,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 }
                 if(video_View.isPlaying()){
                     video_View.pause()
-                    play_Btn.setImageResource(R.drawable.play)
-                }else {
                     play_Btn.setImageResource(R.drawable.pause)
-                    AutoView.setVisibility(View.GONE)
-                    video_View.setVisibility(View.VISIBLE)
+                }else {
+                    play_Btn.setImageResource(R.drawable.play)
                     video_View.start()
                 }
                 }
@@ -1052,6 +1048,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                  ButtonImageSetUp();
                }
         }
+    }
+    private fun configureVideoView(source: String) {
+        video_View.setVideoPath(source)
+        mediaController = MediaController(this.requireActivity())
+        mediaController?.setAnchorView(video_View)
+        video_View.setMediaController(mediaController)
+        video_View.seekTo(100)
     }
     companion object {
         /**
