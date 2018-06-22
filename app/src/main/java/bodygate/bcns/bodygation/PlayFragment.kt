@@ -188,6 +188,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
 
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+            if (AutoView.isAvailable) {
+            openCamera(AutoView.width, AutoView.height)
+        }
             configureTransform(width, height)
         }
 
@@ -606,11 +609,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
             previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
                     width, height, videoSize)
-
-            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                AutoView.setAspectRatio(previewSize.width, previewSize.height)
-            } else {
-                AutoView.setAspectRatio(previewSize.height, previewSize.width)
+            if(this.requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
+                AutoView.setAspectRatio(16, 9)
+            }else{
+                AutoView.setAspectRatio(3, 4)
             }
             configureTransform(width, height)
             mediaRecorder = MediaRecorder()
@@ -918,11 +920,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             matrix.postRotate(180f, centerX, centerY)
         }
         AutoView.setTransform(matrix)
-        if(this.requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-            AutoView.setAspectRatio(16, 9)
-        }else{
-            AutoView.setAspectRatio(3, 4)
-        }
     }
     override fun onSaveInstanceState(outState: Bundle) {
         viewalpha = alpha_control.progress
