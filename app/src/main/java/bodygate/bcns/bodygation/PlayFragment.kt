@@ -394,23 +394,22 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera)
         fun onFragmentInteraction(uri: Uri)
     }
-    override fun onConfigurationChanged(newConfig: Configuration) {
+    override fun onConfigurationChanged(newConfig: Configuration?) {
             super.onConfigurationChanged(newConfig)
-
-        val manager = this.requireActivity().getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        val characteristics = manager.getCameraCharacteristics(cameraId)
-        Log.i(TAG, "onConfigurationChanged : " + this.requireActivity().windowManager.defaultDisplay.rotation.toString())
-        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            PortrainSet()
-            if (AutoView != null && AutoView!!.isAvailable()) {
-                configureTransform(AutoView!!.getWidth(), AutoView!!.getHeight())
-            }
-        }else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
-            LandSet()
-            if (AutoView != null && AutoView!!.isAvailable()) {
-                configureTransform(AutoView!!.getHeight(), AutoView!!.getWidth())
+        if (newConfig != null) {
+            if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                LandSet()
+                if (AutoView != null && AutoView!!.isAvailable()) {
+                    configureTransform(AutoView!!.getHeight(), AutoView!!.getWidth())
+                }
+            } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                PortrainSet()
+                if (AutoView != null && AutoView!!.isAvailable()) {
+                    configureTransform(AutoView!!.getWidth(), AutoView!!.getHeight())
+                }
             }
         }
+        Log.i(TAG, "onConfigurationChanged : " + this.requireActivity().windowManager.defaultDisplay.rotation.toString())
     }
     private fun LandSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);

@@ -871,7 +871,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             if (custom_Type == null) {
                 launch(UI) {
                 val a = makeData(acc)
-                    insertData(acc)}
+                    val b = insertData(acc)}
                 return null
             }else {
                 val source = DataSource.Builder()
