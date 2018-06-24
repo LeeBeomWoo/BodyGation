@@ -809,7 +809,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnSuccessListener(object :OnSuccessListener<DataType>{
                     override fun onSuccess(p0: DataType?) {
                         Log.i(TAG, "readDataType onSuccess")
-                        setDataType(p0!!)
+                        custom_Type = p0
                     }
                 })
                 .addOnFailureListener(object :OnFailureListener{
@@ -862,67 +862,71 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     }
                 })
     }
-    suspend fun insertData(acc:GoogleSignInAccount):Task<Void> {
+    suspend fun insertData(acc:GoogleSignInAccount):Task<Void>? {
         val cal = Calendar.getInstance()
         val now = Date()
         cal.time = now
         val nowTime = cal.timeInMillis
         // Create a new dataset and insertion request.
             if (custom_Type == null) {
-                launch {
+                launch(UI) {
                 val a = makeData(acc)
-                }
-            }
-            val source = DataSource.Builder()
-                    .setName("bodygate.bcns.bodygation.personal")
-                    .setDataType(custom_Type)
-                    .setAppPackageName(this@MainActivity.context.packageName)
-                    .setType(DataSource.TYPE_DERIVED)
-                    .build()
-            val dataPoint = DataPoint.create(source)
-            // Set values for the data point
-            // This data type has two custom fields (int, float) and a common field
-            for (s: Int in 0..(custom_Type!!.fields.size - 1)) {
-                when (custom_Type!!.fields[s].name) {
-                    "bmi" -> {
-                        dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bmi_txtB.text.toString().toFloat())
-                    }
-                    "muscle" -> {
-                        dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_musclemass_txtB.text.toString().toFloat())
-                    }
-                    "fat" -> {
-                        dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bodyfat_txtB.text.toString().toFloat())
-                    }
-                }
-            }
-            dataPoint.setTimestamp(nowTime, TimeUnit.MILLISECONDS)
-            val dataSet = DataSet.create(source)
-            dataSet.add(dataPoint)
-            return Fitness.getHistoryClient(this, acc).insertData(dataSet)
-                    .addOnSuccessListener(object : OnSuccessListener<Void> {
-                        override fun onSuccess(p0: Void?) {
-                            Log.i(TAG, "insertData onSuccess")
-
+                    insertData(acc)}
+                return null
+            }else {
+                val source = DataSource.Builder()
+                        .setName("bodygate.bcns.bodygation.personal")
+                        .setDataType(custom_Type)
+                        .setAppPackageName(this@MainActivity.context.packageName)
+                        .setType(DataSource.TYPE_DERIVED)
+                        .build()
+                val dataPoint = DataPoint.create(source)
+                // Set values for the data point
+                // This data type has two custom fields (int, float) and a common field
+                for (s: Int in 0..(custom_Type!!.fields.size - 1)) {
+                    when (custom_Type!!.fields[s].name) {
+                        "bmi" -> {
+                            dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bmi_txtB.text.toString().toFloat())
                         }
-                    })
-                    .addOnFailureListener(object : OnFailureListener {
-                        override fun onFailure(p0: Exception) {
-                            Log.i(TAG, "insertData OnFailureListener")
-                            Log.i(TAG, p0.message)
-                            launch(UI) {
-                                val a = makeData(acc)
-                                if (a.isSuccessful) {
-                                    insertData(acc)
-                                }
+                        "muscle" -> {
+                            dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_musclemass_txtB.text.toString().toFloat())
+                        }
+                        "fat" -> {
+                            dataPoint.getValue(custom_Type!!.fields[s]).setFloat(my_bodyfat_txtB.text.toString().toFloat())
+                        }
+                    }
+                }
+
+                dataPoint.setTimestamp(nowTime, TimeUnit.MILLISECONDS)
+                val dataSet = DataSet.create(source)
+                dataSet.add(dataPoint)
+
+                return Fitness.getHistoryClient(this, acc).insertData(dataSet)
+                        .addOnSuccessListener(object : OnSuccessListener<Void> {
+                            override fun onSuccess(p0: Void?) {
+                                Log.i(TAG, "insertData onSuccess")
+
                             }
+                        })
+                        .addOnFailureListener(object : OnFailureListener {
+                            override fun onFailure(p0: Exception) {
+                                Log.i(TAG, "insertData OnFailureListener")
+                                Log.i(TAG, p0.message)
+                                launch(UI) {
+                                    val a = makeData(acc)
+                                    if (a.isSuccessful) {
+                                        insertData(acc)
+                                    }
+                                }
 
-                        }
-                    })
-                    .addOnCompleteListener(object : OnCompleteListener<Void> {
-                        override fun onComplete(p0: Task<Void>) {
-                            Log.i(TAG, "insertData OnCompleteListener")
-                        }
-                    })
+                            }
+                        })
+                        .addOnCompleteListener(object : OnCompleteListener<Void> {
+                            override fun onComplete(p0: Task<Void>) {
+                                Log.i(TAG, "insertData OnCompleteListener")
+                            }
+                        })
+            }
     }
 
     suspend fun customDataType(acc:GoogleSignInAccount):Task<DataType>{

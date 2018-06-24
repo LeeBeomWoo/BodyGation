@@ -396,7 +396,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
     override fun onConfigurationChanged(newConfig: Configuration) {
             super.onConfigurationChanged(newConfig)
-        Log.i(TAG, "onConfigurationChanged")
+
+        val manager = this.requireActivity().getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val characteristics = manager.getCameraCharacteristics(cameraId)
+        Log.i(TAG, "onConfigurationChanged : " + this.requireActivity().windowManager.defaultDisplay.rotation.toString())
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             PortrainSet()
             if (AutoView != null && AutoView!!.isAvailable()) {
