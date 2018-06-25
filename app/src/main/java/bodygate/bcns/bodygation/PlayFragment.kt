@@ -75,7 +75,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
     }
-
+    var orientationListener:OrientationEventListener? = null
     val REQUEST_VIDEO_PERMISSIONS = 1
     val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private val ARG_PARAM1 = "url"
@@ -249,22 +249,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     }
 
-    fun defaultOrientation()
-    {
-        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_270, 180);
-    }
-
-    fun inverseOrientation()
-    {
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_0, 270);
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_90, 180);
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_180, 90);
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_270, 0);
-    }
-
     /**
      * [CaptureRequest.Builder] for the camera preview
      */
@@ -410,6 +394,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             }
         }
         Log.i(TAG, "onConfigurationChanged : " + this.requireActivity().windowManager.defaultDisplay.rotation.toString())
+        Log.i(TAG, "onConfigurationChanged newConfig : " + newConfig.toString())
     }
     private fun LandSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -517,7 +502,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         cameraId = CAMERA_FRONT
-        onConfigurationChanged(getActivity()!!.getResources().getConfiguration())
         startBackgroundThread()
         ButtonImageSetUp()
         viewSet()
@@ -548,14 +532,14 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             override fun onCompletion(mp: MediaPlayer?) {
                 play_Btn.setImageResource(R.drawable.play);
             }
-        });
+        })
         if(getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
             openCamera(AutoView.getWidth(), AutoView.getHeight());
-            youtube_layout.setAlpha((1).toFloat());
+            youtube_layout.setAlpha((1).toFloat())
         }else {
-            openCamera(AutoView.getHeight(), AutoView.getWidth());
-            alpha_control.setProgress(50);
-            youtube_layout.setAlpha((0.5).toFloat());
+            openCamera(AutoView.getHeight(), AutoView.getWidth())
+            alpha_control.setProgress(50)
+            youtube_layout.setAlpha((0.5).toFloat())
         }
 
     }

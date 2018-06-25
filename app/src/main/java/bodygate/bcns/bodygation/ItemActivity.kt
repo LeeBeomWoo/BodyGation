@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.hardware.Camera
 import android.net.Uri
 import android.os.Build
@@ -66,6 +67,9 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         super.onSaveInstanceState(outState)
         outState.putString("url", url)
     }
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        Log.i(TAG, "onConfigurationChanged : " + newConfig!!.orientation.toString())}
     override fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera) {
         val info = Camera.CameraInfo()
         Camera.getCameraInfo(cameraId, info)

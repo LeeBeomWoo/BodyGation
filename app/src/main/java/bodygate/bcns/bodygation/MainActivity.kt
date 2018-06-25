@@ -259,7 +259,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             launch(UI) {
                 pB = ProgressDialog.show(this@MainActivity, "데이터 보내기", "구글 핏으로 부터 데이터를 보내는 중입니다...")
                 fitsending = true
-                insertData(acc)
+                if(insertData(acc) == null) {
+                    insertData(acc)
+                }
                 insert_second(acc)
                 pB!!.dismiss()
                 fitsending = false
@@ -450,7 +452,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     0 -> {
                         supportFragmentManager
                                 .beginTransaction()
-                                .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "rageComicList")
+                                .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW))
                                 .commit()
                         return true
                     }
@@ -460,7 +462,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         }else{
                             supportFragmentManager
                                     .beginTransaction()
-                                    .replace(R.id.root_layout, FollowFragment.newInstance(), "rageComicList")
+                                    .replace(R.id.root_layout, FollowFragment.newInstance())
                                     .commit()
                         }
                         return true
@@ -468,7 +470,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     2 -> {
                         supportFragmentManager
                                 .beginTransaction()
-                                .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()), "rageComicList")
+                                .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()))
                                 .commit()
                         return true
                     }
@@ -620,7 +622,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     launch {
                     launch(UI) {
                         pB = ProgressDialog.show(this@MainActivity, "데이터 보내기", "구글 핏으로 부터 데이터를 보내는 중입니다...")
-                        insertData(acc)
+
+                        if(insertData(acc) == null) {
+                            insertData(acc)
+                        }
                         insert_second(acc)
                         pB!!.dismiss()
                         fitsending = false
@@ -871,7 +876,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             if (custom_Type == null) {
                 launch(UI) {
                 val a = makeData(acc)
-                    val b = insertData(acc)}
+                }
                 return null
             }else {
                 val source = DataSource.Builder()
@@ -914,9 +919,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                                 Log.i(TAG, p0.message)
                                 launch(UI) {
                                     val a = makeData(acc)
-                                    if (a.isSuccessful) {
-                                        insertData(acc)
-                                    }
                                 }
 
                             }
