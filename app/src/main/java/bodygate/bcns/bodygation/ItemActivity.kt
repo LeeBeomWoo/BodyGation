@@ -3,6 +3,7 @@ package bodygate.bcns.bodygation
 import android.Manifest
 import android.app.Activity
 import android.app.Dialog
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -21,6 +22,8 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Surface
 import bodygate.bcns.bodygation.PlayFragment.OnFragmentInteractionListener
+import bodygate.bcns.bodygation.support.PlayModel
+import bodygate.bcns.bodygation.support.PlayModelFactory
 import cn.gavinliu.android.lib.scale.config.ScaleConfig
 import kotlinx.android.synthetic.main.fragment_play.*
 
@@ -61,6 +64,8 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         }else{
             url = intent.getStringExtra("url")
         }
+      //  val factory = PlayModelFactory(url)
+      //  val model = ViewModelProviders.of(PlayFragment.newInstance(url), factory).get(PlayModel::class.java)
         supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url)).commit()
     }
     override fun onSaveInstanceState(outState: Bundle) {

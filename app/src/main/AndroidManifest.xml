@@ -87,8 +87,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ItemActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout" />
+            android:name=".ItemActivity"/>
     </application>
 
 </manifest>

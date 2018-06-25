@@ -77,7 +77,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
     }
-    var orientationListener:OrientationEventListener? = null
     val REQUEST_VIDEO_PERMISSIONS = 1
     val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private val ARG_PARAM1 = "url"
@@ -187,9 +186,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         append(Surface.ROTATION_270, 0)
     }
     private val surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
             openCamera(width, height)
-            configureTransform(width, height)
         }
 
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
@@ -202,6 +201,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     }
 
+    private lateinit var textureView: AutoFitTextureView
 
     private val stateCallback = object : CameraDevice.StateCallback() {
 
@@ -209,11 +209,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             cameraOpenCloseLock.release()
             this@PlayFragment.cameraDevice = cameraDevice
             startPreview()
+            configureTransform(textureView.width, textureView.height)
+            /*
             if (this@PlayFragment.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
                 configureTransform(AutoView.height ,AutoView.width)
             }else{
                 configureTransform(AutoView.width, AutoView.height)
-            }
+            }*/
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
@@ -240,10 +242,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         // 메시지 큐에 저장될 메시지의 내용;
                         val a = progress / 100.0
                         val b = a.toFloat()
-                        if (this@PlayFragment.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-                            youtube_layout.setAlpha(b)
-                        }else{
-                            youtube_layout.setAlpha(b)
+                        if(youtube_layout != null) {
+                            if (this@PlayFragment.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+                                youtube_layout.setAlpha(b)
+                            } else {
+                                youtube_layout.setAlpha(b)
+                            }
                         }
                     }
                 })
@@ -295,10 +299,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
         // the SurfaceTextureListener).
-        if (AutoView.isAvailable) {
-            openCamera(AutoView.width, AutoView.height)
-        } else {
-            AutoView.surfaceTextureListener = surfaceTextureListener
+        if(textureView != null) {
+            if (textureView.isAvailable) {
+                openCamera(textureView.width, textureView.height)
+            } else {
+                textureView.surfaceTextureListener = surfaceTextureListener
+            }
         }
         youtube_layout.resumeTimers()
     }
@@ -386,13 +392,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (newConfig != null) {
             if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 LandSet()
-                if (AutoView != null && AutoView!!.isAvailable()) {
-                    configureTransform(AutoView!!.getHeight(), AutoView!!.getWidth())
+                if (textureView.isAvailable()) {
+                    configureTransform(textureView.getHeight(), textureView.getWidth())
                 }
             } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 PortrainSet()
-                if (AutoView != null && AutoView!!.isAvailable()) {
-                    configureTransform(AutoView!!.getWidth(), AutoView!!.getHeight())
+                if (textureView.isAvailable()) {
+                    configureTransform(textureView.getWidth(), textureView.getHeight())
                 }
             }
         }
@@ -444,14 +450,14 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout);
         youtube_layout.setLayoutParams(LandWebView);
         video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        AutoView.setLayoutParams(LandCamera)
+        textureView.setLayoutParams(LandCamera)
         alpha_control.setProgress(50);
         alpha_control.setVisibility(View.VISIBLE);
         alpha_control.setZ(2.toFloat());
         youtube_layout.setAlpha((0.5).toFloat());
         youtube_layout.setZ(2.toFloat());
         video_layout.setZ(0.toFloat());
-        AutoView.setZ(0.toFloat())
+        textureView.setZ(0.toFloat())
         video_View.setZ(1.toFloat())
     }
     private fun PortrainSet(){
@@ -498,7 +504,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         video_layout.setLayoutParams(LandCamera)
         alpha_control.setVisibility(View.GONE)
         video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        AutoView.setLayoutParams(LandCamera)
+        textureView.setLayoutParams(LandCamera)
         youtube_layout.setAlpha((1).toFloat())
     }
     @SuppressLint("SetJavaScriptEnabled")
@@ -507,6 +513,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         cameraId = CAMERA_FRONT
         startBackgroundThread()
         ButtonImageSetUp()
+        textureView = view.findViewById(R.id.AutoView)
         viewSet()
         alpha_control.setMax(100)
         youtube_layout.setWebChromeClient(WebChromeClient())
@@ -537,10 +544,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             }
         })
         if(getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-            openCamera(AutoView.getWidth(), AutoView.getHeight());
+            openCamera(textureView.getWidth(), textureView.getHeight());
             youtube_layout.setAlpha((1).toFloat())
         }else {
-            openCamera(AutoView.getHeight(), AutoView.getWidth())
+            openCamera(textureView.getHeight(), textureView.getWidth())
             alpha_control.setProgress(50)
             youtube_layout.setAlpha((0.5).toFloat())
         }
@@ -615,12 +622,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (cameraId.equals(CAMERA_FRONT)) {
             cameraId = CAMERA_BACK;
             closeCamera()
-            openCamera(AutoView.width, AutoView.height)
+            openCamera(textureView.width, textureView.height)
             play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.camera_back_24dp))
         } else if (cameraId.equals(CAMERA_BACK)) {
             cameraId = CAMERA_FRONT;
             closeCamera()
-            openCamera(AutoView.width, AutoView.height)
+            openCamera(textureView.width, textureView.height)
             play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.camera_front_24dp))
         }
     }
@@ -643,11 +650,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     private fun startPreview() {
-        if (cameraDevice == null || !AutoView.isAvailable) return
+        if (cameraDevice == null || !textureView.isAvailable) return
 
         try {
             closePreviewSession()
-            val texture = AutoView.surfaceTexture
+            val texture = textureView.surfaceTexture
             texture.setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
             previewRequestBuilder = cameraDevice!!.createCaptureRequest(TEMPLATE_PREVIEW)
 
@@ -744,13 +751,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     private fun startRecordingVideo() {
-        if (cameraDevice == null || !AutoView.isAvailable) return
+        if (cameraDevice == null || !textureView.isAvailable) return
 
         try {
             record_Btn.setImageResource(R.drawable.record);
             closePreviewSession()
             setUpMediaRecorder()
-            val texture = AutoView.surfaceTexture.apply {
+            val texture = textureView.surfaceTexture.apply {
                 setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
             }
 
@@ -895,11 +902,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180f, centerX, centerY)
         }
-        AutoView.setTransform(matrix)
+        textureView.setTransform(matrix)
         if(this.requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-            AutoView.setAspectRatio(16, 9)
+            textureView.setAspectRatio(16, 9)
         }else{
-            AutoView.setAspectRatio(3, 4)
+            textureView.setAspectRatio(3, 4)
         }
     }
     override fun onSaveInstanceState(outState: Bundle) {
@@ -959,16 +966,16 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             R.id.record_Btn ->//녹화
             {
                 Log.d(TAG, "record_Btn thouch");
-            if (AutoView.getVisibility() == View.GONE) {
-                AutoView.setVisibility(View.VISIBLE)
+            if (textureView.getVisibility() == View.GONE) {
+                textureView.setVisibility(View.VISIBLE)
                 video_View.setVisibility(View.GONE)
             }
-                if (AutoView != null) {
+                if (textureView != null) {
                 if (isRecordingVideo) {
                     stopRecordingVideo()
                 } else {
                     video_View.setVisibility(View.GONE)
-                    AutoView.setVisibility(View.VISIBLE)
+                    textureView.setVisibility(View.VISIBLE)
                     startRecordingVideo()
                 }
             }
@@ -977,7 +984,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 ->{
                 if (video_View.getVisibility() == View.GONE) {
                     video_View.setVisibility(View.VISIBLE)
-                    AutoView.setVisibility(View.GONE)
+                    textureView.setVisibility(View.GONE)
                 }
                 Log.d(TAG, "play_Btn thouch")
                 if(videoString == null){
@@ -1018,7 +1025,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                          stopRecordingVideo()
                      }
                      closeCamera();
-                     AutoView.setVisibility(View.INVISIBLE)
+                     textureView.setVisibility(View.INVISIBLE)
                      video_View.setVisibility(View.VISIBLE)
                      play_record = false;
                  } else {
@@ -1026,11 +1033,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                          video_View.stopPlayback();
                      }
                      if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-                         openCamera(AutoView.getWidth(), AutoView.getHeight());
+                         openCamera(textureView.getWidth(), textureView.getHeight());
                      } else {
-                         openCamera(AutoView.getHeight(), AutoView.getWidth());
+                         openCamera(textureView.getHeight(), textureView.getWidth());
                      }
-                     AutoView.setVisibility(View.VISIBLE);
+                     textureView.setVisibility(View.VISIBLE);
                      video_View.setVisibility(View.INVISIBLE);
                      play_record = true;
                  }
