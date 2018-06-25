@@ -23,6 +23,8 @@ import android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATIO
 import android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION
 import android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW
 import android.hardware.camera2.CameraDevice.TEMPLATE_RECORD
+import android.hardware.display.DisplayManager
+import android.hardware.display.DisplayManager.DisplayListener
 import android.media.ImageReader
 import android.view.*
 import android.media.MediaPlayer
@@ -187,6 +189,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private val surfaceTextureListener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
             openCamera(width, height)
+            configureTransform(width, height)
         }
 
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {

@@ -91,6 +91,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
             result = (info.orientation - degrees + 360) % 360
         }
         camera.setDisplayOrientation(result)
+        Log.i(TAG, "onConfigurationChanged_setCameraDisplayOrientation : " + result.toString())
     }
 
     override fun onBackPressed() {
