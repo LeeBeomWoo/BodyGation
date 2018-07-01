@@ -26,10 +26,8 @@ android {
             keyAlias 'bodygation.'
             keyPassword 'dlqjadn1482**'
             storePassword 'dlqjadn1482**'
-            //D:/BCNS/APK/BodyGation.jks
-            //E:/personal/APK/BodyGation.jks
-            storeFile file('E:/personal/APK/BodyGation.jks')
-            //storeFile file('D:/BCNS/APK/BodyGation.jks')
+           // storeFile file('E:/personal/APK/BodyGation.jks')
+            storeFile file('D:/BCNS/APK/BodyGation.jks')
         }
     }
     compileSdkVersion 28
@@ -118,11 +116,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
+    kapt 'com.android.databinding:compiler:3.1.3'
 }
 kotlin {
     experimental {
         coroutines "enable"
     }
 }
-
 apply plugin: 'com.google.gms.google-services'

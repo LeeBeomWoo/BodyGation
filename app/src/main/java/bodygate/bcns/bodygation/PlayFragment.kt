@@ -4,9 +4,12 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.ConfigurationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Configuration
@@ -49,6 +52,7 @@ import android.webkit.WebViewClient
 import android.widget.*
 import android.widget.Toast.LENGTH_SHORT
 import bodygate.bcns.bodygation.camerause.*
+import bodygate.bcns.bodygation.dummy.PlayViewModel
 import kotlinx.android.synthetic.main.fragment_play.*
 import org.jetbrains.anko.Orientation
 import org.jetbrains.anko.configuration
@@ -90,11 +94,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private val CHANGE = "https://www.youtube.com/embed/"
     private val TAG = "Item_follow_fragment_21"
     var baseDir = ""
-
+    var mViewModel:ViewModel? = null
     private var mediaController: MediaController? = null
     //ScaleRelativeLayout button_layout;
-//ScaleFrameLayout cameraLayout;
-    var page_num: Int = 0
+    //ScaleFrameLayout cameraLayout;
+    var webprogress: Int = 0
     var LandButton: ScaleRelativeLayout.LayoutParams? = null
     var LandCamera:ScaleRelativeLayout.LayoutParams? = null
     var LandWebView:ScaleRelativeLayout.LayoutParams? = null
@@ -275,6 +279,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
+        setRetainInstance(true)
         if(savedInstanceState != null){
             param1 = savedInstanceState.getString("url")
         }else {
@@ -311,6 +316,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
    override fun onPause() {
         Log.d(TAG, "onPause")
         super.onPause()
+
        closeCamera()
        stopBackgroundThread()
         youtube_layout.pauseTimers()
@@ -514,9 +520,26 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         startBackgroundThread()
         ButtonImageSetUp()
         textureView = view.findViewById(R.id.AutoView)
+        Log.i("Layout", "screenLayout" + requireActivity().configuration.screenLayout.toString())
+        Log.i("Layout", "layoutDirection" + requireActivity().configuration.layoutDirection.toString())
+        if(requireActivity().configuration.orientation == Configuration.ORIENTATION_PORTRAIT){
+            PortrainSet()
+        }else{
+            LandSet()
+        }
         viewSet()
         alpha_control.setMax(100)
-        youtube_layout.setWebChromeClient(WebChromeClient())
+        youtube_layout.setWebChromeClient(object: WebChromeClient(){
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                super.onProgressChanged(view, newProgress)
+                webprogress = newProgress
+            }
+        })
+        youtube_layout.setWebViewClient(object: WebViewClient() {
+            override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+                super.onReceivedError(view, errorCode, description, failingUrl)
+   }
+ });
         youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
         youtube_layout.setWebViewClient(WebViewClient())
         youtube_layout.getSettings().setJavaScriptEnabled(true)

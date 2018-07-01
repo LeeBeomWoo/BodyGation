@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.Parcelable
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.PopupMenu
@@ -60,6 +61,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_follow.*
 import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.android.synthetic.main.fragment_goal.*
 import kotlinx.android.synthetic.main.toolbar_custom.*
@@ -80,7 +82,8 @@ import kotlin.collections.ArrayList
 @Suppress("DUPLICATE_LABEL_IN_WHEN", "CAST_NEVER_SUCCEEDS")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
         ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.OnConnectionFailedListener {
-
+    val LIST_STATE_KEY:String = "recycler_list_state";
+    var listState: Parcelable? = null
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
     private val REQUEST_OAUTH = 1001
     var menu_isShow:Boolean = false
@@ -128,6 +131,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     val muscle_Label:MutableList<String> =  ArrayList()
     val bmi_Label:MutableList<String> =  ArrayList()
     var ib = 0
+
+    var goalFragment:GoalFragment? = null
+    var followFragment:FollowFragment? = null
+    var forMeFragment:ForMeFragment? = null
+    var youTubeResult:YouTubeResult? = null
+
     override fun stopProgress(i:Int) {
         when(i) {
             3-> if (mPb!!.isShowing) {
@@ -336,7 +345,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         sendquery = q
         supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.root_layout, YouTubeResult.newInstance(), "rageComicList")
+                .replace(R.id.root_layout, YouTubeResult.newInstance(), "youtube")
                 .commit()
     }
 
@@ -445,33 +454,53 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         bottom_navigation.addItem(item2)
         bottom_navigation.addItem(item3)
         bottom_navigation.setDefaultBackgroundColor(Color.parseColor("#FFFFFFFF"))
+        followFragment = supportFragmentManager.findFragmentByTag("follow") as FollowFragment?
+        goalFragment = supportFragmentManager.findFragmentByTag("goal") as GoalFragment?
+        youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult?
+        forMeFragment = supportFragmentManager.findFragmentByTag("forme") as ForMeFragment?
         bottom_navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
             override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
                 when (item) {
                 //해당 페이지로 이동
                     0 -> {
-                        supportFragmentManager
-                                .beginTransaction()
-                                .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW))
-                                .commit()
-                        return true
-                    }
-                    1 -> {
-                        if(sendquery != null){
-                            OnFollowInteraction(sendquery, 0)
-                        }else{
+                        if(goalFragment == null) {
                             supportFragmentManager
                                     .beginTransaction()
-                                    .replace(R.id.root_layout, FollowFragment.newInstance())
+                                    .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "goal")
                                     .commit()
+                        }else{
+                            supportFragmentManager
+                                    .beginTransaction().replace(R.id.root_layout, goalFragment!!).commit()
                         }
                         return true
                     }
+                    1 -> {
+                        if (followFragment == null) {
+                            if (sendquery != null) {
+                                OnFollowInteraction(sendquery, 0)
+                            } else {
+                                supportFragmentManager
+                                        .beginTransaction()
+                                        .replace(R.id.root_layout, FollowFragment.newInstance(), "follow")
+                                        .commit()
+                            }
+                        }else {
+                                supportFragmentManager
+                                        .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
+                        }
+                            return true
+
+                    }
                     2 -> {
-                        supportFragmentManager
-                                .beginTransaction()
-                                .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()))
-                                .commit()
+                        if (forMeFragment == null) {
+                            supportFragmentManager
+                                    .beginTransaction()
+                                    .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()), "forme")
+                                    .commit()
+                        }else{
+                            supportFragmentManager
+                                    .beginTransaction().replace(R.id.root_layout, forMeFragment!!).commit()
+                        }
                         return true
                     }
                 }
@@ -480,7 +509,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
         })
         bottom_navigation.setTitleState(AHBottomNavigation.TitleState.SHOW_WHEN_ACTIVE)
-        bottom_navigation.setCurrentItem(1)
+        if(savedInstanceState == null ) {
+            bottom_navigation.setCurrentItem(1)
+        }else{
+            bottom_navigation.setCurrentItem(savedInstanceState.getInt("section"))
+        }
         bottom_navigation.setForceTint(true)
         bottom_navigation.setAccentColor(Color.parseColor("#41c0c1"))
         bottom_navigation.setInactiveColor(Color.parseColor("#696969"))
@@ -595,20 +628,32 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
         outState!!.putBoolean("loading", fitloading)
         outState.putBoolean("sending", fitsending)
+        outState.putInt("section", bottom_navigation.currentItem)
         if(fitsending) {
             outState.putString("bmi", my_bmi_txtB.text.toString())
             outState.putString("weight", my_weight_txtB.text.toString())
             outState.putString("muscle", my_musclemass_txtB.text.toString())
             outState.putString("fat", my_bodyfat_txtB.text.toString())
         }
-        super.onSaveInstanceState(outState)
+        if(youTubeResult != null) {
+            listState = result_list.layoutManager!!.onSaveInstanceState();
+            outState.putParcelable(LIST_STATE_KEY, listState);
+        }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (listState != null) {
+            result_list.layoutManager!!.onRestoreInstanceState(listState);
+        }
+    }
     override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
         super.onRestoreInstanceState(savedInstanceState)
         if(savedInstanceState != null) {
+            listState = savedInstanceState.getParcelable(LIST_STATE_KEY);
             fitloading = savedInstanceState.getBoolean("loading")
             fitsending = savedInstanceState.getBoolean("sending")
                 if(mGoogleSignInClient.silentSignIn().isSuccessful){
