@@ -53,6 +53,9 @@ import android.widget.*
 import android.widget.Toast.LENGTH_SHORT
 import bodygate.bcns.bodygation.camerause.*
 import bodygate.bcns.bodygation.dummy.PlayViewModel
+import com.google.android.youtube.player.YouTubeInitializationResult
+import com.google.android.youtube.player.YouTubePlayer
+import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import kotlinx.android.synthetic.main.fragment_play.*
 import org.jetbrains.anko.Orientation
 import org.jetbrains.anko.configuration
@@ -94,7 +97,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private val CHANGE = "https://www.youtube.com/embed/"
     private val TAG = "Item_follow_fragment_21"
     var baseDir = ""
-    var mViewModel:ViewModel? = null
     private var mediaController: MediaController? = null
     //ScaleRelativeLayout button_layout;
     //ScaleFrameLayout cameraLayout;
@@ -114,7 +116,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var temp:String? = null
     var videoString:String? = null
     var videopath: Uri? = null
-
 
     private lateinit var cameraId: String
 
@@ -177,6 +178,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private var mNextVideoAbsolutePath: String? = null
     private var mPreviewBuilder: CaptureRequest.Builder? = null
     private val FRAGMENT_DIALOG = "dialog"
+    var youTubePlayerSupportFragment:YouTubePlayerSupportFragment? = null
+    var youtubePlayer:YouTubePlayer? = null
+
     private val DEFAULT_ORIENTATIONS = SparseIntArray().apply {
         append(Surface.ROTATION_0, 90)
         append(Surface.ROTATION_90, 0)
@@ -311,15 +315,16 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 textureView.surfaceTextureListener = surfaceTextureListener
             }
         }
-        youtube_layout.resumeTimers()
+       // youtube_layout.resumeTimers()
     }
    override fun onPause() {
         Log.d(TAG, "onPause")
         super.onPause()
-
        closeCamera()
        stopBackgroundThread()
+       /*
         youtube_layout.pauseTimers()
+       youtube_layout.progress*/
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -516,32 +521,33 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        textureView = view.findViewById(R.id.AutoView)
+        onConfigurationChanged(this.requireActivity().configuration)
         cameraId = CAMERA_FRONT
         startBackgroundThread()
         ButtonImageSetUp()
-        textureView = view.findViewById(R.id.AutoView)
         Log.i("Layout", "screenLayout" + requireActivity().configuration.screenLayout.toString())
         Log.i("Layout", "layoutDirection" + requireActivity().configuration.layoutDirection.toString())
+        /*
         if(requireActivity().configuration.orientation == Configuration.ORIENTATION_PORTRAIT){
             PortrainSet()
         }else{
             LandSet()
-        }
+        }*/
         viewSet()
         alpha_control.setMax(100)
+        /*
         youtube_layout.setWebChromeClient(object: WebChromeClient(){
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 super.onProgressChanged(view, newProgress)
-                webprogress = newProgress
             }
         })
         youtube_layout.setWebViewClient(object: WebViewClient() {
             override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
                 super.onReceivedError(view, errorCode, description, failingUrl)
    }
- });
+ })
         youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
-        youtube_layout.setWebViewClient(WebViewClient())
         youtube_layout.getSettings().setJavaScriptEnabled(true)
         youtube_layout.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN)
         youtube_layout.getSettings().setJavaScriptCanOpenWindowsAutomatically(true)
@@ -552,7 +558,22 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         youtube_layout.getSettings().setUseWideViewPort(true)
         URL = FURL + CHANGE + param1 + BURL;
         Log.d(TAG, "temp : " + temp + "," + "tr_id : " + tr_id )
-        youtube_layout.loadData(URL, "text/html", "charset=utf-8")
+        youtube_layout.loadData(URL, "text/html", "charset=utf-8")*/
+        if(youTubePlayerSupportFragment == null) {
+            youTubePlayerSupportFragment = YouTubePlayerSupportFragment.newInstance()
+            youTubePlayerSupportFragment!!.initialize(getString(R.string.API_key), object:YouTubePlayer.OnInitializedListener{
+                override fun onInitializationSuccess(p0: YouTubePlayer.Provider?, p1: YouTubePlayer?, p2: Boolean) {
+                    youtubePlayer = p1
+                    youtubePlayer!!.cueVideo(param1)
+                }
+
+                override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+            })
+        }
+
+        requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         alpha_control.setOnSeekBarChangeListener(this)
     }
     private fun viewSet(){

@@ -110,7 +110,7 @@
             android:layout_height="match_parent" />
     </cn.gavinliu.android.lib.scale.ScaleFrameLayout>
 
-    <WebView
+    <cn.gavinliu.android.lib.scale.ScaleFrameLayout
         android:id="@+id/youtube_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
