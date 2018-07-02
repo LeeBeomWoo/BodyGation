@@ -110,6 +110,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var videoString:String? = null
     var videopath: Uri? = null
     var youtubeprogress:Int = 0
+    var youtubePlaying:Boolean = false
 
     private lateinit var cameraId: String
 
@@ -192,7 +193,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     }
 
-    private var textureView: AutoFitTextureView? = null
+    private lateinit var textureView: AutoFitTextureView
 
     private val stateCallback = object : CameraDevice.StateCallback() {
 
@@ -200,7 +201,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             cameraOpenCloseLock.release()
             this@PlayFragment.cameraDevice = cameraDevice
             startPreview()
-            configureTransform(textureView!!.width, textureView!!.height)
+            configureTransform(textureView.width, textureView.height)
             /*
             if (this@PlayFragment.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
                 configureTransform(AutoView.height ,AutoView.width)
@@ -233,8 +234,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         // 메시지 큐에 저장될 메시지의 내용;
                         val a = (progress.toDouble() / 100.0)
                         val b = a.toFloat()
-                        if(textureView != null) {
-                            textureView!!.setAlpha(b)
+                        if(textureView.isAvailable) {
+                            textureView.setAlpha(b)
                         }
                     }
                 })
@@ -263,13 +264,15 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         Log.d(TAG, "onCreate")
         setRetainInstance(true)
         if(savedInstanceState != null){
+            Log.i(TAG, "onCreate savedInstanceState")
             param1 = savedInstanceState.getString("url")
+            youtubeprogress = savedInstanceState.getInt("progress")
+            youtubePlaying = savedInstanceState.getBoolean("playyoutube")
         }else {
             arguments?.let {
                 param1 = it.getString(ARG_PARAM1)
             }
         }
-
         val state = Environment.getExternalStorageState()
         if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
             //Retrieve the primary External Storage:
@@ -278,48 +281,22 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             baseDir = Environment.DIRECTORY_MOVIES
         }
     }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d(TAG, "onStart")
-        startBackgroundThread()
-        // When the screen is turned off and turned back on, the SurfaceTexture is already
-        // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
-        // a camera and start preview from here (otherwise, we wait until the surface is ready in
-        // the SurfaceTextureListener).
-        if(textureView != null) {
-            if (textureView!!.isAvailable) {
-                openCamera(textureView!!.width, textureView!!.height)
-            } else {
-                textureView!!.surfaceTextureListener = surfaceTextureListener
-            }
-        }
-        if(youtubeprogress > 0){
-            youtubePlayer!!.seekRelativeMillis(youtubeprogress)
-            youtubePlayer!!.play()
-        }
-    }
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
+        startBackgroundThread()
+        if(textureView.isAvailable) {
+                openCamera(textureView.width, textureView.height)
+            } else {
+                textureView.surfaceTextureListener = surfaceTextureListener
+            }
     }
 
-    override fun onStop() {
-        super.onStop()
-        Log.d(TAG, "onStop")
-        closeCamera()
-        stopBackgroundThread()
-        /*
-         youtube_layout.pauseTimers()
-        youtube_layout.progress*/
-        if(youtubePlayer != null) {
-            youtubePlayer!!.pause()
-           youtubeprogress = youtubePlayer!!.getCurrentTimeMillis()
-        }
-    }
    override fun onPause() {
         super.onPause()
        Log.d(TAG, "onPause")
+       closeCamera()
+       stopBackgroundThread()
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -358,10 +335,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         return inflater.inflate(R.layout.fragment_play, container, false)
     }
 
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
-    }
-
     override fun onAttach(context: Context) {
         Log.i(TAG, "onAttach")
         super.onAttach(context)
@@ -398,17 +371,18 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (newConfig != null) {
             if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 LandSet()
-                if (textureView!!.isAvailable()) {
-                    configureTransform(textureView!!.getHeight(), textureView!!.getWidth())
+                if (textureView.isAvailable()) {
+                    Log.i(TAG, "onConfigurationChanged : LandSet")
+                    configureTransform(textureView.getHeight(), textureView.getWidth())
                 }
             } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 PortrainSet()
-                if (textureView!!.isAvailable()) {
-                    configureTransform(textureView!!.getWidth(), textureView!!.getHeight())
+                if (textureView.isAvailable()) {
+                    Log.i(TAG, "onConfigurationChanged : PortrainSet")
+                    configureTransform(textureView.getWidth(), textureView.getHeight())
                 }
             }
         }
-        Log.i(TAG, "onConfigurationChanged : " + this.requireActivity().windowManager.defaultDisplay.rotation.toString())
         Log.i(TAG, "onConfigurationChanged newConfig : " + newConfig.toString())
     }
     private fun LandSet(){
@@ -456,12 +430,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
         youtube_layout.setLayoutParams(LandCamera)
         video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        textureView!!.setLayoutParams(LandWebView)
+        textureView.setLayoutParams(LandWebView)
         alpha_control.setProgress(50)
         alpha_control.setVisibility(View.VISIBLE)
         alpha_control.setZ(2.toFloat())
-        textureView!!.setAlpha((0.5).toFloat())
-        textureView!!.setZ(2.toFloat())
+        textureView.setAlpha((0.5).toFloat())
+        textureView.setZ(2.toFloat())
         video_layout.setZ(0.toFloat());
         youtube_layout.setZ(0.toFloat())
         video_View.setZ(1.toFloat())
@@ -511,7 +485,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         video_layout.setLayoutParams(LandCamera)
         alpha_control.setVisibility(View.GONE)
         video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        textureView!!.setLayoutParams(LandCamera)
+        textureView.setLayoutParams(LandCamera)
+        textureView.setAlpha((1).toFloat())
         youtube_layout.setAlpha((1).toFloat())
     }
     @SuppressLint("SetJavaScriptEnabled")
@@ -520,50 +495,74 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         textureView = view.findViewById(R.id.AutoView)
         onConfigurationChanged(this.requireActivity().configuration)
         cameraId = CAMERA_FRONT
-        viewSet()
-        alpha_control.max = 100
+        startBackgroundThread()
         ButtonImageSetUp()
-        Log.i("Layout", "screenLayout" + requireActivity().configuration.screenLayout.toString())
-        Log.i("Layout", "layoutDirection" + requireActivity().configuration.layoutDirection.toString())
-        if(youTubePlayerSupportFragment == null) {
+        viewSet()
+        alpha_control.max = 90
             youTubePlayerSupportFragment = YouTubePlayerSupportFragment.newInstance()
-            youTubePlayerSupportFragment!!.setRetainInstance(true)
             youTubePlayerSupportFragment!!.initialize(getString(R.string.API_key), object:YouTubePlayer.OnInitializedListener{
                 override fun onInitializationSuccess(p0: YouTubePlayer.Provider?, p1: YouTubePlayer?, p2: Boolean) {
+                    Log.i("youtube", "youTubePlayerSupportFragment")
                     youtubePlayer = p1
                     youtubePlayer!!.setFullscreen(false)
                     youtubePlayer!!.cueVideo(param1)
                     youtubePlayer!!.setShowFullscreenButton(false)
+                    youtubePlayer!!.setPlaybackEventListener(object : YouTubePlayer.PlaybackEventListener{
+                        override fun onSeekTo(p0: Int) {
 
+                        }
+
+                        override fun onBuffering(p0: Boolean) {
+                        }
+
+                        override fun onPlaying() {
+                            youtubePlaying = true
+                            Log.i("youtube", "onPlaying")
+                        }
+
+                        override fun onStopped() {
+                            youtubeprogress = youtubePlayer!!.currentTimeMillis
+                            Log.i("youtube", "onStopped")
+                        }
+
+                        override fun onPaused() {
+                            youtubeprogress = youtubePlayer!!.currentTimeMillis
+                            youtubePlaying = false
+                            Log.i("youtube", "onPaused")
+                        }
+                    })
+                    if(youtubePlaying){
+                        if(youtubeprogress > 1){
+                            youtubePlayer!!.seekToMillis(youtubeprogress)
+                            youtubePlayer!!.play()
+                            Log.i("youtube", "youtubeprogress")
+                        }
+                    }
                 }
                 override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {
-
+                    Log.i("youtube", "onInitializationFailure : " + p1.toString()
+                    )
                 }
             })
-        }
-        requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
+            requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         alpha_control.setOnSeekBarChangeListener(this)
     }
     private fun viewSet(){
-        record_Btn.setOnClickListener(this);
-        load_Btn.setOnClickListener(this);
-        play_Btn.setOnClickListener(this);
-        play_record_Btn.setOnClickListener(this);
-        viewChange_Btn.setOnClickListener(this);
+        record_Btn.setOnClickListener(this)
+        load_Btn.setOnClickListener(this)
+        play_Btn.setOnClickListener(this)
+        play_record_Btn.setOnClickListener(this)
+        viewChange_Btn.setOnClickListener(this)
         video_View.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
             override fun onCompletion(mp: MediaPlayer?) {
                 play_Btn.setImageResource(R.drawable.play);
             }
         })
         if(getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-            openCamera(textureView!!.getWidth(), textureView!!.getHeight());
-            youtube_layout.setAlpha((1).toFloat())
+            openCamera(textureView.getWidth(), textureView.getHeight())
         }else {
-            openCamera(textureView!!.getHeight(), textureView!!.getWidth())
-            alpha_control.setProgress(50)
-            youtube_layout.setAlpha((0.5).toFloat())
+            openCamera(textureView.getHeight(), textureView.getWidth())
         }
-
     }
     private fun ButtonImageSetUp(){
         if(video_View.isPlaying()){
@@ -634,12 +633,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (cameraId.equals(CAMERA_FRONT)) {
             cameraId = CAMERA_BACK;
             closeCamera()
-            openCamera(textureView!!.width, textureView!!.height)
+            openCamera(textureView.width, textureView.height)
             play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.camera_back_24dp))
         } else if (cameraId.equals(CAMERA_BACK)) {
             cameraId = CAMERA_FRONT;
             closeCamera()
-            openCamera(textureView!!.width, textureView!!.height)
+            openCamera(textureView.width, textureView.height)
             play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.camera_front_24dp))
         }
     }
@@ -662,11 +661,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     private fun startPreview() {
-        if (cameraDevice == null || !textureView!!.isAvailable) return
+        if (cameraDevice == null || !textureView.isAvailable) return
 
         try {
             closePreviewSession()
-            val texture = textureView!!.surfaceTexture
+            val texture = textureView.surfaceTexture
             texture.setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
             previewRequestBuilder = cameraDevice!!.createCaptureRequest(TEMPLATE_PREVIEW)
 
@@ -763,13 +762,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
     private fun startRecordingVideo() {
-        if (cameraDevice == null || !textureView!!.isAvailable) return
+        if (cameraDevice == null || !textureView.isAvailable) return
 
         try {
             record_Btn.setImageResource(R.drawable.record);
             closePreviewSession()
             setUpMediaRecorder()
-            val texture = textureView!!.surfaceTexture.apply {
+            val texture = textureView.surfaceTexture.apply {
                 setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
             }
 
@@ -913,20 +912,20 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180f, centerX, centerY)
         }
-        textureView!!.setTransform(matrix)
+        textureView.setTransform(matrix)
         if(this.requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-            textureView!!.setAspectRatio(16, 9)
+            textureView.setAspectRatio(16, 9)
         }else{
-            textureView!!.setAspectRatio(3, 4)
+            textureView.setAspectRatio(3, 4)
         }
 
         }
     }
     override fun onSaveInstanceState(outState: Bundle) {
-        viewalpha = alpha_control.progress
-        outState.putString("url", param1)
-        outState.putInt("alpha", viewalpha)
         super.onSaveInstanceState(outState)
+        outState.putString("url", param1)
+        outState.putInt("progress", youtubeprogress)
+        outState.putBoolean("playyoutube", youtubePlaying)
     }
 
     @NonNull
@@ -979,16 +978,16 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             R.id.record_Btn ->//녹화
             {
                 Log.d(TAG, "record_Btn thouch");
-            if (textureView!!.getVisibility() == View.GONE) {
-                textureView!!.setVisibility(View.VISIBLE)
+            if (textureView.getVisibility() == View.GONE) {
+                textureView.setVisibility(View.VISIBLE)
                 video_View.setVisibility(View.GONE)
             }
-                if (textureView!! != null) {
+                if (textureView.isAvailable) {
                 if (isRecordingVideo) {
                     stopRecordingVideo()
                 } else {
                     video_View.setVisibility(View.GONE)
-                    textureView!!.setVisibility(View.VISIBLE)
+                    textureView.setVisibility(View.VISIBLE)
                     startRecordingVideo()
                 }
             }
@@ -997,7 +996,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 ->{
                 if (video_View.getVisibility() == View.GONE) {
                     video_View.setVisibility(View.VISIBLE)
-                    textureView!!.setVisibility(View.GONE)
+                    textureView.setVisibility(View.GONE)
                 }
                 Log.d(TAG, "play_Btn thouch")
                 if(videoString == null){
@@ -1038,7 +1037,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                          stopRecordingVideo()
                      }
                      closeCamera();
-                     textureView!!.setVisibility(View.INVISIBLE)
+                     textureView.setVisibility(View.INVISIBLE)
                      video_View.setVisibility(View.VISIBLE)
                      play_record = false;
                  } else {
@@ -1046,11 +1045,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                          video_View.stopPlayback();
                      }
                      if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-                         openCamera(textureView!!.getWidth(), textureView!!.getHeight());
+                         openCamera(textureView.getWidth(), textureView.getHeight());
                      } else {
-                         openCamera(textureView!!.getHeight(), textureView!!.getWidth());
+                         openCamera(textureView.getHeight(), textureView.getWidth());
                      }
-                     textureView!!.setVisibility(View.VISIBLE);
+                     textureView.setVisibility(View.VISIBLE);
                      video_View.setVisibility(View.INVISIBLE);
                      play_record = true;
                  }

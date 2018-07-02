@@ -33,12 +33,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override fun onFragmentInteraction(uri: Uri) {
 
     }
-    companion object {
-        private const val SELECTED_LOCATION_INDEX = "selectedLocationIndex"
-    }
     var url = ""
-    private val FRAGMENT_DIALOG = "dialog"
-    val REQUEST_CAMERA = 1
     private val TAG = "ItemActivity"
     var tr_id: String? = null
     var item_word:String? = null
@@ -47,6 +42,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     var videoPath:String? = null
     var category: Int = 0
     var context: Context = this
+    var playFragment:PlayFragment? = null
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +62,14 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         }
       //  val factory = PlayModelFactory(url)
       //  val model = ViewModelProviders.of(PlayFragment.newInstance(url), factory).get(PlayModel::class.java)
-        supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url)).commit()
+
+        playFragment = supportFragmentManager.findFragmentByTag("play") as PlayFragment?
+        if(playFragment == null) {
+            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url), "play").commit()
+        }else{
+            supportFragmentManager
+                    .beginTransaction().replace(R.id.fragment_container, playFragment!!).commit()
+        }
     }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)

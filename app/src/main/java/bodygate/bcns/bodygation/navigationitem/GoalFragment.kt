@@ -233,9 +233,6 @@ class GoalFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
     fun muscleCal(weight:Double):Double{
         return (weight*muslceD)
     }
-    fun weight_muscleCal(weight:Double):Double{
-        return (weight*muslceD)
-    }
     fun weightCal(height:Double):Double{
         var result = 0.0
         if(man_RBtn.isChecked) {
