@@ -17,6 +17,7 @@ import android.support.v7.widget.PopupMenu
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
@@ -271,7 +272,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 if(insertData(acc) == null) {
                     insertData(acc)
                 }
-                insert_second(acc)
+                if(my_weight_txtB.text.toString() != ""){
+                    insert_second(acc)
+                }
                 pB!!.dismiss()
                 fitsending = false
             }.join()
@@ -661,9 +664,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
 
                     if(fitsending) {
                         my_bmi_txtB.text = savedInstanceState.getString("bmi")
-                        my_weight_txtB.setText(savedInstanceState.getString("weight"))
-                        my_musclemass_txtB.setText(savedInstanceState.getString("muscle"))
-                        my_bodyfat_txtB.setText(savedInstanceState.getString("fat"))
+                        my_weight_txtB.setText(savedInstanceState.getString("weight"), TextView.BufferType.EDITABLE)
+                        my_musclemass_txtB.setText(savedInstanceState.getString("muscle"), TextView.BufferType.EDITABLE)
+                        my_bodyfat_txtB.setText(savedInstanceState.getString("fat"), TextView.BufferType.EDITABLE)
                     launch {
                     launch(UI) {
                         pB = ProgressDialog.show(this@MainActivity, "데이터 보내기", "구글 핏으로 부터 데이터를 보내는 중입니다...")
@@ -671,7 +674,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         if(insertData(acc) == null) {
                             insertData(acc)
                         }
-                        insert_second(acc)
+                        if(my_weight_txtB.text.toString() != ""){
+                            insert_second(acc)
+                        }
                         pB!!.dismiss()
                         fitsending = false
                     }.join()

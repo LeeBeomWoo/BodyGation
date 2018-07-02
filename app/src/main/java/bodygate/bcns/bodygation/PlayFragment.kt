@@ -297,9 +297,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             baseDir = Environment.DIRECTORY_MOVIES
         }
     }
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG, "onResume")
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart")
         startBackgroundThread()
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
@@ -312,19 +313,27 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 textureView.surfaceTextureListener = surfaceTextureListener
             }
         }
-       // youtube_layout.resumeTimers()
+    }
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "onStop")
+        closeCamera()
+        stopBackgroundThread()
+        /*
+         youtube_layout.pauseTimers()
+        youtube_layout.progress*/
+        if(youtubePlayer != null) {
+            youtubePlayer!!.pause()
+        }
     }
    override fun onPause() {
-        Log.d(TAG, "onPause")
         super.onPause()
-       closeCamera()
-       stopBackgroundThread()
-       /*
-        youtube_layout.pauseTimers()
-       youtube_layout.progress*/
-       if(youtubePlayer != null) {
-           youtubePlayer!!.pause()
-       }
+       Log.d(TAG, "onPause")
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -521,44 +530,14 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewSet()
         textureView = view.findViewById(R.id.AutoView)
         onConfigurationChanged(this.requireActivity().configuration)
-        cameraId = CAMERA_FRONT
-        startBackgroundThread()
         ButtonImageSetUp()
         Log.i("Layout", "screenLayout" + requireActivity().configuration.screenLayout.toString())
         Log.i("Layout", "layoutDirection" + requireActivity().configuration.layoutDirection.toString())
-        /*
-        if(requireActivity().configuration.orientation == Configuration.ORIENTATION_PORTRAIT){
-            PortrainSet()
-        }else{
-            LandSet()
-        }*/
-        viewSet()
-        alpha_control.setMax(100)
-        /*
-        youtube_layout.setWebChromeClient(object: WebChromeClient(){
-            override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                super.onProgressChanged(view, newProgress)
-            }
-        })
-        youtube_layout.setWebViewClient(object: WebViewClient() {
-            override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
-                super.onReceivedError(view, errorCode, description, failingUrl)
-   }
- })
-        youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
-        youtube_layout.getSettings().setJavaScriptEnabled(true)
-        youtube_layout.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN)
-        youtube_layout.getSettings().setJavaScriptCanOpenWindowsAutomatically(true)
-        youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON)
-        youtube_layout.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK)
-        youtube_layout.getSettings().setSupportMultipleWindows(true)
-        youtube_layout.getSettings().setLoadWithOverviewMode(true)
-        youtube_layout.getSettings().setUseWideViewPort(true)
-        URL = FURL + CHANGE + param1 + BURL;
-        Log.d(TAG, "temp : " + temp + "," + "tr_id : " + tr_id )
-        youtube_layout.loadData(URL, "text/html", "charset=utf-8")*/
+        cameraId = CAMERA_FRONT
+        requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         if(youTubePlayerSupportFragment == null) {
             youTubePlayerSupportFragment = YouTubePlayerSupportFragment.newInstance()
             youTubePlayerSupportFragment!!.initialize(getString(R.string.API_key), object:YouTubePlayer.OnInitializedListener{
@@ -572,7 +551,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 }
             })
         }
-        requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         alpha_control.setOnSeekBarChangeListener(this)
     }
     private fun viewSet(){
