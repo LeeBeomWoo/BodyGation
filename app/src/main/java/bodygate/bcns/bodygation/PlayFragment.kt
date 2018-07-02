@@ -92,9 +92,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private var listener: PlayFragment.OnFragmentInteractionListener? = null
     private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
     private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
-    private val FURL = "<html><body><iframe width=\"1280\" height=\"720\" src=\""
-    private val BURL = "\" frameborder=\"0\" allowfullscreen></iframe></html></body>"
-    private val CHANGE = "https://www.youtube.com/embed/"
     private val TAG = "Item_follow_fragment_21"
     var baseDir = ""
     private var mediaController: MediaController? = null
@@ -325,6 +322,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
        /*
         youtube_layout.pauseTimers()
        youtube_layout.progress*/
+       if(youtubePlayer != null) {
+           youtubePlayer!!.pause()
+       }
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -568,11 +568,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 }
 
                 override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
                 }
             })
         }
-
         requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         alpha_control.setOnSeekBarChangeListener(this)
     }
@@ -922,11 +921,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
                 throw RuntimeException("Cannot get available preview/video sizes")
                 sensorOrientation = characteristics.get(SENSOR_ORIENTATION)
-                videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
-                previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
-                        viewWidth, viewHeight, videoSize)
-        }
         val rotation = activity!!.windowManager.defaultDisplay.rotation
+            videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
+            previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
+                    viewWidth, viewHeight, videoSize)
         val matrix = Matrix()
         val viewRect = RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
         val bufferRect = RectF(0f, 0f, previewSize!!.height.toFloat(), previewSize!!.width.toFloat())
@@ -951,6 +949,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             textureView.setAspectRatio(16, 9)
         }else{
             textureView.setAspectRatio(3, 4)
+        }
+
         }
     }
     override fun onSaveInstanceState(outState: Bundle) {
