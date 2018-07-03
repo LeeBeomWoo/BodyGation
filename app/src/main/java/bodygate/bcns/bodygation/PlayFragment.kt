@@ -53,6 +53,8 @@ import android.widget.*
 import android.widget.Toast.LENGTH_SHORT
 import bodygate.bcns.bodygation.camerause.*
 import bodygate.bcns.bodygation.dummy.PlayViewModel
+import bodygate.bcns.bodygation.support.rotationCallbackFn
+import bodygate.bcns.bodygation.support.rotationListenerHelper
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
@@ -111,6 +113,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var videopath: Uri? = null
     var youtubeProgress:Int= 0
     var youtubePlaying:Boolean = false
+private var rotationListener: rotationListenerHelper? = null;
 
     private lateinit var cameraId: String
 
@@ -184,7 +187,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
 
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
-            configureTransform(width, height)
+            Log.i("camera", "onSurfaceTextureSizeChanged")
+           // configureTransform(width, height)
         }
 
         override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture) = true
@@ -195,22 +199,18 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     private lateinit var textureView: AutoFitTextureView
 
-    fun setData(url:String, progr:Int, ing:Boolean){
-        param1= url
-        youtubeProgress=progr
-        youtubePlaying = ing
-        }
     private val stateCallback = object : CameraDevice.StateCallback() {
 
         override fun onOpened(cameraDevice: CameraDevice) {
             cameraOpenCloseLock.release()
             this@PlayFragment.cameraDevice = cameraDevice
             startPreview()
+            /*
             if (requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
                 configureTransform(textureView.height ,textureView.width)
             }else{
                 configureTransform(textureView.width, textureView.height)
-            }
+            }*/
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
@@ -298,6 +298,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
        Log.d(TAG, "onPause")
        closeCamera()
        stopBackgroundThread()
+       listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -369,25 +370,18 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         var youtubeprogress:Int
         var youtubePlaying:Boolean
     }
+    /*
     override fun onConfigurationChanged(newConfig: Configuration?) {
             super.onConfigurationChanged(newConfig)
         if (newConfig != null) {
             if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 LandSet()
-                if (textureView.isAvailable) {
-                    Log.i(TAG, "onConfigurationChanged : LandSet")
-                    configureTransform(textureView.getHeight(), textureView.getWidth())
-                }
             } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 PortrainSet()
-                if (textureView.isAvailable) {
-                    Log.i(TAG, "onConfigurationChanged : PortrainSet")
-                    configureTransform(textureView.getWidth(), textureView.getHeight())
-                }
             }
         }
         Log.i(TAG, "onConfigurationChanged newConfig : " + newConfig.toString())
-    }
+    }*/
     private fun LandSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         LandButton = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), ViewGroup.LayoutParams.MATCH_PARENT);
@@ -497,12 +491,61 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         super.onViewCreated(view, savedInstanceState)
         textureView = view.findViewById(R.id.AutoView)
         cameraId = CAMERA_FRONT
-        onConfigurationChanged(requireActivity().configuration)
         startBackgroundThread()
         ButtonImageSetUp()
         viewSet()
-        alpha_control.max = 90
+    val curOrientation =  requireActivity().windowManager.defaultDisplay.rotation
 
+    when (curOrientation) {
+        0 -> {
+            //. SCREEN_ORIENTATION_PORTRAIT
+            PortrainSet()
+        }
+        2 -> {
+            //. SCREEN_ORIENTATION_REVERSE_PORTRAIT
+            PortrainSet()
+            val matrix = Matrix()
+            val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
+            matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
+            textureView.setTransform(matrix)
+        }
+            //----------------------------------------
+       1 -> {
+            //. SCREEN_ORIENTATION_LANDSCAPE
+           LandSet()
+        }
+            //----------------------------------------
+       3 -> {
+            //. SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+           LandSet()
+           val matrix = Matrix()
+           val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
+           matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
+           textureView.setTransform(matrix)
+        }
+            //----------------------------------------
+    } /*endSwitch*/
+
+    rotationListener = rotationListenerHelper()
+    rotationListener!!.listen(this.requireContext(), object :rotationCallbackFn{
+        override fun onRotationChanged(lastRotation: Int, newRotation: Int) {
+            Log.d(TAG, "onRotationChanged: last " + (lastRotation) +"  new " + (newRotation));
+
+            /**
+             * no need to recreate activity if screen rotate from portrait to landscape
+             * android do the job in order to reload resources
+             */
+
+            if (
+                    (lastRotation == 0 && newRotation == 2) ||
+                    (lastRotation == 2 && newRotation == 0) ||
+                    (lastRotation == 1 && newRotation == 3) ||
+                    (lastRotation == 3 && newRotation == 1)
+            )
+                requireActivity().recreate()
+        }
+    })
+        alpha_control.max = 90
             youTubePlayerSupportFragment = YouTubePlayerSupportFragment.newInstance()
             youTubePlayerSupportFragment!!.initialize(getString(R.string.API_key), object:YouTubePlayer.OnInitializedListener{
                 override fun onInitializationSuccess(p0: YouTubePlayer.Provider?, p1: YouTubePlayer?, p2: Boolean) {
@@ -524,23 +567,40 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         }
 
                         override fun onStopped() {
-                            listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
                             Log.i("youtube", "onStopped")
+                            Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
                         }
 
                         override fun onPaused() {
                             listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
                             listener!!.youtubePlaying = false
                             Log.i("youtube", "onPaused")
+                            Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
                         }
                     })
-                    if(listener!!.youtubePlaying){
-                        if(listener!!.youtubeprogress > 1){
-                            youtubePlayer!!.seekToMillis(listener!!.youtubeprogress)
-                            youtubePlayer!!.play()
-                            Log.i("youtube", "youtubeprogress")
+                    youtubePlayer!!.setPlayerStateChangeListener(object :YouTubePlayer.PlayerStateChangeListener{
+                        override fun onAdStarted() {
                         }
-                    }
+
+                        override fun onLoading() {
+                        }
+
+                        override fun onVideoStarted() {
+                        }
+
+                        override fun onLoaded(p0: String?) {
+                            if(listener!!.youtubePlaying && listener!!.youtubeprogress > 1){
+                                youtubePlayer!!.seekToMillis(listener!!.youtubeprogress)
+                                youtubePlayer!!.play()
+                            }
+                        }
+
+                        override fun onVideoEnded() {
+                        }
+
+                        override fun onError(p0: YouTubePlayer.ErrorReason?) {
+                        }
+                    })
                 }
                 override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {
                     Log.i("youtube", "onInitializationFailure : " + p1.toString()
@@ -561,11 +621,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 play_Btn.setImageResource(R.drawable.play);
             }
         })
-        if(getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-            openCamera(textureView.getWidth(), textureView.getHeight())
-        }else {
-            openCamera(textureView.getHeight(), textureView.getWidth())
-        }
     }
     private fun ButtonImageSetUp(){
         if(video_View.isPlaying()){
@@ -597,15 +652,19 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
             throw RuntimeException("Cannot get available preview/video sizes")
             sensorOrientation = characteristics.get(SENSOR_ORIENTATION)
+            Log.i("configureTransform", "sensorOrientation : " + sensorOrientation.toString())
             videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
             previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
                     width, height, videoSize)
             if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 textureView.setAspectRatio(16, 9)
+                configureTransform(width, height)
             } else {
                 textureView.setAspectRatio(3, 4)
+                PortrainSet()
+                configureTransform(height, width)
             }
-            configureTransform(width, height)
+            Log.i("camera", "openCamera")
             mediaRecorder = MediaRecorder()
             manager.openCamera(cameraId, stateCallback, null)
         } catch (e: CameraAccessException) {

@@ -56,13 +56,15 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
                 (3).toFloat(),    // Design FontScale
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_item)
+        Log.i(TAG, "onCreate")
         if (savedInstanceState != null) {
             val index = savedInstanceState.getString("url")
             url = index
+            youtubeprogress = savedInstanceState.getInt("progress")
+            youtubePlaying = savedInstanceState.getBoolean("playyoutube")
+            Log.i(TAG, "onCreate_" + "url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + youtubePlaying.toString())
         }else{
             url = intent.getStringExtra("url")
-            youtubeprogress = intent.getIntExtra("progress", 0)
-            youtubePlaying = intent.getBooleanExtra("playyoutube", false)
         }
             playFragment = supportFragmentManager.findFragmentByTag("play") as PlayFragment?
             if(playFragment == null) {
@@ -77,17 +79,12 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         outState.putString("url", url)
         outState.putInt("progress", youtubeprogress)
         outState.putBoolean("playyoutube", youtubePlaying)
+        Log.i(TAG, "onSaveInstanceState_" +"url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + youtubePlaying.toString())
     }
-    override fun onDestroy(){
-        super.onDestroy();
-        // store the data in the fragment
-        if(playFragment != null){
-        playFragment!!.setData(url, youtubeprogress, youtubePlaying)
-        }
-        }
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        Log.i(TAG, "onConfigurationChanged : " + newConfig!!.orientation.toString())}
+        Log.i(TAG, "onConfigurationChanged : " + newConfig!!.toString())
+        Log.i(TAG, "onConfigurationChanged orientation: " + newConfig.orientation.toString())}
     override fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera) {
         val info = Camera.CameraInfo()
         Camera.getCameraInfo(cameraId, info)
