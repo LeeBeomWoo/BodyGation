@@ -78,6 +78,13 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         outState.putInt("progress", youtubeprogress)
         outState.putBoolean("playyoutube", youtubePlaying)
     }
+    override fun onDestroy(){
+        super.onDestroy();
+        // store the data in the fragment
+        if(playFragment != null){
+        playFragment!!.setData(url, youtubeprogress, youtubePlaying)
+        }
+        }
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
         Log.i(TAG, "onConfigurationChanged : " + newConfig!!.orientation.toString())}
