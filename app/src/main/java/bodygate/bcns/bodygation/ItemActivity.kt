@@ -43,6 +43,8 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     var category: Int = 0
     var context: Context = this
     var playFragment:PlayFragment? = null
+   override var youtubeprogress:Int = 0
+    override var youtubePlaying:Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,14 +61,13 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
             url = index
         }else{
             url = intent.getStringExtra("url")
+            youtubeprogress = intent.getIntExtra("progress", 0)
+            youtubePlaying = intent.getBooleanExtra("playyoutube", false)
         }
-      //  val factory = PlayModelFactory(url)
-      //  val model = ViewModelProviders.of(PlayFragment.newInstance(url), factory).get(PlayModel::class.java)
-
-        playFragment = supportFragmentManager.findFragmentByTag("play") as PlayFragment?
-        if(playFragment == null) {
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url), "play").commit()
-        }else{
+            playFragment = supportFragmentManager.findFragmentByTag("play") as PlayFragment?
+            if(playFragment == null) {
+                supportFragmentManager.beginTransaction().replace(R.id.fragment_container, PlayFragment.newInstance(url), "play").commit()
+            }else{
             supportFragmentManager
                     .beginTransaction().replace(R.id.fragment_container, playFragment!!).commit()
         }
@@ -74,6 +75,8 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("url", url)
+        outState.putInt("progress", youtubeprogress)
+        outState.putBoolean("playyoutube", youtubePlaying)
     }
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)

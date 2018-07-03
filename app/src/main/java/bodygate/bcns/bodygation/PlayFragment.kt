@@ -109,8 +109,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var change: String? = null
     var videoString:String? = null
     var videopath: Uri? = null
-    var youtubeprogress:Int = 0
-    var youtubePlaying:Boolean = false
 
     private lateinit var cameraId: String
 
@@ -201,13 +199,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             cameraOpenCloseLock.release()
             this@PlayFragment.cameraDevice = cameraDevice
             startPreview()
-            configureTransform(textureView.width, textureView.height)
-            /*
-            if (this@PlayFragment.activity!!.requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-                configureTransform(AutoView.height ,AutoView.width)
+            if (requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
+                configureTransform(textureView.height ,textureView.width)
             }else{
-                configureTransform(AutoView.width, AutoView.height)
-            }*/
+                configureTransform(textureView.width, textureView.height)
+            }
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
@@ -262,12 +258,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
-        setRetainInstance(true)
         if(savedInstanceState != null){
             Log.i(TAG, "onCreate savedInstanceState")
             param1 = savedInstanceState.getString("url")
-            youtubeprogress = savedInstanceState.getInt("progress")
-            youtubePlaying = savedInstanceState.getBoolean("playyoutube")
         }else {
             arguments?.let {
                 param1 = it.getString(ARG_PARAM1)
@@ -365,19 +358,21 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     interface OnFragmentInteractionListener {
         fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera)
         fun onFragmentInteraction(uri: Uri)
+        var youtubeprogress:Int
+        var youtubePlaying:Boolean
     }
     override fun onConfigurationChanged(newConfig: Configuration?) {
             super.onConfigurationChanged(newConfig)
         if (newConfig != null) {
             if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 LandSet()
-                if (textureView.isAvailable()) {
+                if (textureView.isAvailable) {
                     Log.i(TAG, "onConfigurationChanged : LandSet")
                     configureTransform(textureView.getHeight(), textureView.getWidth())
                 }
             } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 PortrainSet()
-                if (textureView.isAvailable()) {
+                if (textureView.isAvailable) {
                     Log.i(TAG, "onConfigurationChanged : PortrainSet")
                     configureTransform(textureView.getWidth(), textureView.getHeight())
                 }
@@ -493,18 +488,18 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         textureView = view.findViewById(R.id.AutoView)
-        onConfigurationChanged(this.requireActivity().configuration)
         cameraId = CAMERA_FRONT
+        onConfigurationChanged(requireActivity().configuration)
         startBackgroundThread()
         ButtonImageSetUp()
         viewSet()
         alpha_control.max = 90
+
             youTubePlayerSupportFragment = YouTubePlayerSupportFragment.newInstance()
             youTubePlayerSupportFragment!!.initialize(getString(R.string.API_key), object:YouTubePlayer.OnInitializedListener{
                 override fun onInitializationSuccess(p0: YouTubePlayer.Provider?, p1: YouTubePlayer?, p2: Boolean) {
                     Log.i("youtube", "youTubePlayerSupportFragment")
                     youtubePlayer = p1
-                    youtubePlayer!!.setFullscreen(false)
                     youtubePlayer!!.cueVideo(param1)
                     youtubePlayer!!.setShowFullscreenButton(false)
                     youtubePlayer!!.setPlaybackEventListener(object : YouTubePlayer.PlaybackEventListener{
@@ -516,24 +511,24 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         }
 
                         override fun onPlaying() {
-                            youtubePlaying = true
+                            listener!!.youtubePlaying = true
                             Log.i("youtube", "onPlaying")
                         }
 
                         override fun onStopped() {
-                            youtubeprogress = youtubePlayer!!.currentTimeMillis
+                            listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
                             Log.i("youtube", "onStopped")
                         }
 
                         override fun onPaused() {
-                            youtubeprogress = youtubePlayer!!.currentTimeMillis
-                            youtubePlaying = false
+                            listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
+                            listener!!.youtubePlaying = false
                             Log.i("youtube", "onPaused")
                         }
                     })
-                    if(youtubePlaying){
-                        if(youtubeprogress > 1){
-                            youtubePlayer!!.seekToMillis(youtubeprogress)
+                    if(listener!!.youtubePlaying){
+                        if(listener!!.youtubeprogress > 1){
+                            youtubePlayer!!.seekToMillis(listener!!.youtubeprogress)
                             youtubePlayer!!.play()
                             Log.i("youtube", "youtubeprogress")
                         }
@@ -597,6 +592,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
             previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
                     width, height, videoSize)
+            if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                textureView.setAspectRatio(16, 9)
+            } else {
+                textureView.setAspectRatio(3, 4)
+            }
             configureTransform(width, height)
             mediaRecorder = MediaRecorder()
             manager.openCamera(cameraId, stateCallback, null)
@@ -793,7 +793,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                             captureSession = cameraCaptureSession
                             updatePreview()
                             activity?.runOnUiThread {
-                                record_Btn.setImageDrawable(getDrawable(this@PlayFragment.requireActivity(), R.drawable.stop))
+                                record_Btn.setImageDrawable(getDrawable(requireActivity(), R.drawable.stop))
                                 isRecordingVideo = true
                                 mediaRecorder?.start()
                             }
@@ -880,26 +880,31 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
      */
     private fun configureTransform(viewWidth: Int, viewHeight: Int) {
         activity ?: return
-        if(previewSize == null){
-            val manager = this.requireActivity().getSystemService(Context.CAMERA_SERVICE) as CameraManager
-                val cameraId = cameraId
+        val manager = this.requireActivity().getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val cameraId = cameraId
 
-                // Choose the sizes for camera preview and video recording
-                val characteristics = manager.getCameraCharacteristics(cameraId)
-                val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
-                throw RuntimeException("Cannot get available preview/video sizes")
-                sensorOrientation = characteristics.get(SENSOR_ORIENTATION)
+                        // Choose the sizes for camera preview and video recording
+        val characteristics = manager.getCameraCharacteristics(cameraId)
+        val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
+        throw RuntimeException("Cannot get available preview/video sizes")
+        sensorOrientation = characteristics.get(SENSOR_ORIENTATION)
         val rotation = activity!!.windowManager.defaultDisplay.rotation
-            videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
-            previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
-                    viewWidth, viewHeight, videoSize)
+        videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
+        previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
+                viewWidth, viewHeight, videoSize)
         val matrix = Matrix()
         val viewRect = RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
         val bufferRect = RectF(0f, 0f, previewSize!!.height.toFloat(), previewSize!!.width.toFloat())
         val centerX = viewRect.centerX()
         val centerY = viewRect.centerY()
-
+        Log.i(TAG, "configureTransform : " + rotation.toString())
+            Log.i(TAG, "configureTransform : " + sensorOrientation.toString())
+            Log.i(TAG, "configureTransform 0 : " + Surface.ROTATION_0.toString())
+            Log.i(TAG, "configureTransform 90 : " + Surface.ROTATION_90.toString())
+            Log.i(TAG, "configureTransform 180 : " + Surface.ROTATION_180.toString())
+            Log.i(TAG, "configureTransform 270 : " + Surface.ROTATION_270.toString())
         if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
+            Log.i(TAG, "configureTransform : " + "Land")
             bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
             val scale = Math.max(
                     viewHeight.toFloat() / previewSize!!.height,
@@ -910,22 +915,14 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 postRotate((90 * (rotation - 2)).toFloat(), centerX, centerY)
             }
         } else if (Surface.ROTATION_180 == rotation) {
+            Log.i(TAG, "configureTransform : " + "reverse")
             matrix.postRotate(180f, centerX, centerY)
         }
         textureView.setTransform(matrix)
-        if(this.requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-            textureView.setAspectRatio(16, 9)
-        }else{
-            textureView.setAspectRatio(3, 4)
-        }
-
-        }
     }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("url", param1)
-        outState.putInt("progress", youtubeprogress)
-        outState.putBoolean("playyoutube", youtubePlaying)
     }
 
     @NonNull
@@ -1096,15 +1093,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             ORIENTATIONS.append(Surface.ROTATION_270, 180)
         }
 
-        /**
-         * Tag for the [Log].
-         */
-        private val TAG = "Camera2BasicFragment"
-
-        /**
-         * Camera state: Showing camera preview.
-         */
-        private val STATE_PREVIEW = 0
 
     }
 }
