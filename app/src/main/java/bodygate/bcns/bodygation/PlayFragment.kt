@@ -265,6 +265,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
+        setRetainInstance(true)
         if(savedInstanceState != null){
             Log.i(TAG, "onCreate savedInstanceState")
             param1 = savedInstanceState.getString("url")
