@@ -109,6 +109,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var change: String? = null
     var videoString:String? = null
     var videopath: Uri? = null
+    var youtubeProgress:Int= 0
+    var youtubePlaying:Boolean = false
 
     private lateinit var cameraId: String
 
@@ -193,6 +195,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     private lateinit var textureView: AutoFitTextureView
 
+    fun setData(url:String, progr:Int, ing:Boolean){
+        param1= url
+        youtubeProgress=progr
+        youtubePlaying = ing
+        }
     private val stateCallback = object : CameraDevice.StateCallback() {
 
         override fun onOpened(cameraDevice: CameraDevice) {
