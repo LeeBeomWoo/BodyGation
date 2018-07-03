@@ -91,8 +91,9 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_margin="5dp"
-            android:background="@drawable/cirfcle_fill"
-            android:src="@drawable/camera_front_24dp" />
+            android:background="@color/nocolor"
+            android:scaleType="fitCenter"
+            android:src="@drawable/frontcamera" />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
 

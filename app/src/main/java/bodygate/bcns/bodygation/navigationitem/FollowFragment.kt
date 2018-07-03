@@ -318,6 +318,10 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
 
     fun onButtonPressed(uri: ArrayList<String>)= runBlocking{
         if (mListener != null) {
+            if(!muscle_img.isChecked && !stretching_img.isChecked){
+                uri.add("운동")
+                uri.add("스트레칭")
+            }
             mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 5, true, 0)}
             Log.i("test", "네번째")
             mListener!!.OnFollowInteraction(uri, 0)

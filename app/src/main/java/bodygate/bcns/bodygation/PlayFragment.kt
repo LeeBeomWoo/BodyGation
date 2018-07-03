@@ -701,12 +701,12 @@ private var rotationListener: rotationListenerHelper? = null;
             cameraId = CAMERA_BACK;
             closeCamera()
             openCamera(textureView.width, textureView.height)
-            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.camera_back_24dp))
+            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.backcamera))
         } else if (cameraId.equals(CAMERA_BACK)) {
             cameraId = CAMERA_FRONT;
             closeCamera()
             openCamera(textureView.width, textureView.height)
-            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.camera_front_24dp))
+            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.frontcamera))
         }
     }
     /**
