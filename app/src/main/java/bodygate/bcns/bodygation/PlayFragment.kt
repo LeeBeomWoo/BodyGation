@@ -239,6 +239,8 @@ private var rotationListener: rotationListenerHelper? = null;
                         val b = a.toFloat()
                         if(textureView.isAvailable) {
                             textureView.setAlpha(b)
+                        }else if(video_View.visibility == View.VISIBLE){
+                            video_View.alpha = b
                         }
                     }
                 })

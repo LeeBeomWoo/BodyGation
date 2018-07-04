@@ -241,15 +241,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             val query = youTube.search().list("id, snippet")
             query.setKey(api_Key)
             query.setType("video")
-            if(page != "")
+            if(page != "") {
                 query.setPageToken(page)
+            }
             query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url), nextPageToken, pageInfo")
             query.setQ(q)
             query.setOrder(order)
             query.setMaxResults(max_result.toLong())
             launch(CommonPool) {
                 val body = query.execute()
-                if(body.nextPageToken.isNotEmpty()){
+                if(body.nextPageToken != null && body.nextPageToken != ""){
                     page = body.nextPageToken
                 }else{
                     page = ""
