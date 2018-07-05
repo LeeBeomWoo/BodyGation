@@ -113,6 +113,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var change: String? = null
     var videoString:String? = null
     var videopath: Uri? = null
+    var videoV:VideoView? = null
 private var rotationListener: rotationListenerHelper? = null;
 
     private lateinit var cameraId: String
@@ -516,7 +517,11 @@ private var rotationListener: rotationListenerHelper? = null;
             val matrix = Matrix()
             val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
             matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
-            textureView.setTransform(matrix)
+            if(lisner!!.videoplaying){
+                video_layout.setTransform(metrix)
+            }else{
+                textureView.setTransform(matrix)
+            }    
         }
             //----------------------------------------
        1 -> {
@@ -530,7 +535,11 @@ private var rotationListener: rotationListenerHelper? = null;
            val matrix = Matrix()
            val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
            matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
-           textureView.setTransform(matrix)
+             if(lisner!!.videoplaying){
+                video_layout.setTransform(metrix)
+            }else{
+                textureView.setTransform(matrix)
+            }
         }
             //----------------------------------------
     } /*endSwitch*/
@@ -625,9 +634,11 @@ private var rotationListener: rotationListenerHelper? = null;
         play_Btn.setOnClickListener(this)
         play_record_Btn.setOnClickListener(this)
         viewChange_Btn.setOnClickListener(this)
-        video_View.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
+        videoV = findViewById<VideoView>(R.id.video_View)
+        videoV.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
             override fun onCompletion(mp: MediaPlayer?) {
-                play_Btn.setImageResource(R.drawable.play);
+                play_Btn.setImageResource(R.drawable.play)
+                videoV?.seekTo(100)
             }
         })
     }
@@ -1065,7 +1076,7 @@ private var rotationListener: rotationListenerHelper? = null;
             R.id.play_Btn//재생
                 ->{
                 if (video_layout.getVisibility() == View.INVISIBLE) {
-                    video_View.setVisibility(View.VISIBLE)
+                    video_layout.setVisibility(View.VISIBLE)
                     textureView.setVisibility(View.INVISIBLE)
                 }
                 Log.d(TAG, "play_Btn thouch")
@@ -1076,12 +1087,12 @@ private var rotationListener: rotationListenerHelper? = null;
                     intent.putExtra(Intent.EXTRA_STREAM, uri);
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                 }
-                if(video_View.isPlaying()){
+                if(videoV.isPlaying()){
                     play_Btn.setImageResource(R.drawable.pause)
-                    video_View.pause()
+                    videoV.pause()
                 }else {
                     play_Btn.setImageResource(R.drawable.play)
-                    video_View.start()
+                    videoV.start()
                 }
                 }
 
@@ -1108,7 +1119,7 @@ private var rotationListener: rotationListenerHelper? = null;
                      }
                      closeCamera();
                      textureView.setVisibility(View.INVISIBLE)
-                     video_View.setVisibility(View.VISIBLE)
+                     video_layout.setVisibility(View.VISIBLE)
                      play_record = false;
                      listener!!.videoPlaying = true
                  } else {
@@ -1121,7 +1132,7 @@ private var rotationListener: rotationListenerHelper? = null;
                          openCamera(textureView.getHeight(), textureView.getWidth());
                      }
                      textureView.setVisibility(View.VISIBLE);
-                     video_View.setVisibility(View.INVISIBLE);
+                     video_layout.setVisibility(View.INVISIBLE);
                      play_record = true;
                      listener!!.videoPlaying = false
                  }
@@ -1130,8 +1141,14 @@ private var rotationListener: rotationListenerHelper? = null;
         }
     }
     private fun configureVideoView(source: Uri) {
-        video_View.setVideoURI(source)
-        video_View.seekTo(100)
+        if(videoV != null){
+            videoV?.setVideoURI(source)
+            videoV?.setAudioFocusRequest(AudioManager.AUDIOFOCUS_NONE)
+        }else{
+            videoV = findViewById<VideoView>(R.id.video_View)
+            videoV?.setVideoURI(source)
+            videoV?.setAudioFocusRequest(AudioManager.AUDIOFOCUS_NONE)
+        }
     }
     companion object {
         /**
