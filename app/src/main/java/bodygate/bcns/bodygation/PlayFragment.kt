@@ -283,11 +283,13 @@ private var rotationListener: rotationListenerHelper? = null;
         super.onResume()
         Log.d(TAG, "onResume")
         startBackgroundThread()
+        if(!lisner!!.videoplaying){
         if(textureView.isAvailable) {
             openCamera(textureView.width, textureView.height)
         } else {
             textureView.surfaceTextureListener = surfaceTextureListener
         }
+            }
     }
 
    override fun onPause() {
