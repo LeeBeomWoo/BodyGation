@@ -93,7 +93,8 @@
             android:layout_margin="5dp"
             android:background="@color/nocolor"
             android:scaleType="fitCenter"
-            android:src="@drawable/frontcamera" />
+            android:src="@drawable/frontcamera"
+            tools:ignore="ContentDescription"  />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
 
@@ -103,7 +104,7 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/youtube_layout"
         android:layout_toStartOf="@+id/button_layout"
-        android:visibility="gone">
+        android:visibility="invisible">
 
         <VideoView
             android:id="@+id/video_View"

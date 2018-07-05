@@ -39,12 +39,14 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     var item_word:String? = null
     var section:String? = null
     var video:String? = null
-    var videoPath:String? = null
+    override var videoPath:String? = null
     var category: Int = 0
     var context: Context = this
     var playFragment:PlayFragment? = null
    override var youtubeprogress:Int = 0
     override var youtubePlaying:Boolean = false
+    override var videoProgress:Int= 0
+    override var videoPlaying:Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +64,11 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
             url = index
             youtubeprogress = savedInstanceState.getInt("progress")
             youtubePlaying = savedInstanceState.getBoolean("playyoutube")
+            videoPlaying = savedInstanceState.getBoolean("vplay")
+            if(videoPlaying) {
+                videoProgress = savedInstanceState.getInt("vprogress")
+                videoPath = savedInstanceState.getString("vPath")
+            }
             Log.i(TAG, "onCreate_" + "url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + youtubePlaying.toString())
         }else{
             url = intent.getStringExtra("url")
@@ -79,6 +86,10 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         outState.putString("url", url)
         outState.putInt("progress", youtubeprogress)
         outState.putBoolean("playyoutube", youtubePlaying)
+        if(videoPlaying){
+            outState.putInt("vprogress", videoProgress)
+            outState.putBoolean("vplay", videoPlaying)
+        }
         Log.i(TAG, "onSaveInstanceState_" +"url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + youtubePlaying.toString())
     }
     override fun onConfigurationChanged(newConfig: Configuration?) {
