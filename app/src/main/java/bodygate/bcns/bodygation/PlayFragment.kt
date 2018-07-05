@@ -28,6 +28,7 @@ import android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW
 import android.hardware.camera2.CameraDevice.TEMPLATE_RECORD
 import android.hardware.display.DisplayManager
 import android.hardware.display.DisplayManager.DisplayListener
+import android.media.AudioManager
 import android.media.ImageReader
 import android.view.*
 import android.media.MediaPlayer
@@ -41,6 +42,9 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.ContextCompat.checkSelfPermission
 import android.support.v4.content.ContextCompat.getDrawable
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.app.AlertDialog
 import android.transition.Visibility
 import android.util.AttributeSet
@@ -114,6 +118,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var videoString:String? = null
     var videopath: Uri? = null
     var videoV:VideoView? = null
+    lateinit var mMediaSession:MediaSessionCompat
+    lateinit var mStateBuilder: PlaybackStateCompat.Builder
+
 private var rotationListener: rotationListenerHelper? = null;
 
     private lateinit var cameraId: String
@@ -234,8 +241,8 @@ private var rotationListener: rotationListenerHelper? = null;
                         val b = a.toFloat()
                         if(textureView.isAvailable) {
                             textureView.setAlpha(b)
-                        }else if(video_View.visibility == View.VISIBLE){
-                            video_View.alpha = b
+                        }else if(videoV!!.visibility == View.VISIBLE){
+                            videoV!!.alpha = b
                         }
                     }
                 })
@@ -283,20 +290,23 @@ private var rotationListener: rotationListenerHelper? = null;
         super.onResume()
         Log.d(TAG, "onResume")
         startBackgroundThread()
-        if(!lisner!!.videoplaying){
-        if(textureView.isAvailable) {
-            openCamera(textureView.width, textureView.height)
-        } else {
-            textureView.surfaceTextureListener = surfaceTextureListener
-        }
+        if(listener!!.videoPlaying){
+            configureVideoView(Uri.parse(listener!!.videoPath))
+            videoV!!.seekTo(listener!!.videoProgress)
+        }else{
+            if(textureView.isAvailable) {
+                openCamera(textureView.width, textureView.height)
+            } else {
+                textureView.surfaceTextureListener = surfaceTextureListener
             }
+        }
     }
 
    override fun onPause() {
         super.onPause()
        Log.d(TAG, "onPause")
        if(listener!!.videoPlaying){
-         listener!!.videoProgress = videoV?.currentPosition
+         listener!!.videoProgress = videoV!!.currentPosition
        }
        closeCamera()
        stopBackgroundThread()
@@ -417,24 +427,23 @@ private var rotationListener: rotationListenerHelper? = null;
         LandCamera!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
-        video_layout.setLayoutParams(LandWebView)
+        videoV!!.setLayoutParams(LandWebView)
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control)
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
         youtube_layout.setLayoutParams(LandCamera)
-        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         textureView.setLayoutParams(LandWebView)
         alpha_control.setProgress(50)
         alpha_control.setVisibility(View.VISIBLE)
         alpha_control.setZ(2.toFloat())
         if(listener!!.videoPlaying){
             textureView.setZ(0.toFloat())
-            video_layout.setZ(0.toFloat());
+            videoV!!.setZ(2.toFloat());
             youtube_layout.setZ(1.toFloat())
-            video_layout.setAlpha((0.5).toFloat())
+            videoV!!.setAlpha((0.5).toFloat())
         }else{
             textureView.setZ(2.toFloat())
-            video_layout.setZ(0.toFloat());
+            videoV!!.setZ(0.toFloat());
             youtube_layout.setZ(1.toFloat())
             textureView.setAlpha((0.5).toFloat())
         }
@@ -481,15 +490,14 @@ private var rotationListener: rotationListenerHelper? = null;
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP)
         LandCamera!!.addRule(ScaleRelativeLayout.START_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout)
-        video_layout.setLayoutParams(LandCamera)
-        alpha_control.setVisibility(View.INVISIBLE)
-        video_View.setLayoutParams(ScaleFrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        videoV!!.setLayoutParams(LandCamera)
+        alpha_control.setVisibility(View.GONE)
         textureView.setLayoutParams(LandCamera)
         if(listener!!.videoPlaying){
-            textureView.visibility = View.INVISIBLE
-            video_layout.visibility = View.VISIBLE
+            textureView.visibility = View.GONE
+            videoV!!.visibility = View.VISIBLE
         }else{
-            video_layout.visibility = View.INVISIBLE
+            videoV!!.visibility = View.GONE
             textureView.visibility = View.VISIBLE
         }
         textureView.setAlpha((1).toFloat())
@@ -500,32 +508,42 @@ private var rotationListener: rotationListenerHelper? = null;
         super.onViewCreated(view, savedInstanceState)
         Log.i(TAG, "onViewCreated")
         textureView = view.findViewById(R.id.AutoView)
+        videoV = view.findViewById(R.id.video_View)
         cameraId = CAMERA_FRONT
         startBackgroundThread()
-        ButtonImageSetUp()
         viewSet()
-    val curOrientation =  requireActivity().windowManager.defaultDisplay.rotation
+        mMediaSession = MediaSessionCompat(this.requireContext(), TAG)
+        mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
+        mMediaSession.setMediaButtonReceiver(null)
+        mStateBuilder = PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
+        mMediaSession.setPlaybackState(mStateBuilder.build())
+        mMediaSession.setCallback(object : MediaSessionCompat.Callback(){})
 
+  // Create a MediaControllerCompat
+  val mediaController = MediaControllerCompat(this.requireContext(), mMediaSession)
+
+  MediaControllerCompat.setMediaController(this.requireActivity(), mediaController)
+    val curOrientation =  requireActivity().windowManager.defaultDisplay.rotation
     when (curOrientation) {
         0 -> {
-            //. SCREEN_ORIENTATION_PORTRAIT
+            // SCREEN_ORIENTATION_PORTRAIT
             PortrainSet()
         }
         2 -> {
-            //. SCREEN_ORIENTATION_REVERSE_PORTRAIT
+            //.SCREEN_ORIENTATION_REVERSE_PORTRAIT
             PortrainSet()
             val matrix = Matrix()
-            val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
-            matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
-            if(lisner!!.videoplaying){
-                video_layout.setTransform(metrix)
+            if(listener!!.videoPlaying){
             }else{
+                val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
+                matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
                 textureView.setTransform(matrix)
             }    
         }
             //----------------------------------------
        1 -> {
-            //. SCREEN_ORIENTATION_LANDSCAPE
+            // SCREEN_ORIENTATION_LANDSCAPE
            LandSet()
         }
             //----------------------------------------
@@ -535,8 +553,7 @@ private var rotationListener: rotationListenerHelper? = null;
            val matrix = Matrix()
            val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
            matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
-             if(lisner!!.videoplaying){
-                video_layout.setTransform(metrix)
+             if(listener!!.videoPlaying){
             }else{
                 textureView.setTransform(matrix)
             }
@@ -547,13 +564,11 @@ private var rotationListener: rotationListenerHelper? = null;
     rotationListener = rotationListenerHelper()
     rotationListener!!.listen(this.requireContext(), object :rotationCallbackFn{
         override fun onRotationChanged(lastRotation: Int, newRotation: Int) {
-            Log.d(TAG, "onRotationChanged: last " + (lastRotation) +"  new " + (newRotation));
-
+            Log.d(TAG, "onRotationChanged: last " + (lastRotation) +"  new " + (newRotation))
             /**
              * no need to recreate activity if screen rotate from portrait to landscape
              * android do the job in order to reload resources
              */
-
             if (
                     (lastRotation == 0 && newRotation == 2) ||
                     (lastRotation == 2 && newRotation == 0) ||
@@ -573,7 +588,6 @@ private var rotationListener: rotationListenerHelper? = null;
                     youtubePlayer!!.setShowFullscreenButton(false)
                     youtubePlayer!!.setPlaybackEventListener(object : YouTubePlayer.PlaybackEventListener{
                         override fun onSeekTo(p0: Int) {
-
                         }
 
                         override fun onBuffering(p0: Boolean) {
@@ -636,19 +650,14 @@ private var rotationListener: rotationListenerHelper? = null;
         play_Btn.setOnClickListener(this)
         play_record_Btn.setOnClickListener(this)
         viewChange_Btn.setOnClickListener(this)
-        videoV = findViewById<VideoView>(R.id.video_View)
-        videoV.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
-            override fun onCompletion(mp: MediaPlayer?) {
-                play_Btn.setImageResource(R.drawable.play)
-                videoV?.seekTo(100)
-            }
-        })
-    }
-    private fun ButtonImageSetUp(){
-        if(video_View.isPlaying()){
-            play_Btn.setImageResource(R.drawable.pause);
+        if(listener!!.videoPlaying) {
+            videoV!!.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
+                override fun onCompletion(mp: MediaPlayer?) {
+                    videoV!!.seekTo(200)
+                }
+            })
         }else{
-            play_Btn.setImageResource(R.drawable.play);
+
         }
     }
 
@@ -658,10 +667,8 @@ private var rotationListener: rotationListenerHelper? = null;
             ActivityCompat.requestPermissions(this.requireActivity(), VIDEO_PERMISSIONS, REQUEST_VIDEO_PERMISSIONS)
             return
         }
-
         val cameraActivity = activity
         if (cameraActivity == null || cameraActivity.isFinishing) return
-
         val manager = cameraActivity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             if (!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
@@ -754,13 +761,10 @@ private var rotationListener: rotationListenerHelper? = null;
             val texture = textureView.surfaceTexture
             texture.setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
             previewRequestBuilder = cameraDevice!!.createCaptureRequest(TEMPLATE_PREVIEW)
-
             val previewSurface = Surface(texture)
             previewRequestBuilder.addTarget(previewSurface)
-
             cameraDevice?.createCaptureSession(listOf(previewSurface),
                     object : CameraCaptureSession.StateCallback() {
-
                         override fun onConfigured(session: CameraCaptureSession) {
                             captureSession = session
                             updatePreview()
@@ -773,7 +777,6 @@ private var rotationListener: rotationListenerHelper? = null;
         } catch (e: CameraAccessException) {
             Log.e(TAG, e.toString())
         }
-
     }
     /**
      * Update the camera preview. [startPreview] needs to be called in advance.
@@ -816,7 +819,6 @@ private var rotationListener: rotationListenerHelper? = null;
         } catch (e: InterruptedException) {
             Log.e(TAG, e.toString())
         }
-
     }
     @Throws(IOException::class)
     private fun setUpMediaRecorder() {
@@ -849,7 +851,6 @@ private var rotationListener: rotationListenerHelper? = null;
     }
     private fun startRecordingVideo() {
         if (cameraDevice == null || !textureView.isAvailable) return
-
         try {
             record_Btn.setImageResource(R.drawable.record);
             closePreviewSession()
@@ -1063,13 +1064,14 @@ private var rotationListener: rotationListenerHelper? = null;
                 Log.d(TAG, "record_Btn thouch");
             if (textureView.getVisibility() == View.GONE) {
                 textureView.setVisibility(View.VISIBLE)
-                video_View.setVisibility(View.GONE)
+                videoV!!.setVisibility(View.GONE)
             }
+                listener!!.videoPlaying = false
                 if (textureView.isAvailable) {
                 if (isRecordingVideo) {
                     stopRecordingVideo()
                 } else {
-                    video_View.setVisibility(View.GONE)
+                    videoV!!.setVisibility(View.GONE)
                     textureView.setVisibility(View.VISIBLE)
                     startRecordingVideo()
                 }
@@ -1077,31 +1079,38 @@ private var rotationListener: rotationListenerHelper? = null;
         }
             R.id.play_Btn//재생
                 ->{
-                if (video_layout.getVisibility() == View.INVISIBLE) {
-                    video_layout.setVisibility(View.VISIBLE)
-                    textureView.setVisibility(View.INVISIBLE)
-                }
                 Log.d(TAG, "play_Btn thouch")
+                if (videoV!!.getVisibility() == View.GONE) {
+                    textureView.setVisibility(View.GONE)
+                    videoV!!.setVisibility(View.VISIBLE)
+                }
+                listener!!.videoPlaying = true
                 if(listener!!.videoPath == null){
                     val intent = Intent(Intent.ACTION_GET_CONTENT);
                     val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                     intent.setType("video/mp4");
                     intent.putExtra(Intent.EXTRA_STREAM, uri);
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
+                        textureView.setZ(0.toFloat())
+                    videoV!!.setZ(0.toFloat());
+                        youtube_layout.setZ(1.toFloat())
                 }
-                if(videoV.isPlaying()){
+                if(videoV!!.isPlaying()){
                     play_Btn.setImageResource(R.drawable.pause)
-                    videoV.pause()
+                    videoV!!.pause()
                 }else {
                     play_Btn.setImageResource(R.drawable.play)
-                    videoV.start()
+                    videoV!!.start()
                 }
                 }
 
             R.id.load_Btn//파일불러오기
                     -> {
-                videoString = null;
-                videopath = null;
+                Log.d(TAG, "load_Btn thouch")
+                listener!!.videoPlaying = true
+                play_record = false
+                videoString = null
+                videopath = null
                 val intent = Intent(Intent.ACTION_GET_CONTENT);
                 val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                 intent.setType("video/mp4");
@@ -1110,23 +1119,32 @@ private var rotationListener: rotationListenerHelper? = null;
             }
             R.id.play_record_Btn//전후면 카메라변환
                 -> {
-                Log.d(TAG, "viewChange_Btn thouch");
-                switchCamera();
+                Log.d(TAG, "play_record_Btn thouch");
+                if (videoV!!.isPlaying()) {
+                    videoV!!.stopPlayback()
+                }
+                listener!!.videoPlaying = false
+                switchCamera()
             }
              R.id.viewChange_Btn//파일과 카메라간 변환
                -> {
+                 Log.d(TAG, "viewChange_Btn thouch");
                  if (play_record) {//촬영모드
                      if (isRecordingVideo) {
                          stopRecordingVideo()
                      }
-                     closeCamera();
-                     textureView.setVisibility(View.INVISIBLE)
-                     video_layout.setVisibility(View.VISIBLE)
+                     closeCamera()
+                     textureView.setVisibility(View.GONE)
+                     videoV!!.setVisibility(View.VISIBLE)
                      play_record = false;
                      listener!!.videoPlaying = true
+                     textureView.setZ(0.toFloat())
+                     videoV!!.setZ(0.toFloat())
+                     videoV!!.setAlpha((0.5).toFloat())
+                     textureView.setAlpha((0.5).toFloat())
                  } else {
-                     if (video_View.isPlaying()) {
-                         video_View.stopPlayback();
+                     if (videoV!!.isPlaying()) {
+                         videoV!!.stopPlayback()
                      }
                      if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
                          openCamera(textureView.getWidth(), textureView.getHeight());
@@ -1134,22 +1152,23 @@ private var rotationListener: rotationListenerHelper? = null;
                          openCamera(textureView.getHeight(), textureView.getWidth());
                      }
                      textureView.setVisibility(View.VISIBLE);
-                     video_layout.setVisibility(View.INVISIBLE);
+                     videoV!!.setVisibility(View.GONE);
                      play_record = true;
                      listener!!.videoPlaying = false
+                     videoV!!.setZ(0.toFloat())
+                     textureView.setZ(0.toFloat())
+                     textureView.setAlpha((0.5).toFloat())
+                     videoV!!.setAlpha((0.5).toFloat())
                  }
-                 ButtonImageSetUp();
                }
         }
     }
     private fun configureVideoView(source: Uri) {
         if(videoV != null){
             videoV?.setVideoURI(source)
-            videoV?.setAudioFocusRequest(AudioManager.AUDIOFOCUS_NONE)
         }else{
-            videoV = findViewById<VideoView>(R.id.video_View)
+            videoV = view!!.findViewById(R.id.video_View)
             videoV?.setVideoURI(source)
-            videoV?.setAudioFocusRequest(AudioManager.AUDIOFOCUS_NONE)
         }
     }
     companion object {

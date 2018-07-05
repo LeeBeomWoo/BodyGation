@@ -91,7 +91,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
             outState.putBoolean("vplay", videoPlaying)
             outState.putString("vpath", videoPath)
         }
-        Log.i(TAG, "onSaveInstanceState_" +"url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + youtubePlaying.toString())
+        Log.i(TAG, "onSaveInstanceState_" +"url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + videoPlaying.toString())
     }
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
