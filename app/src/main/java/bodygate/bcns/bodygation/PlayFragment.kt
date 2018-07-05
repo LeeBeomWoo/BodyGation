@@ -585,6 +585,8 @@ private var rotationListener: rotationListenerHelper? = null;
                         }
 
                         override fun onStopped() {
+                            listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
+                            listener!!.youtubePlaying = false
                             Log.i("youtube", "onStopped")
                             Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
                         }
