@@ -294,7 +294,7 @@ private var rotationListener: rotationListenerHelper? = null;
         super.onPause()
        Log.d(TAG, "onPause")
        if(listener!!.videoPlaying){
-         listener!!.videoProgress = video_View.currentPosition
+         listener!!.videoProgress = videoV?.currentPosition
        }
        closeCamera()
        stopBackgroundThread()
@@ -429,13 +429,11 @@ private var rotationListener: rotationListenerHelper? = null;
             textureView.setZ(0.toFloat())
             video_layout.setZ(0.toFloat());
             youtube_layout.setZ(1.toFloat())
-            video_View.setZ(2.toFloat())
-            video_View.setAlpha((0.5).toFloat())
+            video_layout.setAlpha((0.5).toFloat())
         }else{
             textureView.setZ(2.toFloat())
             video_layout.setZ(0.toFloat());
-            youtube_layout.setZ(0.toFloat())
-            video_View.setZ(1.toFloat())
+            youtube_layout.setZ(1.toFloat())
             textureView.setAlpha((0.5).toFloat())
         }
         youtube_layout.setAlpha((1).toFloat())
