@@ -92,36 +92,31 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
     }
+
     val REQUEST_VIDEO_PERMISSIONS = 1
     val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private val ARG_PARAM1 = "url"
     private var param1: String? = null
-    var viewalpha:Int = 0
     private var listener: PlayFragment.OnFragmentInteractionListener? = null
     private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
     private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
     private val TAG = "Item_follow_fragment_21"
     var baseDir = ""
-    private var mediaController: MediaController? = null
     var LandButton: ScaleRelativeLayout.LayoutParams? = null
-    var LandCamera:ScaleRelativeLayout.LayoutParams? = null
-    var LandWebView:ScaleRelativeLayout.LayoutParams? = null
-    var playlayout:ScaleRelativeLayout.LayoutParams? = null
-    var recordlayout:ScaleRelativeLayout.LayoutParams? = null
-    var switchlayout:ScaleRelativeLayout.LayoutParams? = null
-    var loadlayout:ScaleRelativeLayout.LayoutParams? = null
-    var play_recordlayout:ScaleRelativeLayout.LayoutParams? = null
-    var play_record: Boolean = true //true 가 촬영모드, false 가 재생모드
+    var LandCamera: ScaleRelativeLayout.LayoutParams? = null
+    var LandWebView: ScaleRelativeLayout.LayoutParams? = null
+    var playlayout: ScaleRelativeLayout.LayoutParams? = null
+    var recordlayout: ScaleRelativeLayout.LayoutParams? = null
+    var switchlayout: ScaleRelativeLayout.LayoutParams? = null
+    var loadlayout: ScaleRelativeLayout.LayoutParams? = null
+    var play_recordlayout: ScaleRelativeLayout.LayoutParams? = null
     val CAMERA_FRONT = "1"
     val CAMERA_BACK = "0"
     var change: String? = null
-    var videoString:String? = null
     var videopath: Uri? = null
-    var videoV:VideoView? = null
-    lateinit var mMediaSession:MediaSessionCompat
-    lateinit var mStateBuilder: PlaybackStateCompat.Builder
+    lateinit var videoV: VideoView
 
-private var rotationListener: rotationListenerHelper? = null;
+    private var rotationListener: rotationListenerHelper? = null;
 
     private lateinit var cameraId: String
 
@@ -152,7 +147,6 @@ private var rotationListener: rotationListenerHelper? = null;
     private var isRecordingVideo = false
 
 
-
     /**
      * An additional thread for running tasks that shouldn't block the UI.
      */
@@ -173,8 +167,8 @@ private var rotationListener: rotationListenerHelper? = null;
     private var mediaRecorder: MediaRecorder? = null
 
     private val FRAGMENT_DIALOG = "dialog"
-    var youTubePlayerSupportFragment:YouTubePlayerSupportFragment? = null
-    var youtubePlayer:YouTubePlayer? = null
+    var youTubePlayerSupportFragment: YouTubePlayerSupportFragment? = null
+    var youtubePlayer: YouTubePlayer? = null
 
     private val DEFAULT_ORIENTATIONS = SparseIntArray().apply {
         append(Surface.ROTATION_0, 90)
@@ -196,7 +190,7 @@ private var rotationListener: rotationListenerHelper? = null;
 
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
             Log.i("camera", "onSurfaceTextureSizeChanged")
-           // configureTransform(width, height)
+            // configureTransform(width, height)
         }
 
         override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture) = true
@@ -230,19 +224,20 @@ private var rotationListener: rotationListenerHelper? = null;
 
 
     }
+
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-        Thread(object:Runnable {
+        Thread(object : Runnable {
             override fun run() {
                 // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
-                getActivity()!!.runOnUiThread(object:Runnable {
+                getActivity()!!.runOnUiThread(object : Runnable {
                     override fun run() {
                         // 메시지 큐에 저장될 메시지의 내용;
                         val a = (progress.toDouble() / 100.0)
                         val b = a.toFloat()
-                        if(textureView.isAvailable) {
+                        if (textureView.visibility == View.VISIBLE) {
                             textureView.setAlpha(b)
-                        }else if(videoV!!.visibility == View.VISIBLE){
-                            videoV!!.alpha = b
+                        } else if (videoV.visibility == View.VISIBLE) {
+                            videoV.alpha = b
                         }
                     }
                 })
@@ -270,31 +265,32 @@ private var rotationListener: rotationListenerHelper? = null;
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
         setRetainInstance(true)
-        if(savedInstanceState != null){
+        if (savedInstanceState != null) {
             Log.i(TAG, "onCreate savedInstanceState")
             param1 = savedInstanceState.getString("url")
-        }else {
+        } else {
             arguments?.let {
                 param1 = it.getString(ARG_PARAM1)
             }
         }
         val state = Environment.getExternalStorageState()
-        if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
+        if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {  // we can read the External Storage...
             //Retrieve the primary External Storage:
             baseDir = Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").path
-        }else{
+        } else {
             baseDir = Environment.DIRECTORY_MOVIES
         }
     }
+
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
         startBackgroundThread()
-        if(listener!!.videoPlaying){
-            configureVideoView(Uri.parse(listener!!.videoPath))
-            videoV!!.seekTo(listener!!.videoProgress)
-        }else{
-            if(textureView.isAvailable) {
+        if (listener!!.videoPlaying && listener!!.videoPath != null) {
+            configureVideoView(Uri.parse(listener!!.videoPath!!))
+            videoV.seekTo(listener!!.videoProgress)
+        } else if (textureView.visibility == View.VISIBLE) {
+            if (textureView.isAvailable) {
                 openCamera(textureView.width, textureView.height)
             } else {
                 textureView.surfaceTextureListener = surfaceTextureListener
@@ -306,7 +302,7 @@ private var rotationListener: rotationListenerHelper? = null;
         super.onPause()
        Log.d(TAG, "onPause")
        if(listener!!.videoPlaying){
-         listener!!.videoProgress = videoV!!.currentPosition
+         listener!!.videoProgress = videoV.currentPosition
        }
        closeCamera()
        stopBackgroundThread()
@@ -353,10 +349,6 @@ private var rotationListener: rotationListenerHelper? = null;
         super.onAttach(context)
         if (context is OnFragmentInteractionListener) {
             listener = context
-            if(listener!!.videoPlaying){
-                if(listener!!.videoPath!! != "")
-                    configureVideoView(Uri.parse(listener!!.videoPath!!))
-            }
         } else {
             throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
@@ -427,7 +419,7 @@ private var rotationListener: rotationListenerHelper? = null;
         LandCamera!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
-        videoV!!.setLayoutParams(LandWebView)
+        videoV.setLayoutParams(LandWebView)
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control)
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
@@ -437,15 +429,19 @@ private var rotationListener: rotationListenerHelper? = null;
         alpha_control.setVisibility(View.VISIBLE)
         alpha_control.setZ(2.toFloat())
         if(listener!!.videoPlaying){
-            textureView.setZ(0.toFloat())
-            videoV!!.setZ(2.toFloat());
-            youtube_layout.setZ(1.toFloat())
-            videoV!!.setAlpha((0.5).toFloat())
-        }else{
             textureView.setZ(2.toFloat())
-            videoV!!.setZ(0.toFloat());
+            videoV.setZ(0.toFloat());
+            youtube_layout.setZ(1.toFloat())
+            videoV.setAlpha((0.5).toFloat())
+            videoV.visibility = View.VISIBLE
+            textureView.visibility = View.GONE
+        }else{
+            textureView.setZ(0.toFloat())
+            videoV.setZ(2.toFloat());
             youtube_layout.setZ(1.toFloat())
             textureView.setAlpha((0.5).toFloat())
+            videoV.visibility = View.VISIBLE
+            textureView.visibility = View.GONE
         }
         youtube_layout.setAlpha((1).toFloat())
     }
@@ -490,15 +486,19 @@ private var rotationListener: rotationListenerHelper? = null;
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP)
         LandCamera!!.addRule(ScaleRelativeLayout.START_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout)
-        videoV!!.setLayoutParams(LandCamera)
+        videoV.setLayoutParams(LandCamera)
         alpha_control.setVisibility(View.GONE)
         textureView.setLayoutParams(LandCamera)
         if(listener!!.videoPlaying){
             textureView.visibility = View.GONE
-            videoV!!.visibility = View.VISIBLE
+            videoV.visibility = View.VISIBLE
+            textureView.setZ(2.toFloat())
+            videoV.setZ(0.toFloat());
         }else{
-            videoV!!.visibility = View.GONE
+            videoV.visibility = View.GONE
             textureView.visibility = View.VISIBLE
+            textureView.setZ(2.toFloat())
+            videoV.setZ(0.toFloat());
         }
         textureView.setAlpha((1).toFloat())
         youtube_layout.setAlpha((1).toFloat())
@@ -512,18 +512,6 @@ private var rotationListener: rotationListenerHelper? = null;
         cameraId = CAMERA_FRONT
         startBackgroundThread()
         viewSet()
-        mMediaSession = MediaSessionCompat(this.requireContext(), TAG)
-        mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
-        mMediaSession.setMediaButtonReceiver(null)
-        mStateBuilder = PlaybackStateCompat.Builder()
-                .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
-        mMediaSession.setPlaybackState(mStateBuilder.build())
-        mMediaSession.setCallback(object : MediaSessionCompat.Callback(){})
-
-  // Create a MediaControllerCompat
-  val mediaController = MediaControllerCompat(this.requireContext(), mMediaSession)
-
-  MediaControllerCompat.setMediaController(this.requireActivity(), mediaController)
     val curOrientation =  requireActivity().windowManager.defaultDisplay.rotation
     when (curOrientation) {
         0 -> {
@@ -534,8 +522,7 @@ private var rotationListener: rotationListenerHelper? = null;
             //.SCREEN_ORIENTATION_REVERSE_PORTRAIT
             PortrainSet()
             val matrix = Matrix()
-            if(listener!!.videoPlaying){
-            }else{
+            if(!listener!!.videoPlaying){
                 val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
                 matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
                 textureView.setTransform(matrix)
@@ -553,8 +540,7 @@ private var rotationListener: rotationListenerHelper? = null;
            val matrix = Matrix()
            val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
            matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
-             if(listener!!.videoPlaying){
-            }else{
+           if(!listener!!.videoPlaying){
                 textureView.setTransform(matrix)
             }
         }
@@ -650,15 +636,6 @@ private var rotationListener: rotationListenerHelper? = null;
         play_Btn.setOnClickListener(this)
         play_record_Btn.setOnClickListener(this)
         viewChange_Btn.setOnClickListener(this)
-        if(listener!!.videoPlaying) {
-            videoV!!.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
-                override fun onCompletion(mp: MediaPlayer?) {
-                    videoV!!.seekTo(200)
-                }
-            })
-        }else{
-
-        }
     }
 
     @SuppressLint("MissingPermission")
@@ -1062,114 +1039,159 @@ private var rotationListener: rotationListenerHelper? = null;
             R.id.record_Btn ->//녹화
             {
                 Log.d(TAG, "record_Btn thouch");
-            if (textureView.getVisibility() == View.GONE) {
-                textureView.setVisibility(View.VISIBLE)
-                videoV!!.setVisibility(View.GONE)
-            }
+                if (textureView.getVisibility() == View.GONE) {
+                    textureView.setVisibility(View.VISIBLE)
+                    videoV.setVisibility(View.GONE)
+                }
                 listener!!.videoPlaying = false
                 if (textureView.isAvailable) {
-                if (isRecordingVideo) {
-                    stopRecordingVideo()
-                } else {
-                    videoV!!.setVisibility(View.GONE)
-                    textureView.setVisibility(View.VISIBLE)
-                    startRecordingVideo()
+                    if (isRecordingVideo) {
+                        stopRecordingVideo()
+                    } else {
+                        startRecordingVideo()
+                    }
                 }
             }
-        }
             R.id.play_Btn//재생
-                ->{
+            -> {
                 Log.d(TAG, "play_Btn thouch")
-                if (videoV!!.getVisibility() == View.GONE) {
+                if (videoV.getVisibility() == View.GONE) {
                     textureView.setVisibility(View.GONE)
-                    videoV!!.setVisibility(View.VISIBLE)
+                    videoV.setVisibility(View.VISIBLE)
                 }
                 listener!!.videoPlaying = true
-                if(listener!!.videoPath == null){
+                if (listener!!.videoPath == null) {
                     val intent = Intent(Intent.ACTION_GET_CONTENT);
-                    val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
+                    val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
                     intent.setType("video/mp4");
                     intent.putExtra(Intent.EXTRA_STREAM, uri);
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
-                        textureView.setZ(0.toFloat())
-                    videoV!!.setZ(0.toFloat());
-                        youtube_layout.setZ(1.toFloat())
                 }
-                if(videoV!!.isPlaying()){
-                    play_Btn.setImageResource(R.drawable.pause)
-                    videoV!!.pause()
-                }else {
+                if (videoV.isPlaying()) {
                     play_Btn.setImageResource(R.drawable.play)
-                    videoV!!.start()
+                    videoV.pause()
+                } else {
+                    play_Btn.setImageResource(R.drawable.pause)
+                    videoV.start()
                 }
-                }
+            }
 
             R.id.load_Btn//파일불러오기
-                    -> {
+            -> {
                 Log.d(TAG, "load_Btn thouch")
                 listener!!.videoPlaying = true
-                play_record = false
-                videoString = null
                 videopath = null
                 val intent = Intent(Intent.ACTION_GET_CONTENT);
-                val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
+                val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
                 intent.setType("video/mp4");
                 intent.putExtra(Intent.EXTRA_STREAM, uri);
                 startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
             }
             R.id.play_record_Btn//전후면 카메라변환
-                -> {
+            -> {
                 Log.d(TAG, "play_record_Btn thouch");
-                if (videoV!!.isPlaying()) {
-                    videoV!!.stopPlayback()
+                if (listener!!.videoPlaying) {
+                    videoV.stopPlayback()
+                    listener!!.videoPlaying = false
                 }
-                listener!!.videoPlaying = false
                 switchCamera()
             }
-             R.id.viewChange_Btn//파일과 카메라간 변환
-               -> {
-                 Log.d(TAG, "viewChange_Btn thouch");
-                 if (play_record) {//촬영모드
-                     if (isRecordingVideo) {
-                         stopRecordingVideo()
-                     }
-                     closeCamera()
-                     textureView.setVisibility(View.GONE)
-                     videoV!!.setVisibility(View.VISIBLE)
-                     play_record = false;
-                     listener!!.videoPlaying = true
-                     textureView.setZ(0.toFloat())
-                     videoV!!.setZ(0.toFloat())
-                     videoV!!.setAlpha((0.5).toFloat())
-                     textureView.setAlpha((0.5).toFloat())
-                 } else {
-                     if (videoV!!.isPlaying()) {
-                         videoV!!.stopPlayback()
-                     }
-                     if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-                         openCamera(textureView.getWidth(), textureView.getHeight());
-                     } else {
-                         openCamera(textureView.getHeight(), textureView.getWidth());
-                     }
-                     textureView.setVisibility(View.VISIBLE);
-                     videoV!!.setVisibility(View.GONE);
-                     play_record = true;
-                     listener!!.videoPlaying = false
-                     videoV!!.setZ(0.toFloat())
-                     textureView.setZ(0.toFloat())
-                     textureView.setAlpha((0.5).toFloat())
-                     videoV!!.setAlpha((0.5).toFloat())
-                 }
-               }
+            R.id.viewChange_Btn//파일과 카메라간 변환
+            -> {
+                Log.d(TAG, "viewChange_Btn thouch")
+                if (requireActivity().windowManager.defaultDisplay.rotation == 0 || requireActivity().windowManager.defaultDisplay.rotation == 2) {//세로모드
+                    if (listener!!.videoPlaying) {//재생모드
+                        if (videoV.isPlaying()) {
+                            videoV.stopPlayback()
+                        }
+                        Thread(object : Runnable {
+                            override fun run() {
+                                // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
+                                getActivity()!!.runOnUiThread(object : Runnable {
+                                    override fun run() {
+                                        // 메시지 큐에 저장될 메시지의 내용;
+                                        textureView.setVisibility(View.VISIBLE)
+                                        videoV.setVisibility(View.GONE)
+                                        openCamera(textureView.getWidth(), textureView.getHeight())
+                                    }
+                                })
+                            }
+                        }).start()
+                        listener!!.videoPlaying = false
+                    } else {//촬영모드
+                        if (isRecordingVideo) {
+                            stopRecordingVideo()
+                        }
+                        Thread(object : Runnable {
+                            override fun run() {
+                                // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
+                                getActivity()!!.runOnUiThread(object : Runnable {
+                                    override fun run() {
+                                        // 메시지 큐에 저장될 메시지의 내용;
+                                        textureView.setVisibility(View.GONE)
+                                        videoV.setVisibility(View.VISIBLE)
+                                    }
+                                })
+                            }
+                        }).start()
+                        closeCamera()
+                        listener!!.videoPlaying = true
+                    }
+                } else {//가로모드
+                    if (listener!!.videoPlaying) {//재생모드
+                        if (videoV.isPlaying()) {
+                            videoV.stopPlayback()
+                        }
+                        listener!!.videoPlaying = false
+                        Thread(object : Runnable {
+                            override fun run() {
+                                // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
+                                getActivity()!!.runOnUiThread(object : Runnable {
+                                    override fun run() {
+                                        // 메시지 큐에 저장될 메시지의 내용;
+                                        textureView.setVisibility(View.VISIBLE)
+                                        videoV.setVisibility(View.GONE)
+                                        openCamera(textureView.getWidth(), textureView.getHeight())
+                                        videoV.setZ(0.toFloat())
+                                        textureView.setZ(2.toFloat())
+                                        textureView.setAlpha((0.5).toFloat())
+                                        videoV.setAlpha((0.5).toFloat())
+                                    }
+                                })
+                            }
+                        }).start()
+                    } else {//촬영모드
+                        if (isRecordingVideo) {
+                            stopRecordingVideo()
+                        }
+                        closeCamera()
+                        listener!!.videoPlaying = true
+                        Thread(object : Runnable {
+                            override fun run() {
+                                // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
+                                getActivity()!!.runOnUiThread(object : Runnable {
+                                    override fun run() {
+                                        // 메시지 큐에 저장될 메시지의 내용;
+                                        textureView.setVisibility(View.GONE)
+                                        videoV.setVisibility(View.VISIBLE)
+                                        textureView.setZ(0.toFloat())
+                                        videoV.setZ(2.toFloat())
+                                        videoV.setAlpha((0.5).toFloat())
+                                        textureView.setAlpha((0.5).toFloat())
+                                    }
+                                })
+                            }
+                        }).start()
+                    }
+                }
+            }
         }
     }
     private fun configureVideoView(source: Uri) {
-        if(videoV != null){
-            videoV?.setVideoURI(source)
-        }else{
-            videoV = view!!.findViewById(R.id.video_View)
-            videoV?.setVideoURI(source)
-        }
+        videoV.setVideoURI(source)
+        videoV.seekTo(1000)
+        videoV.setOnCompletionListener {
+            play_Btn.setImageResource(R.drawable.play) }
     }
     companion object {
         /**

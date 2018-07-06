@@ -39,7 +39,6 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     var item_word:String? = null
     var section:String? = null
     var video:String? = null
-    override var videoPath:String? = null
     var category: Int = 0
     var context: Context = this
     var playFragment:PlayFragment? = null
@@ -47,6 +46,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override var youtubePlaying:Boolean = false
     override var videoProgress:Int= 0
     override var videoPlaying:Boolean = false
+    override var videoPath:String? = null
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,7 +91,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
             outState.putBoolean("vplay", videoPlaying)
             outState.putString("vpath", videoPath)
         }
-        Log.i(TAG, "onSaveInstanceState_" +"url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + videoPlaying.toString())
+        Log.i(TAG, "onSaveInstanceState_" +"url :" + url + "\t videoPath :" + videoPath + "\t playyoutube : " + videoPlaying.toString())
     }
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
