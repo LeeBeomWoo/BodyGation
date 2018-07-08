@@ -84,38 +84,36 @@ import java.util.concurrent.TimeUnit
  * Use the [PlayFragment.newInstance] factory method to
  * create an instance of this fragment.
  *
- */
-class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeListener, ActivityCompat.OnRequestPermissionsResultCallback {
+ */class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeListener, ActivityCompat.OnRequestPermissionsResultCallback {
     override fun onStartTrackingTouch(p0: SeekBar?) {
 
     }
 
     override fun onStopTrackingTouch(p0: SeekBar?) {
     }
-
     val REQUEST_VIDEO_PERMISSIONS = 1
     val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private val ARG_PARAM1 = "url"
     private var param1: String? = null
+    var viewalpha:Int = 0
     private var listener: PlayFragment.OnFragmentInteractionListener? = null
     private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
     private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
     private val TAG = "Item_follow_fragment_21"
     var baseDir = ""
+    private var mediaController: MediaController? = null
     var LandButton: ScaleRelativeLayout.LayoutParams? = null
-    var LandCamera: ScaleRelativeLayout.LayoutParams? = null
-    var LandWebView: ScaleRelativeLayout.LayoutParams? = null
-    var playlayout: ScaleRelativeLayout.LayoutParams? = null
-    var recordlayout: ScaleRelativeLayout.LayoutParams? = null
-    var switchlayout: ScaleRelativeLayout.LayoutParams? = null
-    var loadlayout: ScaleRelativeLayout.LayoutParams? = null
-    var play_recordlayout: ScaleRelativeLayout.LayoutParams? = null
+    var LandCamera:ScaleRelativeLayout.LayoutParams? = null
+    var LandWebView:ScaleRelativeLayout.LayoutParams? = null
+    var playlayout:ScaleRelativeLayout.LayoutParams? = null
+    var recordlayout:ScaleRelativeLayout.LayoutParams? = null
+    var switchlayout:ScaleRelativeLayout.LayoutParams? = null
+    var loadlayout:ScaleRelativeLayout.LayoutParams? = null
+    var play_recordlayout:ScaleRelativeLayout.LayoutParams? = null
+    var play_record: Boolean? = true //true 가 촬영모드, false 가 재생모드
     val CAMERA_FRONT = "1"
     val CAMERA_BACK = "0"
     var change: String? = null
-    var videopath: Uri? = null
-    lateinit var videoV: VideoView
-
     private var rotationListener: rotationListenerHelper? = null;
 
     private lateinit var cameraId: String
@@ -147,6 +145,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private var isRecordingVideo = false
 
 
+
     /**
      * An additional thread for running tasks that shouldn't block the UI.
      */
@@ -167,8 +166,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private var mediaRecorder: MediaRecorder? = null
 
     private val FRAGMENT_DIALOG = "dialog"
-    var youTubePlayerSupportFragment: YouTubePlayerSupportFragment? = null
-    var youtubePlayer: YouTubePlayer? = null
+    var youTubePlayerSupportFragment:YouTubePlayerSupportFragment? = null
+    var youtubePlayer:YouTubePlayer? = null
 
     private val DEFAULT_ORIENTATIONS = SparseIntArray().apply {
         append(Surface.ROTATION_0, 90)
@@ -207,6 +206,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             cameraOpenCloseLock.release()
             this@PlayFragment.cameraDevice = cameraDevice
             startPreview()
+            /*
+            if (requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
+                configureTransform(textureView.height ,textureView.width)
+            }else{
+                configureTransform(textureView.width, textureView.height)
+            }*/
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
@@ -224,20 +229,19 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
 
     }
-
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-        Thread(object : Runnable {
+        Thread(object:Runnable {
             override fun run() {
                 // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
-                getActivity()!!.runOnUiThread(object : Runnable {
+                getActivity()!!.runOnUiThread(object:Runnable {
                     override fun run() {
                         // 메시지 큐에 저장될 메시지의 내용;
                         val a = (progress.toDouble() / 100.0)
                         val b = a.toFloat()
-                        if (textureView.visibility == View.VISIBLE) {
+                        if(textureView.isAvailable) {
                             textureView.setAlpha(b)
-                        } else if (videoV.visibility == View.VISIBLE) {
-                            videoV.alpha = b
+                        }else if(video_View.visibility == View.VISIBLE){
+                            video_View.setAlpha(b)
                         }
                     }
                 })
@@ -265,47 +269,43 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
         setRetainInstance(true)
-        if (savedInstanceState != null) {
+        if(savedInstanceState != null){
             Log.i(TAG, "onCreate savedInstanceState")
             param1 = savedInstanceState.getString("url")
-        } else {
+        }else {
             arguments?.let {
                 param1 = it.getString(ARG_PARAM1)
             }
         }
         val state = Environment.getExternalStorageState()
-        if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {  // we can read the External Storage...
+        if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
             //Retrieve the primary External Storage:
             baseDir = Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").path
-        } else {
+        }else{
             baseDir = Environment.DIRECTORY_MOVIES
         }
     }
-
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
         startBackgroundThread()
-        if (listener!!.videoPlaying && listener!!.videoPath != null) {
-            configureVideoView(Uri.parse(listener!!.videoPath!!))
-            videoV.seekTo(listener!!.videoProgress)
-        } else if (textureView.visibility == View.VISIBLE) {
-            if (textureView.isAvailable) {
-                openCamera(textureView.width, textureView.height)
-            } else {
-                textureView.surfaceTextureListener = surfaceTextureListener
-            }
+        if(listener!!.videoPlaying){
+            textureView.visibility = View.GONE
+            video_View.visibility = View.VISIBLE
+        }
+        if(textureView.isAvailable) {
+            openCamera(textureView.width, textureView.height)
+        } else {
+            textureView.surfaceTextureListener = surfaceTextureListener
         }
     }
 
-   override fun onPause() {
+    override fun onPause() {
         super.onPause()
-       Log.d(TAG, "onPause")
-       if(listener!!.videoPlaying){
-         listener!!.videoProgress = videoV.currentPosition
-       }
-       closeCamera()
-       stopBackgroundThread()
+        Log.d(TAG, "onPause")
+        closeCamera()
+        stopBackgroundThread()
+        listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -376,10 +376,22 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         fun onFragmentInteraction(uri: Uri)
         var youtubeprogress:Int
         var youtubePlaying:Boolean
-        var videoProgress:Int
+        var videoprogress:Int
         var videoPlaying:Boolean
-        var videoPath:String?
+        var videoPath:String
     }
+    /*
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+            super.onConfigurationChanged(newConfig)
+        if (newConfig != null) {
+            if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                LandSet()
+            } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                PortrainSet()
+            }
+        }
+        Log.i(TAG, "onConfigurationChanged newConfig : " + newConfig.toString())
+    }*/
     private fun LandSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         LandButton = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), ViewGroup.LayoutParams.MATCH_PARENT);
@@ -419,7 +431,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandCamera!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
-        videoV.setLayoutParams(LandWebView)
+        video_View.setLayoutParams(LandWebView)
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control)
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
@@ -428,21 +440,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         alpha_control.setProgress(50)
         alpha_control.setVisibility(View.VISIBLE)
         alpha_control.setZ(2.toFloat())
-        if(listener!!.videoPlaying){
-            textureView.setZ(2.toFloat())
-            videoV.setZ(0.toFloat());
-            youtube_layout.setZ(1.toFloat())
-            videoV.setAlpha((0.5).toFloat())
-            videoV.visibility = View.VISIBLE
-            textureView.visibility = View.GONE
-        }else{
-            textureView.setZ(0.toFloat())
-            videoV.setZ(2.toFloat());
-            youtube_layout.setZ(1.toFloat())
-            textureView.setAlpha((0.5).toFloat())
-            videoV.visibility = View.VISIBLE
-            textureView.visibility = View.GONE
-        }
+        textureView.setAlpha((0.5).toFloat())
+        video_View.setAlpha((0.5).toFloat())
+        textureView.setZ(2.toFloat())
+        video_View.setZ(1.toFloat())
+        youtube_layout.setZ(0.toFloat())
         youtube_layout.setAlpha((1).toFloat())
     }
     private fun PortrainSet(){
@@ -486,148 +488,134 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP)
         LandCamera!!.addRule(ScaleRelativeLayout.START_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout)
-        videoV.setLayoutParams(LandCamera)
+        video_View.setLayoutParams(LandCamera)
         alpha_control.setVisibility(View.GONE)
         textureView.setLayoutParams(LandCamera)
-        if(listener!!.videoPlaying){
-            textureView.visibility = View.GONE
-            videoV.visibility = View.VISIBLE
-            textureView.setZ(2.toFloat())
-            videoV.setZ(0.toFloat());
-        }else{
-            videoV.visibility = View.GONE
-            textureView.visibility = View.VISIBLE
-            textureView.setZ(2.toFloat())
-            videoV.setZ(0.toFloat());
-        }
+        video_View.setAlpha((1).toFloat())
         textureView.setAlpha((1).toFloat())
         youtube_layout.setAlpha((1).toFloat())
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.i(TAG, "onViewCreated")
         textureView = view.findViewById(R.id.AutoView)
-        videoV = view.findViewById(R.id.video_View)
         cameraId = CAMERA_FRONT
         startBackgroundThread()
         viewSet()
-    val curOrientation =  requireActivity().windowManager.defaultDisplay.rotation
-    when (curOrientation) {
-        0 -> {
-            // SCREEN_ORIENTATION_PORTRAIT
-            PortrainSet()
-        }
-        2 -> {
-            //.SCREEN_ORIENTATION_REVERSE_PORTRAIT
-            PortrainSet()
-            val matrix = Matrix()
-            if(!listener!!.videoPlaying){
+        val curOrientation =  requireActivity().windowManager.defaultDisplay.rotation
+
+        when (curOrientation) {
+            0 -> {
+                //. SCREEN_ORIENTATION_PORTRAIT
+                PortrainSet()
+            }
+            2 -> {
+                //. SCREEN_ORIENTATION_REVERSE_PORTRAIT
+                PortrainSet()
+                val matrix = Matrix()
                 val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
                 matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
                 textureView.setTransform(matrix)
-            }    
-        }
-            //----------------------------------------
-       1 -> {
-            // SCREEN_ORIENTATION_LANDSCAPE
-           LandSet()
-        }
-            //----------------------------------------
-       3 -> {
-            //. SCREEN_ORIENTATION_REVERSE_LANDSCAPE
-           LandSet()
-           val matrix = Matrix()
-           val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
-           matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
-           if(!listener!!.videoPlaying){
+            }
+        //----------------------------------------
+            1 -> {
+                //. SCREEN_ORIENTATION_LANDSCAPE
+                LandSet()
+            }
+        //----------------------------------------
+            3 -> {
+                //. SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                LandSet()
+                val matrix = Matrix()
+                val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
+                matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
                 textureView.setTransform(matrix)
             }
-        }
-            //----------------------------------------
-    } /*endSwitch*/
+        //----------------------------------------
+        } /*endSwitch*/
 
-    rotationListener = rotationListenerHelper()
-    rotationListener!!.listen(this.requireContext(), object :rotationCallbackFn{
-        override fun onRotationChanged(lastRotation: Int, newRotation: Int) {
-            Log.d(TAG, "onRotationChanged: last " + (lastRotation) +"  new " + (newRotation))
-            /**
-             * no need to recreate activity if screen rotate from portrait to landscape
-             * android do the job in order to reload resources
-             */
-            if (
-                    (lastRotation == 0 && newRotation == 2) ||
-                    (lastRotation == 2 && newRotation == 0) ||
-                    (lastRotation == 1 && newRotation == 3) ||
-                    (lastRotation == 3 && newRotation == 1)
-            )
-                requireActivity().recreate()
-        }
-    })
+        rotationListener = rotationListenerHelper()
+        rotationListener!!.listen(this.requireContext(), object :rotationCallbackFn{
+            override fun onRotationChanged(lastRotation: Int, newRotation: Int) {
+                Log.d(TAG, "onRotationChanged: last " + (lastRotation) +"  new " + (newRotation));
+
+                /**
+                 * no need to recreate activity if screen rotate from portrait to landscape
+                 * android do the job in order to reload resources
+                 */
+
+                if (
+                        (lastRotation == 0 && newRotation == 2) ||
+                        (lastRotation == 2 && newRotation == 0) ||
+                        (lastRotation == 1 && newRotation == 3) ||
+                        (lastRotation == 3 && newRotation == 1)
+                )
+                    requireActivity().recreate()
+            }
+        })
         alpha_control.max = 90
-            youTubePlayerSupportFragment = YouTubePlayerSupportFragment.newInstance()
-            youTubePlayerSupportFragment!!.initialize(getString(R.string.API_key), object:YouTubePlayer.OnInitializedListener{
-                override fun onInitializationSuccess(p0: YouTubePlayer.Provider?, p1: YouTubePlayer?, p2: Boolean) {
-                    Log.i("youtube", "youTubePlayerSupportFragment")
-                    youtubePlayer = p1
-                    youtubePlayer!!.cueVideo(param1)
-                    youtubePlayer!!.setShowFullscreenButton(false)
-                    youtubePlayer!!.setPlaybackEventListener(object : YouTubePlayer.PlaybackEventListener{
-                        override fun onSeekTo(p0: Int) {
-                        }
+        youTubePlayerSupportFragment = YouTubePlayerSupportFragment.newInstance()
+        youTubePlayerSupportFragment!!.initialize(getString(R.string.API_key), object:YouTubePlayer.OnInitializedListener{
+            override fun onInitializationSuccess(p0: YouTubePlayer.Provider?, p1: YouTubePlayer?, p2: Boolean) {
+                Log.i("youtube", "youTubePlayerSupportFragment")
+                youtubePlayer = p1
+                youtubePlayer!!.cueVideo(param1)
+                youtubePlayer!!.setShowFullscreenButton(false)
+                youtubePlayer!!.setPlaybackEventListener(object : YouTubePlayer.PlaybackEventListener{
+                    override fun onSeekTo(p0: Int) {
 
-                        override fun onBuffering(p0: Boolean) {
-                        }
+                    }
 
-                        override fun onPlaying() {
-                            listener!!.youtubePlaying = true
-                            Log.i("youtube", "onPlaying")
-                        }
+                    override fun onBuffering(p0: Boolean) {
+                    }
 
-                        override fun onStopped() {
-                            listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
-                            listener!!.youtubePlaying = false
-                            Log.i("youtube", "onStopped")
-                            Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
-                        }
+                    override fun onPlaying() {
+                        listener!!.youtubePlaying = true
+                        Log.i("youtube", "onPlaying")
+                    }
 
-                        override fun onPaused() {
-                            listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
-                            listener!!.youtubePlaying = false
-                            Log.i("youtube", "onPaused")
-                            Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
-                        }
-                    })
-                    youtubePlayer!!.setPlayerStateChangeListener(object :YouTubePlayer.PlayerStateChangeListener{
-                        override fun onAdStarted() {
-                        }
+                    override fun onStopped() {
+                        Log.i("youtube", "onStopped")
+                        Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
+                    }
 
-                        override fun onLoading() {
-                        }
+                    override fun onPaused() {
+                        listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
+                        listener!!.youtubePlaying = false
+                        Log.i("youtube", "onPaused")
+                        Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
+                    }
+                })
+                youtubePlayer!!.setPlayerStateChangeListener(object :YouTubePlayer.PlayerStateChangeListener{
+                    override fun onAdStarted() {
+                    }
 
-                        override fun onVideoStarted() {
-                        }
+                    override fun onLoading() {
+                    }
 
-                        override fun onLoaded(p0: String?) {
-                            if(listener!!.youtubePlaying && listener!!.youtubeprogress > 1){
-                                youtubePlayer!!.seekToMillis(listener!!.youtubeprogress)
-                                youtubePlayer!!.play()
-                            }
-                        }
+                    override fun onVideoStarted() {
+                    }
 
-                        override fun onVideoEnded() {
+                    override fun onLoaded(p0: String?) {
+                        if(listener!!.youtubePlaying && listener!!.youtubeprogress > 1){
+                            youtubePlayer!!.seekToMillis(listener!!.youtubeprogress)
+                            youtubePlayer!!.play()
                         }
+                    }
 
-                        override fun onError(p0: YouTubePlayer.ErrorReason?) {
-                        }
-                    })
-                }
-                override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {
-                    Log.i("youtube", "onInitializationFailure : " + p1.toString()
-                    )
-                }
-            })
-            requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
+                    override fun onVideoEnded() {
+                    }
+
+                    override fun onError(p0: YouTubePlayer.ErrorReason?) {
+                    }
+                })
+            }
+            override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {
+                Log.i("youtube", "onInitializationFailure : " + p1.toString()
+                )
+            }
+        })
+        requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         alpha_control.setOnSeekBarChangeListener(this)
     }
     private fun viewSet(){
@@ -636,6 +624,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         play_Btn.setOnClickListener(this)
         play_record_Btn.setOnClickListener(this)
         viewChange_Btn.setOnClickListener(this)
+        video_View.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
+            override fun onCompletion(mp: MediaPlayer?) {
+                play_Btn.setImageResource(R.drawable.play);
+            }
+        })
     }
 
     @SuppressLint("MissingPermission")
@@ -644,8 +637,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             ActivityCompat.requestPermissions(this.requireActivity(), VIDEO_PERMISSIONS, REQUEST_VIDEO_PERMISSIONS)
             return
         }
+
         val cameraActivity = activity
         if (cameraActivity == null || cameraActivity.isFinishing) return
+
         val manager = cameraActivity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             if (!cameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
@@ -693,9 +688,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         //if (resultCode != RESULT_OK)
         if (requestCode == 3 && data != null) {
             val mVideoURI = data.getData()
-            listener!!.videoPath = mVideoURI.toString()
-            configureVideoView(mVideoURI)
+            listener!!.videoPath = mVideoURI.toString();
+            configureVideoView(listener!!.videoPath)
             Log.d("onActivityResult", mVideoURI.toString())
+            Log.d("Result videoString", listener!!.videoPath)
+            //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI));
         }
     }
 
@@ -738,10 +735,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             val texture = textureView.surfaceTexture
             texture.setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
             previewRequestBuilder = cameraDevice!!.createCaptureRequest(TEMPLATE_PREVIEW)
+
             val previewSurface = Surface(texture)
             previewRequestBuilder.addTarget(previewSurface)
+
             cameraDevice?.createCaptureSession(listOf(previewSurface),
                     object : CameraCaptureSession.StateCallback() {
+
                         override fun onConfigured(session: CameraCaptureSession) {
                             captureSession = session
                             updatePreview()
@@ -754,6 +754,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         } catch (e: CameraAccessException) {
             Log.e(TAG, e.toString())
         }
+
     }
     /**
      * Update the camera preview. [startPreview] needs to be called in advance.
@@ -796,6 +797,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         } catch (e: InterruptedException) {
             Log.e(TAG, e.toString())
         }
+
     }
     @Throws(IOException::class)
     private fun setUpMediaRecorder() {
@@ -828,6 +830,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
     private fun startRecordingVideo() {
         if (cameraDevice == null || !textureView.isAvailable) return
+
         try {
             record_Btn.setImageResource(R.drawable.record);
             closePreviewSession()
@@ -947,7 +950,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         val manager = this.requireActivity().getSystemService(Context.CAMERA_SERVICE) as CameraManager
         val cameraId = cameraId
 
-                        // Choose the sizes for camera preview and video recording
+        // Choose the sizes for camera preview and video recording
         val characteristics = manager.getCameraCharacteristics(cameraId)
         val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
         throw RuntimeException("Cannot get available preview/video sizes")
@@ -962,11 +965,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         val centerX = viewRect.centerX()
         val centerY = viewRect.centerY()
         Log.i(TAG, "configureTransform : " + rotation.toString())
-            Log.i(TAG, "configureTransform : " + sensorOrientation.toString())
-            Log.i(TAG, "configureTransform 0 : " + Surface.ROTATION_0.toString())
-            Log.i(TAG, "configureTransform 90 : " + Surface.ROTATION_90.toString())
-            Log.i(TAG, "configureTransform 180 : " + Surface.ROTATION_180.toString())
-            Log.i(TAG, "configureTransform 270 : " + Surface.ROTATION_270.toString())
+        Log.i(TAG, "configureTransform : " + sensorOrientation.toString())
+        Log.i(TAG, "configureTransform 0 : " + Surface.ROTATION_0.toString())
+        Log.i(TAG, "configureTransform 90 : " + Surface.ROTATION_90.toString())
+        Log.i(TAG, "configureTransform 180 : " + Surface.ROTATION_180.toString())
+        Log.i(TAG, "configureTransform 270 : " + Surface.ROTATION_270.toString())
         if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
             Log.i(TAG, "configureTransform : " + "Land")
             bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
@@ -1007,7 +1010,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 // No explanation needed, we can request the permission.
                 ActivityCompat.requestPermissions(this.requireActivity(),
                         VIDEO_PERMISSIONS,1
-                        )
+                )
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
                 // result of the request.
@@ -1015,12 +1018,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
         if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
 
-        myDir = baseDir + File.separator + "bodygation" + File.separator
-        if(!File(myDir).exists()) {
-            val sciezka = File(myDir)
-            sciezka.mkdirs()
-        }
-}else {
+            myDir = baseDir + File.separator + "bodygation" + File.separator
+            if(!File(myDir).exists()) {
+                val sciezka = File(myDir)
+                sciezka.mkdirs()
+            }
+        }else {
             myDir = baseDir
             //Retrieve the External Storages root directory:
 
@@ -1038,160 +1041,96 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         when (v.getId()) {
             R.id.record_Btn ->//녹화
             {
+                listener!!.videoPlaying = false
                 Log.d(TAG, "record_Btn thouch");
                 if (textureView.getVisibility() == View.GONE) {
                     textureView.setVisibility(View.VISIBLE)
-                    videoV.setVisibility(View.GONE)
+                    video_View.setVisibility(View.GONE)
                 }
-                listener!!.videoPlaying = false
                 if (textureView.isAvailable) {
                     if (isRecordingVideo) {
                         stopRecordingVideo()
                     } else {
+                        video_View.setVisibility(View.GONE)
+                        textureView.setVisibility(View.VISIBLE)
                         startRecordingVideo()
                     }
                 }
             }
             R.id.play_Btn//재생
-            -> {
-                Log.d(TAG, "play_Btn thouch")
-                if (videoV.getVisibility() == View.GONE) {
+            ->{
+                if (video_View.getVisibility() == View.GONE) {
+                    video_View.setVisibility(View.VISIBLE)
                     textureView.setVisibility(View.GONE)
-                    videoV.setVisibility(View.VISIBLE)
                 }
                 listener!!.videoPlaying = true
-                if (listener!!.videoPath == null) {
+                Log.d(TAG, "play_Btn thouch")
+                if(listener!!.videoPath == ""){
                     val intent = Intent(Intent.ACTION_GET_CONTENT);
-                    val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
+                    val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                     intent.setType("video/mp4");
                     intent.putExtra(Intent.EXTRA_STREAM, uri);
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                 }
-                if (videoV.isPlaying()) {
+                if(video_View.isPlaying()){
                     play_Btn.setImageResource(R.drawable.play)
-                    videoV.pause()
-                } else {
+                    video_View.pause()
+                }else {
                     play_Btn.setImageResource(R.drawable.pause)
-                    videoV.start()
+                    video_View.start()
                 }
             }
 
             R.id.load_Btn//파일불러오기
             -> {
-                Log.d(TAG, "load_Btn thouch")
+                listener!!.videoPath = ""
+                listener!!.videoprogress = 0
                 listener!!.videoPlaying = true
-                videopath = null
                 val intent = Intent(Intent.ACTION_GET_CONTENT);
-                val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
+                val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                 intent.setType("video/mp4");
-                intent.putExtra(Intent.EXTRA_STREAM, uri);
+                intent.putExtra(Intent.EXTRA_STREAM, uri)
                 startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
             }
-            R.id.play_record_Btn//전후면 카메라변환
+            R.id.play_record_Btn//파일과 카메라간 변환
             -> {
-                Log.d(TAG, "play_record_Btn thouch");
-                if (listener!!.videoPlaying) {
-                    videoV.stopPlayback()
-                    listener!!.videoPlaying = false
-                }
+                Log.d(TAG, "viewChange_Btn thouch");
                 switchCamera()
             }
-            R.id.viewChange_Btn//파일과 카메라간 변환
+            R.id.viewChange_Btn//전후면 카메라변환
             -> {
-                Log.d(TAG, "viewChange_Btn thouch")
-                if (requireActivity().windowManager.defaultDisplay.rotation == 0 || requireActivity().windowManager.defaultDisplay.rotation == 2) {//세로모드
-                    if (listener!!.videoPlaying) {//재생모드
-                        if (videoV.isPlaying()) {
-                            videoV.stopPlayback()
-                        }
-                        Thread(object : Runnable {
-                            override fun run() {
-                                // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
-                                getActivity()!!.runOnUiThread(object : Runnable {
-                                    override fun run() {
-                                        // 메시지 큐에 저장될 메시지의 내용;
-                                        textureView.setVisibility(View.VISIBLE)
-                                        videoV.setVisibility(View.GONE)
-                                        openCamera(textureView.getWidth(), textureView.getHeight())
-                                    }
-                                })
-                            }
-                        }).start()
-                        listener!!.videoPlaying = false
-                    } else {//촬영모드
-                        if (isRecordingVideo) {
-                            stopRecordingVideo()
-                        }
-                        Thread(object : Runnable {
-                            override fun run() {
-                                // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
-                                getActivity()!!.runOnUiThread(object : Runnable {
-                                    override fun run() {
-                                        // 메시지 큐에 저장될 메시지의 내용;
-                                        textureView.setVisibility(View.GONE)
-                                        videoV.setVisibility(View.VISIBLE)
-                                    }
-                                })
-                            }
-                        }).start()
-                        closeCamera()
-                        listener!!.videoPlaying = true
+                if (play_record!!) {
+                    if (isRecordingVideo) {
+                        stopRecordingVideo()
                     }
-                } else {//가로모드
-                    if (listener!!.videoPlaying) {//재생모드
-                        if (videoV.isPlaying()) {
-                            videoV.stopPlayback()
-                        }
-                        listener!!.videoPlaying = false
-                        Thread(object : Runnable {
-                            override fun run() {
-                                // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
-                                getActivity()!!.runOnUiThread(object : Runnable {
-                                    override fun run() {
-                                        // 메시지 큐에 저장될 메시지의 내용;
-                                        textureView.setVisibility(View.VISIBLE)
-                                        videoV.setVisibility(View.GONE)
-                                        openCamera(textureView.getWidth(), textureView.getHeight())
-                                        videoV.setZ(0.toFloat())
-                                        textureView.setZ(2.toFloat())
-                                        textureView.setAlpha((0.5).toFloat())
-                                        videoV.setAlpha((0.5).toFloat())
-                                    }
-                                })
-                            }
-                        }).start()
-                    } else {//촬영모드
-                        if (isRecordingVideo) {
-                            stopRecordingVideo()
-                        }
-                        closeCamera()
-                        listener!!.videoPlaying = true
-                        Thread(object : Runnable {
-                            override fun run() {
-                                // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
-                                getActivity()!!.runOnUiThread(object : Runnable {
-                                    override fun run() {
-                                        // 메시지 큐에 저장될 메시지의 내용;
-                                        textureView.setVisibility(View.GONE)
-                                        videoV.setVisibility(View.VISIBLE)
-                                        textureView.setZ(0.toFloat())
-                                        videoV.setZ(2.toFloat())
-                                        videoV.setAlpha((0.5).toFloat())
-                                        textureView.setAlpha((0.5).toFloat())
-                                    }
-                                })
-                            }
-                        }).start()
+                    closeCamera();
+                    textureView.setVisibility(View.GONE)
+                    video_View.setVisibility(View.VISIBLE)
+                    play_record = false
+                    listener!!.videoPlaying = true
+                } else {
+                    if (video_View.isPlaying()) {
+                        video_View.stopPlayback();
                     }
+                    if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
+                        openCamera(textureView.getWidth(), textureView.getHeight());
+                    } else {
+                        openCamera(textureView.getHeight(), textureView.getWidth());
+                    }
+                    textureView.setVisibility(View.VISIBLE);
+                    video_View.setVisibility(View.GONE);
+                    play_record = true
+                    listener!!.videoPlaying = false
                 }
             }
         }
     }
-    private fun configureVideoView(source: Uri) {
-        videoV.setVideoURI(source)
-        videoV.seekTo(1000)
-        videoV.setOnCompletionListener {
-            play_Btn.setImageResource(R.drawable.play) }
+    private fun configureVideoView(source: String) {
+        video_View.setVideoPath(source)
+        mediaController = MediaController(this.requireActivity())
+        mediaController?.setAnchorView(video_View)
+        video_View.setMediaController(mediaController)
+        video_View.seekTo(100)
     }
     companion object {
         /**
@@ -1228,4 +1167,3 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     }
 }
-

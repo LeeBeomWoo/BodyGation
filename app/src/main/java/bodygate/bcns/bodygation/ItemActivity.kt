@@ -44,9 +44,9 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     var playFragment:PlayFragment? = null
    override var youtubeprogress:Int = 0
     override var youtubePlaying:Boolean = false
-    override var videoProgress:Int= 0
+    override var videoprogress:Int = 0
     override var videoPlaying:Boolean = false
-    override var videoPath:String? = null
+    override var videoPath:String = ""
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,15 +60,9 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         setContentView(R.layout.activity_item)
         Log.i(TAG, "onCreate")
         if (savedInstanceState != null) {
-            val index = savedInstanceState.getString("url")
-            url = index
+            url = savedInstanceState.getString("url")
             youtubeprogress = savedInstanceState.getInt("progress")
             youtubePlaying = savedInstanceState.getBoolean("playyoutube")
-            videoPlaying = savedInstanceState.getBoolean("vplay")
-            if(videoPlaying) {
-                videoProgress = savedInstanceState.getInt("vprogress")
-                videoPath = savedInstanceState.getString("vPath")
-            }
             Log.i(TAG, "onCreate_" + "url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + youtubePlaying.toString())
         }else{
             url = intent.getStringExtra("url")
@@ -86,12 +80,6 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         outState.putString("url", url)
         outState.putInt("progress", youtubeprogress)
         outState.putBoolean("playyoutube", youtubePlaying)
-        if(videoPlaying){
-            outState.putInt("vprogress", videoProgress)
-            outState.putBoolean("vplay", videoPlaying)
-            outState.putString("vpath", videoPath)
-        }
-        Log.i(TAG, "onSaveInstanceState_" +"url :" + url + "\t videoPath :" + videoPath + "\t playyoutube : " + videoPlaying.toString())
     }
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)

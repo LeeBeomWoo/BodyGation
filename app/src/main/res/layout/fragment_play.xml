@@ -25,6 +25,14 @@
         android:layout_toStartOf="@+id/button_layout"
         android:visibility="visible" />
 
+    <VideoView
+        android:id="@+id/video_View"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/youtube_layout"
+        android:layout_toStartOf="@+id/button_layout"
+        android:visibility="gone" />
+
     <cn.gavinliu.android.lib.scale.ScaleRelativeLayout
         android:id="@+id/button_layout"
         android:layout_width="wrap_content"
@@ -97,14 +105,6 @@
             tools:ignore="ContentDescription"  />
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
-
-        <VideoView
-            android:id="@+id/video_View"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/youtube_layout"
-            android:layout_toStartOf="@+id/button_layout"
-            android:visibility="gone" />
 
     <cn.gavinliu.android.lib.scale.ScaleFrameLayout
         android:id="@+id/youtube_layout"
