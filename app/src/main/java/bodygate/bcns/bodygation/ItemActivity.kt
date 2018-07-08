@@ -63,6 +63,9 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
             url = savedInstanceState.getString("url")
             youtubeprogress = savedInstanceState.getInt("progress")
             youtubePlaying = savedInstanceState.getBoolean("playyoutube")
+            if(videoPlaying){
+                videoPath = savedInstanceState.getString("videoPath")
+            }
             Log.i(TAG, "onCreate_" + "url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + youtubePlaying.toString())
         }else{
             url = intent.getStringExtra("url")
@@ -80,6 +83,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         outState.putString("url", url)
         outState.putInt("progress", youtubeprogress)
         outState.putBoolean("playyoutube", youtubePlaying)
+        outState.putString("videoPath", videoPath)
     }
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)

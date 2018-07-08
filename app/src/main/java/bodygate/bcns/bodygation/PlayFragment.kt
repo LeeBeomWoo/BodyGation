@@ -182,7 +182,20 @@ import java.util.concurrent.TimeUnit
     private val surfaceTextureListener = object : TextureView.SurfaceTextureListener {
 
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-            openCamera(width, height)
+            if(listener!!.videoPlaying){
+                if(listener!!.videoPath == ""){
+                    val intent = Intent(Intent.ACTION_GET_CONTENT);
+                    val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
+                    intent.setType("video/mp4");
+                    intent.putExtra(Intent.EXTRA_STREAM, uri)
+                    startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
+                    configureVideoView(listener!!.videoPath, Surface(texture))
+                }else {
+                    configureVideoView(listener!!.videoPath, Surface(texture))
+            }
+            }else {
+                openCamera(width, height)
+            }
         }
 
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
@@ -192,11 +205,28 @@ import java.util.concurrent.TimeUnit
 
         override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture) = true
 
-        override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) = Unit
+        override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture){
+            if(listener!!.videoPlaying){
+                closeCamera()
+                if(listener!!.videoPath == ""){
+                    val intent = Intent(Intent.ACTION_GET_CONTENT);
+                    val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
+                    intent.setType("video/mp4");
+                    intent.putExtra(Intent.EXTRA_STREAM, uri)
+                    startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
+                    configureVideoView(listener!!.videoPath, Surface(surfaceTexture))
+                }else{
+                    configureVideoView(listener!!.videoPath, Surface(surfaceTexture))
+                }
+            }else {
+                openCamera(AutoView.width, AutoView.height)
+            }
+        }
 
     }
 
     private lateinit var textureView: AutoFitTextureView
+    lateinit var mMediaPlayer:MediaPlayer
 
     private val stateCallback = object : CameraDevice.StateCallback() {
 
@@ -204,12 +234,6 @@ import java.util.concurrent.TimeUnit
             cameraOpenCloseLock.release()
             this@PlayFragment.cameraDevice = cameraDevice
             startPreview()
-            /*
-            if (requireActivity().requestedOrientation == Configuration.ORIENTATION_LANDSCAPE){
-                configureTransform(textureView.height ,textureView.width)
-            }else{
-                configureTransform(textureView.width, textureView.height)
-            }*/
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
@@ -238,8 +262,6 @@ import java.util.concurrent.TimeUnit
                         val b = a.toFloat()
                         if(textureView.isAvailable) {
                             textureView.setAlpha(b)
-                        }else if(video_View.visibility == View.VISIBLE){
-                            video_View.setAlpha(b)
                         }
                     }
                 })
@@ -287,15 +309,11 @@ import java.util.concurrent.TimeUnit
         super.onResume()
         Log.d(TAG, "onResume")
         startBackgroundThread()
-        if(listener!!.videoPlaying){
-            textureView.visibility = View.GONE
-            video_View.visibility = View.VISIBLE
-        }
-        if(textureView.isAvailable) {
-            openCamera(textureView.width, textureView.height)
-        } else {
-            textureView.surfaceTextureListener = surfaceTextureListener
-        }
+            if(textureView.isAvailable) {
+                textureView.surfaceTextureListener.onSurfaceTextureUpdated(textureView.surfaceTexture)
+            } else {
+                textureView.surfaceTextureListener = surfaceTextureListener
+            }
     }
 
     override fun onPause() {
@@ -378,18 +396,6 @@ import java.util.concurrent.TimeUnit
         var videoPlaying:Boolean
         var videoPath:String
     }
-    /*
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-            super.onConfigurationChanged(newConfig)
-        if (newConfig != null) {
-            if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                LandSet()
-            } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                PortrainSet()
-            }
-        }
-        Log.i(TAG, "onConfigurationChanged newConfig : " + newConfig.toString())
-    }*/
     private fun LandSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         LandButton = ScaleRelativeLayout.LayoutParams(getResources().getDimensionPixelSize(R.dimen.portlaneimageBtnsize_item), ViewGroup.LayoutParams.MATCH_PARENT);
@@ -429,7 +435,6 @@ import java.util.concurrent.TimeUnit
         LandCamera!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
-        video_View.setLayoutParams(LandWebView)
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control)
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
@@ -439,9 +444,7 @@ import java.util.concurrent.TimeUnit
         alpha_control.setVisibility(View.VISIBLE)
         alpha_control.setZ(2.toFloat())
         textureView.setAlpha((0.5).toFloat())
-        video_View.setAlpha((0.5).toFloat())
         textureView.setZ(2.toFloat())
-        video_View.setZ(1.toFloat())
         youtube_layout.setZ(0.toFloat())
         youtube_layout.setAlpha((1).toFloat())
     }
@@ -486,10 +489,8 @@ import java.util.concurrent.TimeUnit
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_TOP)
         LandCamera!!.addRule(ScaleRelativeLayout.START_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout)
-        video_View.setLayoutParams(LandCamera)
         alpha_control.setVisibility(View.GONE)
         textureView.setLayoutParams(LandCamera)
-        video_View.setAlpha((1).toFloat())
         textureView.setAlpha((1).toFloat())
         youtube_layout.setAlpha((1).toFloat())
     }
@@ -511,16 +512,9 @@ import java.util.concurrent.TimeUnit
                 //. SCREEN_ORIENTATION_REVERSE_PORTRAIT
                 PortrainSet()
                 val matrix = Matrix()
-                if(listener!!.videoPlaying){
-                    val viewRect = RectF(0f, 0f, video_View.width.toFloat(), video_View.height.toFloat())
-                matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
-                video_View.setTransform(matrix)
-                    }else{
                     val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
                 matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
                 textureView.setTransform(matrix)
-                    }
-                
             }
         //----------------------------------------
             1 -> {
@@ -532,15 +526,9 @@ import java.util.concurrent.TimeUnit
                 //. SCREEN_ORIENTATION_REVERSE_LANDSCAPE
                 LandSet()
                 val matrix = Matrix()
-                 if(listener!!.videoPlaying){
-                    val viewRect = RectF(0f, 0f, video_View.width.toFloat(), video_View.height.toFloat())
-                matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
-                video_View.setTransform(matrix)
-                    }else{
                 val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
                 matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
                 textureView.setTransform(matrix)
-                    }
             }
         //----------------------------------------
         } /*endSwitch*/
@@ -635,11 +623,6 @@ import java.util.concurrent.TimeUnit
         play_Btn.setOnClickListener(this)
         play_record_Btn.setOnClickListener(this)
         viewChange_Btn.setOnClickListener(this)
-        video_View.setOnCompletionListener(object : MediaPlayer.OnCompletionListener {
-            override fun onCompletion(mp: MediaPlayer?) {
-                play_Btn.setImageResource(R.drawable.play);
-            }
-        })
     }
 
     @SuppressLint("MissingPermission")
@@ -699,8 +682,7 @@ import java.util.concurrent.TimeUnit
         //if (resultCode != RESULT_OK)
         if (requestCode == 3 && data != null) {
             val mVideoURI = data.getData()
-            listener!!.videoPath = mVideoURI.toString();
-            configureVideoView(listener!!.videoPath)
+            listener!!.videoPath = mVideoURI.toString()
             Log.d("onActivityResult", mVideoURI.toString())
             Log.d("Result videoString", listener!!.videoPath)
             //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI));
@@ -708,16 +690,18 @@ import java.util.concurrent.TimeUnit
     }
 
     fun switchCamera() {
-        if (cameraId.equals(CAMERA_FRONT)) {
-            cameraId = CAMERA_BACK;
-            closeCamera()
-            openCamera(textureView.width, textureView.height)
-            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.backcamera))
-        } else if (cameraId.equals(CAMERA_BACK)) {
-            cameraId = CAMERA_FRONT;
-            closeCamera()
-            openCamera(textureView.width, textureView.height)
-            play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.frontcamera))
+        if(!listener!!.videoPlaying) {
+            if (cameraId.equals(CAMERA_FRONT)) {
+                cameraId = CAMERA_BACK;
+                closeCamera()
+                openCamera(textureView.width, textureView.height)
+                play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.backcamera))
+            } else if (cameraId.equals(CAMERA_BACK)) {
+                cameraId = CAMERA_FRONT;
+                closeCamera()
+                openCamera(textureView.width, textureView.height)
+                play_record_Btn.setImageDrawable(getDrawable(this.requireActivity(), R.drawable.frontcamera))
+            }
         }
     }
     /**
@@ -1051,56 +1035,44 @@ import java.util.concurrent.TimeUnit
     override fun onClick(v:View) {
         when (v.getId()) {
             R.id.record_Btn ->//녹화
-            {
+            {if(listener!!.videoPlaying) {
                 listener!!.videoPlaying = false
-                Log.d(TAG, "record_Btn thouch");
-                if (textureView.getVisibility() == View.GONE) {
-                    textureView.setVisibility(View.VISIBLE)
-                    video_View.setVisibility(View.GONE)
-                }
+                mMediaPlayer.stop()
+                mMediaPlayer.release()
+                textureView.surfaceTextureListener.onSurfaceTextureUpdated(textureView.surfaceTexture)
+            }
+                Log.d(TAG, "record_Btn thouch")
                 if (textureView.isAvailable) {
                     if (isRecordingVideo) {
                         stopRecordingVideo()
                     } else {
-                        video_View.setVisibility(View.GONE)
-                        textureView.setVisibility(View.VISIBLE)
                         startRecordingVideo()
                     }
                 }
             }
             R.id.play_Btn//재생
             ->{
-                if (video_View.getVisibility() == View.GONE) {
-                    video_View.setVisibility(View.VISIBLE)
-                    textureView.setVisibility(View.GONE)
+                if(!listener!!.videoPlaying) {
+                    listener!!.videoPlaying = true
                 }
-                listener!!.videoPlaying = true
                 Log.d(TAG, "play_Btn thouch")
-                if(listener!!.videoPath == ""){
-                    val intent = Intent(Intent.ACTION_GET_CONTENT);
-                    val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
-                    intent.setType("video/mp4");
-                    intent.putExtra(Intent.EXTRA_STREAM, uri);
-                    startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
-                }
-                if(video_View.isPlaying()){
+                textureView.surfaceTextureListener.onSurfaceTextureUpdated(textureView.surfaceTexture)
+                if(mMediaPlayer.isPlaying()){
                     play_Btn.setImageResource(R.drawable.play)
-                    video_View.pause()
+                    mMediaPlayer.pause()
                 }else {
                     play_Btn.setImageResource(R.drawable.pause)
-                    video_View.start()
+                    mMediaPlayer.start()
                 }
             }
 
             R.id.load_Btn//파일불러오기
             -> {
-                if (video_View.getVisibility() == View.GONE) {
-                    video_View.setVisibility(View.VISIBLE)
-                    textureView.setVisibility(View.GONE)
+                if(!listener!!.videoPlaying) {
+                    listener!!.videoPlaying = true
                 }
                 listener!!.videoPath = ""
                 listener!!.videoprogress = 0
-                listener!!.videoPlaying = true
                 val intent = Intent(Intent.ACTION_GET_CONTENT);
                 val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                 intent.setType("video/mp4");
@@ -1115,33 +1087,51 @@ import java.util.concurrent.TimeUnit
             R.id.viewChange_Btn//전후면 카메라변환
             -> {
                 if (listener!!.videoPlaying) {
-                    if (video_View.isPlaying()) {
-                        video_View.stopPlayback();
-                    }
-                    if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
-                        openCamera(textureView.getWidth(), textureView.getHeight());
-                    } else {
-                        openCamera(textureView.getHeight(), textureView.getWidth());
-                    }
-                    textureView.setVisibility(View.VISIBLE);
-                    video_View.setVisibility(View.GONE)
                     listener!!.videoPlaying = false
+                    mMediaPlayer.stop()
+                    mMediaPlayer.release()
+                    if (mMediaPlayer.isPlaying()) {
+                        mMediaPlayer.stop()
+                    }
+                    textureView.surfaceTextureListener.onSurfaceTextureUpdated(textureView.surfaceTexture)
                 } else {
+                    listener!!.videoPlaying = true
                     if (isRecordingVideo) {
                         stopRecordingVideo()
                     }
-                    closeCamera();
-                    textureView.setVisibility(View.GONE)
-                    video_View.setVisibility(View.VISIBLE)
-                    play_record = false
-                    listener!!.videoPlaying = true
+                    closeCamera()
+                    textureView.surfaceTextureListener.onSurfaceTextureUpdated(textureView.surfaceTexture)
                 }
             }
         }
     }
-    private fun configureVideoView(source: String) {
-        video_View.setVideoPath(source)
-        video_View.seekTo(100)
+    private fun configureVideoView(source: String, su:Surface) {
+        mMediaPlayer = MediaPlayer()
+        mMediaPlayer.setDataSource(source)
+        mMediaPlayer.setSurface(su)
+        mMediaPlayer.prepareAsync()
+        mMediaPlayer.setOnBufferingUpdateListener(object: MediaPlayer.OnBufferingUpdateListener{
+            override fun onBufferingUpdate(p0: MediaPlayer?, p1: Int) {
+            }
+
+        })
+        mMediaPlayer.setOnCompletionListener(object: MediaPlayer.OnCompletionListener{
+            override fun onCompletion(p0: MediaPlayer?) {
+            }
+
+        })
+        mMediaPlayer.setOnPreparedListener(object:MediaPlayer.OnPreparedListener{
+            override fun onPrepared(p0: MediaPlayer?) {
+                p0!!.seekTo(100)
+            }
+        })
+        mMediaPlayer.setOnVideoSizeChangedListener(object :MediaPlayer.OnVideoSizeChangedListener{
+            override fun onVideoSizeChanged(p0: MediaPlayer?, p1: Int, p2: Int) {
+                configureTransform(p1, p2)
+            }
+        })
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
+        mMediaPlayer.start();
     }
     companion object {
         /**
