@@ -511,9 +511,16 @@ import java.util.concurrent.TimeUnit
                 //. SCREEN_ORIENTATION_REVERSE_PORTRAIT
                 PortrainSet()
                 val matrix = Matrix()
-                val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
+                if(listener!!.videoPlaying){
+                    val viewRect = RectF(0f, 0f, video_View.width.toFloat(), video_View.height.toFloat())
+                matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
+                video_View.setTransform(matrix)
+                    }else{
+                    val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
                 matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
                 textureView.setTransform(matrix)
+                    }
+                
             }
         //----------------------------------------
             1 -> {
@@ -525,9 +532,15 @@ import java.util.concurrent.TimeUnit
                 //. SCREEN_ORIENTATION_REVERSE_LANDSCAPE
                 LandSet()
                 val matrix = Matrix()
+                 if(listener!!.videoPlaying){
+                    val viewRect = RectF(0f, 0f, video_View.width.toFloat(), video_View.height.toFloat())
+                matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
+                video_View.setTransform(matrix)
+                    }else{
                 val viewRect = RectF(0f, 0f, textureView.width.toFloat(), textureView.height.toFloat())
                 matrix.postRotate(180f, viewRect.centerX(), viewRect.centerY())
                 textureView.setTransform(matrix)
+                    }
             }
         //----------------------------------------
         } /*endSwitch*/
@@ -1081,6 +1094,10 @@ import java.util.concurrent.TimeUnit
 
             R.id.load_Btn//파일불러오기
             -> {
+                if (video_View.getVisibility() == View.GONE) {
+                    video_View.setVisibility(View.VISIBLE)
+                    textureView.setVisibility(View.GONE)
+                }
                 listener!!.videoPath = ""
                 listener!!.videoprogress = 0
                 listener!!.videoPlaying = true
@@ -1097,16 +1114,7 @@ import java.util.concurrent.TimeUnit
             }
             R.id.viewChange_Btn//전후면 카메라변환
             -> {
-                if (play_record!!) {
-                    if (isRecordingVideo) {
-                        stopRecordingVideo()
-                    }
-                    closeCamera();
-                    textureView.setVisibility(View.GONE)
-                    video_View.setVisibility(View.VISIBLE)
-                    play_record = false
-                    listener!!.videoPlaying = true
-                } else {
+                if (listener!!.videoPlaying) {
                     if (video_View.isPlaying()) {
                         video_View.stopPlayback();
                     }
@@ -1116,9 +1124,17 @@ import java.util.concurrent.TimeUnit
                         openCamera(textureView.getHeight(), textureView.getWidth());
                     }
                     textureView.setVisibility(View.VISIBLE);
-                    video_View.setVisibility(View.GONE);
-                    play_record = true
+                    video_View.setVisibility(View.GONE)
                     listener!!.videoPlaying = false
+                } else {
+                    if (isRecordingVideo) {
+                        stopRecordingVideo()
+                    }
+                    closeCamera();
+                    textureView.setVisibility(View.GONE)
+                    video_View.setVisibility(View.VISIBLE)
+                    play_record = false
+                    listener!!.videoPlaying = true
                 }
             }
         }
