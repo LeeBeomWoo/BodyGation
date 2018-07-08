@@ -95,13 +95,11 @@ import java.util.concurrent.TimeUnit
     val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private val ARG_PARAM1 = "url"
     private var param1: String? = null
-    var viewalpha:Int = 0
     private var listener: PlayFragment.OnFragmentInteractionListener? = null
     private val SENSOR_ORIENTATION_DEFAULT_DEGREES = 90
     private val SENSOR_ORIENTATION_INVERSE_DEGREES = 270
     private val TAG = "Item_follow_fragment_21"
     var baseDir = ""
-    private var mediaController: MediaController? = null
     var LandButton: ScaleRelativeLayout.LayoutParams? = null
     var LandCamera:ScaleRelativeLayout.LayoutParams? = null
     var LandWebView:ScaleRelativeLayout.LayoutParams? = null
@@ -1127,9 +1125,6 @@ import java.util.concurrent.TimeUnit
     }
     private fun configureVideoView(source: String) {
         video_View.setVideoPath(source)
-        mediaController = MediaController(this.requireActivity())
-        mediaController?.setAnchorView(video_View)
-        video_View.setMediaController(mediaController)
         video_View.seekTo(100)
     }
     companion object {
