@@ -45,23 +45,9 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override var youtubePlaying:Boolean = false
     override var videoprogress:Int = 0
     override var videoPlaying:Boolean = false
+    override var video_camera:Boolean = false //false = camera, true = video
     override var videoPath:String = ""
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        Log.d(TAG, "onActivityResult");
-        Log.d("requestCode", requestCode.toString());
-        Log.d("resultCode", resultCode.toString());
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == 3 && data != null) {
-                val mVideoURI = data.getData()
-                videoPath = mVideoURI.toString()
-                Log.d("onActivityResult", mVideoURI.toString())
-                Log.d("Result videoString", videoPath)
-                //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI));
-            }
-        }
-    }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,9 +62,10 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         if (savedInstanceState != null) {
             url = savedInstanceState.getString("url")
             youtubeprogress = savedInstanceState.getInt("progress")
-            youtubePlaying = savedInstanceState.getBoolean("playyoutube")
-            if(videoPlaying){
+            video_camera = savedInstanceState.getBoolean("playyoutube")
+            if(video_camera){
                 videoPath = savedInstanceState.getString("videoPath")
+                videoPlaying = savedInstanceState.getBoolean("videoPlaying")
             }
             Log.i(TAG, "onCreate_" + "url :" + url + "\t progress :" + youtubeprogress.toString() + "\t playyoutube : " + youtubePlaying.toString())
         }else{
@@ -96,8 +83,9 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         super.onSaveInstanceState(outState)
         outState.putString("url", url)
         outState.putInt("progress", youtubeprogress)
-        outState.putBoolean("playyoutube", youtubePlaying)
+        outState.putBoolean("playyoutube", video_camera)
         outState.putString("videoPath", videoPath)
+        outState.putBoolean("videoPlaying", videoPlaying)
     }
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
