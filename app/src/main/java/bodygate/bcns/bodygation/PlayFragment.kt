@@ -1089,7 +1089,8 @@ import java.util.concurrent.TimeUnit
     }
     fun configureVideoView(source: String, su:Surface) {
         mMediaPlayer = MediaPlayer()
-        mMediaPlayer.setDataSource(source)
+        val path = Uri.fromFile(File(source)
+        mMediaPlayer.setDataSource(path)
         mMediaPlayer.setSurface(su)
         mMediaPlayer.prepareAsync()
         mMediaPlayer.setOnBufferingUpdateListener(object: MediaPlayer.OnBufferingUpdateListener{
