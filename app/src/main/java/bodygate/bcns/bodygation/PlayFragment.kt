@@ -3,6 +3,7 @@ package bodygate.bcns.bodygation
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.app.Dialog
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProviders
@@ -64,10 +65,13 @@ import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import kotlinx.android.synthetic.main.fragment_play.*
+import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.Orientation
 import org.jetbrains.anko.configuration
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.URI
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -183,16 +187,15 @@ import java.util.concurrent.TimeUnit
 
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
             if(listener!!.videoPlaying){
-                if(listener!!.videoPath == ""){
+                if(listener!!.videoPath == "") {
                     val intent = Intent(Intent.ACTION_GET_CONTENT);
                     val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                     intent.setType("video/mp4");
                     intent.putExtra(Intent.EXTRA_STREAM, uri)
-                    startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
+                    requireActivity().startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
+                    Log.i(TAG, "videoPath : " + listener!!.videoPath)
                     configureVideoView(listener!!.videoPath, Surface(texture))
-                }else {
-                    configureVideoView(listener!!.videoPath, Surface(texture))
-            }
+                }
             }else {
                 openCamera(width, height)
             }
@@ -208,14 +211,12 @@ import java.util.concurrent.TimeUnit
         override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture){
             if(listener!!.videoPlaying){
                 closeCamera()
-                if(listener!!.videoPath == ""){
+                if(listener!!.videoPath == "") {
                     val intent = Intent(Intent.ACTION_GET_CONTENT);
                     val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
                     intent.setType("video/mp4");
                     intent.putExtra(Intent.EXTRA_STREAM, uri)
-                    startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
-                    configureVideoView(listener!!.videoPath, Surface(surfaceTexture))
-                }else{
+                    requireActivity().startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                     configureVideoView(listener!!.videoPath, Surface(surfaceTexture))
                 }
             }else {
@@ -225,7 +226,7 @@ import java.util.concurrent.TimeUnit
 
     }
 
-    private lateinit var textureView: AutoFitTextureView
+    lateinit var textureView: AutoFitTextureView
     lateinit var mMediaPlayer:MediaPlayer
 
     private val stateCallback = object : CameraDevice.StateCallback() {
@@ -321,6 +322,7 @@ import java.util.concurrent.TimeUnit
         Log.d(TAG, "onPause")
         closeCamera()
         stopBackgroundThread()
+        if(youtubePlayer !=null)
         listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
     }
     @SuppressLint("SetJavaScriptEnabled")
@@ -389,12 +391,12 @@ import java.util.concurrent.TimeUnit
      */
     interface OnFragmentInteractionListener {
         fun setCameraDisplayOrientation(activity: Activity, cameraId: Int, camera: Camera)
-        fun onFragmentInteraction(uri: Uri)
         var youtubeprogress:Int
         var youtubePlaying:Boolean
         var videoprogress:Int
         var videoPlaying:Boolean
         var videoPath:String
+        val context: Context
     }
     private fun LandSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -674,21 +676,6 @@ import java.util.concurrent.TimeUnit
             throw RuntimeException("Interrupted while trying to lock camera opening.")
         }
     }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        Log.d(TAG, "onActivityResult");
-        Log.d("requestCode", requestCode.toString());
-        Log.d("resultCode", resultCode.toString());
-        //if (resultCode != RESULT_OK)
-        if (requestCode == 3 && data != null) {
-            val mVideoURI = data.getData()
-            listener!!.videoPath = mVideoURI.toString()
-            Log.d("onActivityResult", mVideoURI.toString())
-            Log.d("Result videoString", listener!!.videoPath)
-            //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI));
-        }
-    }
-
     fun switchCamera() {
         if(!listener!!.videoPlaying) {
             if (cameraId.equals(CAMERA_FRONT)) {
@@ -799,7 +786,7 @@ import java.util.concurrent.TimeUnit
         val cameraActivity = activity ?: return
 
         if (nextVideoAbsolutePath.isNullOrEmpty()) {
-            nextVideoAbsolutePath = getVideoFilePath()
+            nextVideoAbsolutePath = getVideoFilePath() + "bodygation_" + System.currentTimeMillis() + ".mp4"
         }
 
         val rotation = cameraActivity.windowManager.defaultDisplay.rotation
@@ -988,7 +975,7 @@ import java.util.concurrent.TimeUnit
     }
 
     @NonNull
-    private fun getVideoFilePath() :String{
+    fun getVideoFilePath() :String{
         val state = Environment.getExternalStorageState()
         var myDir = ""
         if (ContextCompat.checkSelfPermission(this.requireActivity(), // request permission when it is not granted.
@@ -1029,7 +1016,7 @@ import java.util.concurrent.TimeUnit
             }
         }
         Log.i("Path", myDir + "bodygation_" + System.currentTimeMillis() + ".mp4")
-        return myDir + "bodygation_" + System.currentTimeMillis() + ".mp4"
+        return myDir
     }
 
     override fun onClick(v:View) {
@@ -1073,11 +1060,6 @@ import java.util.concurrent.TimeUnit
                 }
                 listener!!.videoPath = ""
                 listener!!.videoprogress = 0
-                val intent = Intent(Intent.ACTION_GET_CONTENT);
-                val uri = Uri . parse (Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath()+ File.separator + "bodygation" + File.separator);
-                intent.setType("video/mp4");
-                intent.putExtra(Intent.EXTRA_STREAM, uri)
-                startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
             }
             R.id.play_record_Btn//파일과 카메라간 변환
             -> {
@@ -1105,7 +1087,7 @@ import java.util.concurrent.TimeUnit
             }
         }
     }
-    private fun configureVideoView(source: String, su:Surface) {
+    fun configureVideoView(source: String, su:Surface) {
         mMediaPlayer = MediaPlayer()
         mMediaPlayer.setDataSource(source)
         mMediaPlayer.setSurface(su)

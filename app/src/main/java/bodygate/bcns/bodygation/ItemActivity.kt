@@ -9,10 +9,14 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.database.Cursor
 import android.hardware.Camera
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.provider.Settings
 import android.support.annotation.RequiresApi
 import android.support.v4.app.ActivityCompat
@@ -26,21 +30,16 @@ import bodygate.bcns.bodygation.support.PlayModel
 import bodygate.bcns.bodygation.support.PlayModelFactory
 import cn.gavinliu.android.lib.scale.config.ScaleConfig
 import kotlinx.android.synthetic.main.fragment_play.*
+import java.io.File
 
 
 @Suppress("DEPRECATED_IDENTITY_EQUALS")
 class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
-    override fun onFragmentInteraction(uri: Uri) {
-
-    }
     var url = ""
     private val TAG = "ItemActivity"
-    var tr_id: String? = null
-    var item_word:String? = null
     var section:String? = null
-    var video:String? = null
     var category: Int = 0
-    var context: Context = this
+    override val context: Context = this
     var playFragment:PlayFragment? = null
    override var youtubeprogress:Int = 0
     override var youtubePlaying:Boolean = false
@@ -48,6 +47,21 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override var videoPlaying:Boolean = false
     override var videoPath:String = ""
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        Log.d(TAG, "onActivityResult");
+        Log.d("requestCode", requestCode.toString());
+        Log.d("resultCode", resultCode.toString());
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == 3 && data != null) {
+                val mVideoURI = data.getData()
+                videoPath = mVideoURI.toString()
+                Log.d("onActivityResult", mVideoURI.toString())
+                Log.d("Result videoString", videoPath)
+                //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI));
+            }
+        }
+    }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,7 +126,6 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
         camera.setDisplayOrientation(result)
         Log.i(TAG, "onConfigurationChanged_setCameraDisplayOrientation : " + result.toString())
     }
-
     override fun onBackPressed() {
         // Otherwise defer to system default behavior.
         val intent = Intent(this, MainActivity::class.java)
