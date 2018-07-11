@@ -170,7 +170,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private val videoTextureListener = object : TextureView.SurfaceTextureListener {
 
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-            if (listener!!.video_camera) {
+            configureTransform(AutoView.width, AutoView.height)
                 if (listener!!.videoPath == "") {
                     val intent = Intent(Intent.ACTION_GET_CONTENT);
                     val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
@@ -179,19 +179,24 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                     Log.i(TAG, "videoPath : " + listener!!.videoPath)
                 }
-                mediaPlayerset(listener!!.videoPath)
+                mediaPlayerset(listener!!.videoPath, Surface(texture))
             }
-        }
 
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
             Log.i("camera", "onSurfaceTextureSizeChanged")
             // configureTransform(width, height)
         }
 
-        override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture) = true
+        override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture):Boolean{
+            if(mMediaPlayer!!.currentPosition >0) {
+                listener!!.videoprogress = mMediaPlayer!!.currentPosition
+            }
+            mMediaPlayer!!.stop();
+            mMediaPlayer!!.release()
+            return false
+        }
 
         override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
-            if (listener!!.video_camera) {
                 closeCamera()
                 if (listener!!.videoPath == "") {
                     val intent = Intent(Intent.ACTION_GET_CONTENT);
@@ -200,29 +205,68 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     intent.putExtra(Intent.EXTRA_STREAM, uri)
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                 }
-                mediaPlayerset(listener!!.videoPath)
-            }
-
+            mediaPlayerset(listener!!.videoPath, Surface(surfaceTexture))
         }
     }
     lateinit var textureView: AutoFitTextureView
     lateinit var videotextureView: AutoFitTextureView
     var mMediaPlayer:MediaPlayer? = null
 
-    fun mediaPlayerset(path:String)= launch{
+    fun mediaPlayerset(path:String, texure:Surface){
 
-        val texture = videotextureView.surfaceTexture.apply {
-            setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
-        }
-
-        val surface = Surface(texture)
         try {
             mMediaPlayer = MediaPlayer()
             mMediaPlayer!!.reset()
             mMediaPlayer!!.setDataSource(path)
-            mMediaPlayer!!.setSurface(surface)
-            mMediaPlayer!!.prepareAsync()
+            mMediaPlayer!!.setSurface(texure)
+            mMediaPlayer!!.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
             // Play video when the media source is ready for playback.
+            mMediaPlayer!!.setOnErrorListener((object :MediaPlayer.OnErrorListener{
+                override fun onError(p0: MediaPlayer?, p1: Int, p2: Int): Boolean {
+                    Log.d(TAG, "Error-1 :" + p1.toString() + "  2 : " + p2)
+                    when(p1){
+                        MediaPlayer.MEDIA_ERROR_IO->{
+                            Log.i("MediaPlayer", "MEDIA_ERROR_IO")
+                        }
+                        MediaPlayer.MEDIA_ERROR_MALFORMED->{
+                            Log.i("MediaPlayer", "MEDIA_ERROR_MALFORMED")
+                        }
+                        MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK->{
+                            Log.i("MediaPlayer", "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK")
+                        }
+                        MediaPlayer.MEDIA_ERROR_TIMED_OUT->{
+                            Log.i("MediaPlayer", "MEDIA_ERROR_TIMED_OUT")
+                        }
+                        MediaPlayer.MEDIA_ERROR_UNKNOWN->{
+                            Log.i("MediaPlayer", "MEDIA_ERROR_UNKNOWN")
+                        }
+                        MediaPlayer.MEDIA_ERROR_UNSUPPORTED->{
+                            Log.i("MediaPlayer", "MEDIA_ERROR_UNSUPPORTED")
+                        }
+                    }
+                    when(p2){
+                        MediaPlayer.MEDIA_ERROR_IO->{
+                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_IO")
+                        }
+                        MediaPlayer.MEDIA_ERROR_MALFORMED->{
+                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_MALFORMED")
+                        }
+                        MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK->{
+                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK")
+                        }
+                        MediaPlayer.MEDIA_ERROR_TIMED_OUT->{
+                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_TIMED_OUT")
+                        }
+                        MediaPlayer.MEDIA_ERROR_UNKNOWN->{
+                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_UNKNOWN")
+                        }
+                        MediaPlayer.MEDIA_ERROR_UNSUPPORTED->{
+                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_UNSUPPORTED")
+                        }
+                    }
+                    return false
+                }
+            }))
             mMediaPlayer!!.setOnPreparedListener(object : MediaPlayer.OnPreparedListener {
                 override fun onPrepared(mediaPlayer: MediaPlayer) {
                     Log.i(TAG, "mMediaPlayer onPrepared")
@@ -233,6 +277,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     }
                 }
             })
+            mMediaPlayer!!.prepareAsync()
         } catch (e: IllegalArgumentException) {
             Log.d(TAG, e.toString());
         } catch (e: SecurityException) {
@@ -392,7 +437,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == 3 && data != null) {
                 val mVideoURI = data.getData()
-                listener!!.videoPath = getRealPathFromURI(requireContext(), mVideoURI)
+                listener!!.videoPath = mVideoURI.toString()
                 Log.d("onActivityResult", mVideoURI.toString())
                 Log.d("Result videoString", listener!!.videoPath)
                 //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI))
@@ -1112,9 +1157,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     requireActivity().recreate()
                 }
                 Log.d(TAG, "play_Btn thouch")
-                if(mMediaPlayer == null) {
-                    mediaPlayerset(listener!!.videoPath)
-                }
                 if(mMediaPlayer!!.isPlaying()){
                     play_Btn.setImageResource(R.drawable.play)
                     mMediaPlayer!!.pause()
@@ -1144,14 +1186,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             -> {
                 if (listener!!.video_camera) {
                     listener!!.video_camera = false
-                    if(mMediaPlayer == null) {
-                        mediaPlayerset(listener!!.videoPath)
-                    }else{
+
                         if (mMediaPlayer!!.isPlaying()) {
                             mMediaPlayer!!.stop()
                         }
                         mMediaPlayer!!.release()
-                    }
                 } else {
                     listener!!.video_camera = true
                     if (isRecordingVideo) {
