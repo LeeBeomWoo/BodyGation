@@ -3,93 +3,59 @@ package bodygate.bcns.bodygation
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.Activity.RESULT_OK
-import android.app.Dialog
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
-import android.content.pm.ConfigurationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Configuration
-import android.content.res.Configuration.ORIENTATION_PORTRAIT
-import android.graphics.*
-import android.net.Uri
-import android.support.v4.app.Fragment
-import cn.gavinliu.android.lib.scale.ScaleRelativeLayout
-import cn.gavinliu.android.lib.scale.ScaleFrameLayout
-import android.util.SparseIntArray
+import android.graphics.Matrix
+import android.graphics.RectF
+import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.hardware.camera2.*
 import android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
 import android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION
 import android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW
 import android.hardware.camera2.CameraDevice.TEMPLATE_RECORD
-import android.hardware.display.DisplayManager
-import android.hardware.display.DisplayManager.DisplayListener
-import android.media.AudioManager
-import android.media.ImageReader
-import android.view.*
 import android.media.MediaPlayer
-import android.support.annotation.NonNull
 import android.media.MediaRecorder
-import android.os.*
-import android.support.annotation.RequiresApi
+import android.net.Uri
+import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
+import android.os.HandlerThread
+import android.support.annotation.NonNull
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.DialogFragment
+import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.ContextCompat.checkSelfPermission
 import android.support.v4.content.ContextCompat.getDrawable
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v7.app.AlertDialog
-import android.transition.Visibility
-import android.util.AttributeSet
 import android.util.Log
 import android.util.Size
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.*
+import android.util.SparseIntArray
+import android.view.*
+import android.widget.SeekBar
+import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
-import bodygate.bcns.bodygation.camerause.*
-import bodygate.bcns.bodygation.dummy.PlayViewModel
+import bodygate.bcns.bodygation.camerause.AutoFitTextureView
+import bodygate.bcns.bodygation.camerause.CompareSizesByArea
+import bodygate.bcns.bodygation.camerause.ErrorDialog
 import bodygate.bcns.bodygation.support.rotationCallbackFn
 import bodygate.bcns.bodygation.support.rotationListenerHelper
-import com.firebase.ui.auth.AuthUI.getApplicationContext
+import cn.gavinliu.android.lib.scale.ScaleRelativeLayout
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import kotlinx.android.synthetic.main.fragment_play.*
 import kotlinx.coroutines.experimental.launch
-import org.jetbrains.anko.Orientation
-import org.jetbrains.anko.configuration
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.net.URI
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
-
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-/**
- * A simple [Fragment] subclass.
- * Activities that contain this fragment must implement the
- * [PlayFragment.OnFragmentInteractionListener] interface
- * to handle interaction events.
- * Use the [PlayFragment.newInstance] factory method to
- * create an instance of this fragment.
- *
- */class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeListener, ActivityCompat.OnRequestPermissionsResultCallback {
+class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeListener, ActivityCompat.OnRequestPermissionsResultCallback {
     override fun onStartTrackingTouch(p0: SeekBar?) {
 
     }
@@ -159,11 +125,6 @@ import java.util.concurrent.TimeUnit
      */
     private var backgroundHandler: Handler? = null
 
-
-    /**
-     * This is the output file for our picture.
-     */
-    private lateinit var file: File
     private var nextVideoAbsolutePath: String? = null
 
     private var mediaRecorder: MediaRecorder? = null
@@ -215,30 +176,7 @@ import java.util.concurrent.TimeUnit
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                     Log.i(TAG, "videoPath : " + listener!!.videoPath)
                 }
-                val surface = Surface(texture)
-                try {
-                    val afd = requireActivity().getAssets().openFd(listener!!.videoPath)
-                    mMediaPlayer = MediaPlayer()
-                    mMediaPlayer!!.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength())
-                    mMediaPlayer!!.setSurface(surface)
-                    mMediaPlayer!!.setLooping(true)
-                    mMediaPlayer!!.prepareAsync()
-
-                    // Play video when the media source is ready for playback.
-                    mMediaPlayer!!.setOnPreparedListener(object : MediaPlayer.OnPreparedListener {
-                        override fun onPrepared(mediaPlayer: MediaPlayer) {
-                            mediaPlayer.start();
-                        }
-                    });
-                } catch (e: IllegalArgumentException) {
-                    Log.d(TAG, e.toString());
-                } catch (e: SecurityException) {
-                    Log.d(TAG, e.toString());
-                } catch (e: IllegalStateException) {
-                    Log.d(TAG, e.toString());
-                } catch (e: IOException) {
-                    Log.d(TAG, e.toString());
-                }
+                mediaPlayerset()
             }
         }
 
@@ -259,30 +197,7 @@ import java.util.concurrent.TimeUnit
                     intent.putExtra(Intent.EXTRA_STREAM, uri)
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                 }
-                val surface = Surface(surfaceTexture)
-                try {
-                    val afd = requireActivity().getAssets().openFd(listener!!.videoPath)
-                    mMediaPlayer = MediaPlayer()
-                    mMediaPlayer!!.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength())
-                    mMediaPlayer!!.setSurface(surface)
-                    mMediaPlayer!!.setLooping(true)
-                    mMediaPlayer!!.prepareAsync()
-
-                    // Play video when the media source is ready for playback.
-                    mMediaPlayer!!.setOnPreparedListener(object : MediaPlayer.OnPreparedListener {
-                        override fun onPrepared(mediaPlayer: MediaPlayer) {
-                            mediaPlayer.start();
-                        }
-                    });
-                } catch (e: IllegalArgumentException) {
-                    Log.d(TAG, e.toString());
-                } catch (e: SecurityException) {
-                    Log.d(TAG, e.toString());
-                } catch (e: IllegalStateException) {
-                    Log.d(TAG, e.toString());
-                } catch (e: IOException) {
-                    Log.d(TAG, e.toString());
-                }
+                mediaPlayerset()
             }
 
         }
@@ -291,6 +206,39 @@ import java.util.concurrent.TimeUnit
     lateinit var videotextureView: AutoFitTextureView
     var mMediaPlayer:MediaPlayer? = null
 
+    fun mediaPlayerset()= launch{
+
+        val texture = videotextureView.surfaceTexture.apply {
+            setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
+        }
+
+        val surface = Surface(texture)
+        try {
+            mMediaPlayer = MediaPlayer()
+            mMediaPlayer!!.reset()
+            mMediaPlayer!!.setDataSource(requireActivity().getApplicationContext(), Uri.fromFile(File(listener!!.videoPath)))
+            mMediaPlayer!!.setSurface(surface)
+            mMediaPlayer!!.prepareAsync()
+            // Play video when the media source is ready for playback.
+            mMediaPlayer!!.setOnPreparedListener(object : MediaPlayer.OnPreparedListener {
+                override fun onPrepared(mediaPlayer: MediaPlayer) {
+                    if(listener!!.videoprogress>100) {
+                        mediaPlayer.seekTo(listener!!.videoprogress)
+                    }else{
+                        mediaPlayer.seekTo(100)
+                    }
+                }
+            })
+        } catch (e: IllegalArgumentException) {
+            Log.d(TAG, e.toString());
+        } catch (e: SecurityException) {
+            Log.d(TAG, e.toString());
+        } catch (e: IllegalStateException) {
+            Log.d(TAG, e.toString());
+        } catch (e: IOException) {
+            Log.d(TAG, e.toString());
+        }
+    }
     private val stateCallback = object : CameraDevice.StateCallback() {
 
         override fun onOpened(cameraDevice: CameraDevice) {
@@ -391,11 +339,9 @@ import java.util.concurrent.TimeUnit
         super.onPause()
         Log.d(TAG, "onPause")
         closeCamera()
-        stopBackgroundThread()
         if(youtubePlayer !=null)
-        listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
-        if(mMediaPlayer != null)
-        listener!!.videoPlaying = mMediaPlayer!!.isPlaying
+            listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
+        stopBackgroundThread()
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -960,8 +906,8 @@ import java.util.concurrent.TimeUnit
         } catch (e: IOException) {
             Log.e(TAG, e.toString())
         }
-
     }
+
     private fun showToast(message : String) = Toast.makeText(activity, message, LENGTH_SHORT).show()
 
     private fun closePreviewSession() {
@@ -982,6 +928,7 @@ import java.util.concurrent.TimeUnit
         nextVideoAbsolutePath = null
         startPreview()
     }
+
     /**
      * In this sample, we choose a video size with 3x4 aspect ratio. Also, we don't use sizes
      * larger than 1080p, since MediaRecorder cannot handle such a high-resolution video.
@@ -991,6 +938,7 @@ import java.util.concurrent.TimeUnit
      */
     private fun chooseVideoSize(choices: Array<Size>) = choices.firstOrNull {
         it.width == it.height * 4 / 3 && it.width <= 1080 } ?: choices[choices.size - 1]
+
     /**
      * Given [choices] of [Size]s supported by a camera, chooses the smallest one whose
      * width and height are at least as large as the respective requested values, and whose aspect
@@ -1008,7 +956,6 @@ import java.util.concurrent.TimeUnit
             height: Int,
             aspectRatio: Size
     ): Size {
-
         // Collect the supported resolutions that are at least as big as the preview Surface
         val w = aspectRatio.width
         val h = aspectRatio.height
@@ -1022,6 +969,7 @@ import java.util.concurrent.TimeUnit
             choices[0]
         }
     }
+
     /**
      * Configures the necessary [android.graphics.Matrix] transformation to `autOView`.
      * This method should be called after the camera preview size is determined in
@@ -1072,6 +1020,7 @@ import java.util.concurrent.TimeUnit
         }
         textureView.setTransform(matrix)
     }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("url", param1)
@@ -1148,6 +1097,9 @@ import java.util.concurrent.TimeUnit
                     requireActivity().recreate()
                 }
                 Log.d(TAG, "play_Btn thouch")
+                if(mMediaPlayer == null) {
+                    mediaPlayerset()
+                }
                 if(mMediaPlayer!!.isPlaying()){
                     play_Btn.setImageResource(R.drawable.play)
                     mMediaPlayer!!.pause()
@@ -1166,16 +1118,20 @@ import java.util.concurrent.TimeUnit
                 listener!!.videoprogress = 0
                 requireActivity().recreate()
             }
+
             R.id.play_record_Btn//전후면 카메라변환
             -> {
                 Log.d(TAG, "viewChange_Btn thouch");
                 switchCamera()
             }
+
             R.id.viewChange_Btn//파일과 카메라간 변환
             -> {
                 if (listener!!.video_camera) {
                     listener!!.video_camera = false
-                    if(mMediaPlayer != null) {
+                    if(mMediaPlayer == null) {
+                        mediaPlayerset()
+                    }else{
                         if (mMediaPlayer!!.isPlaying()) {
                             mMediaPlayer!!.stop()
                         }
@@ -1191,29 +1147,6 @@ import java.util.concurrent.TimeUnit
                 requireActivity().recreate()
             }
         }
-    }
-    fun configureVideoView(source: String) {
-        val myUri = Uri.fromFile(File(source))// initialize Uri here
-        mMediaPlayer = MediaPlayer()
-        mMediaPlayer!!.setAudioStreamType(AudioManager.STREAM_MUSIC)
-        try {
-            mMediaPlayer!!.setDataSource(this.requireContext(), myUri)
-            mMediaPlayer!!.prepare()
-            if(listener!!.videoprogress > 100) {
-                mMediaPlayer!!.seekTo(listener!!.videoprogress)
-            }else{
-                mMediaPlayer!!.seekTo(100)
-            }
-        }catch (e:IOException){
-            Toast.makeText(this.requireContext(), "video not found", Toast.LENGTH_SHORT).show()
-            Log.i("configureVideoView", e.toString())
-        }
-        mMediaPlayer!!.setOnCompletionListener(object :MediaPlayer.OnCompletionListener{
-            override fun onCompletion(p0: MediaPlayer?) {
-                p0!!.seekTo(100)
-                listener!!.videoPlaying = false
-            }
-        })
     }
     companion object {
         /**
