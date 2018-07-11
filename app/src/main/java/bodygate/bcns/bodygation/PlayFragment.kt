@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.content.res.Configuration
+import android.database.Cursor
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.SurfaceTexture
@@ -24,6 +25,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.provider.MediaStore
 import android.support.annotation.NonNull
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
@@ -31,6 +33,7 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.ContextCompat.checkSelfPermission
 import android.support.v4.content.ContextCompat.getDrawable
+import android.support.v4.content.CursorLoader
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
@@ -176,7 +179,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                     Log.i(TAG, "videoPath : " + listener!!.videoPath)
                 }
-                mediaPlayerset()
+                mediaPlayerset(listener!!.videoPath)
             }
         }
 
@@ -197,7 +200,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     intent.putExtra(Intent.EXTRA_STREAM, uri)
                     startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
                 }
-                mediaPlayerset()
+                mediaPlayerset(listener!!.videoPath)
             }
 
         }
@@ -206,7 +209,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     lateinit var videotextureView: AutoFitTextureView
     var mMediaPlayer:MediaPlayer? = null
 
-    fun mediaPlayerset()= launch{
+    fun mediaPlayerset(path:String)= launch{
 
         val texture = videotextureView.surfaceTexture.apply {
             setDefaultBufferSize(previewSize!!.width, previewSize!!.height)
@@ -216,12 +219,13 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         try {
             mMediaPlayer = MediaPlayer()
             mMediaPlayer!!.reset()
-            mMediaPlayer!!.setDataSource(requireActivity().getApplicationContext(), Uri.fromFile(File(listener!!.videoPath)))
+            mMediaPlayer!!.setDataSource(path)
             mMediaPlayer!!.setSurface(surface)
             mMediaPlayer!!.prepareAsync()
             // Play video when the media source is ready for playback.
             mMediaPlayer!!.setOnPreparedListener(object : MediaPlayer.OnPreparedListener {
                 override fun onPrepared(mediaPlayer: MediaPlayer) {
+                    Log.i(TAG, "mMediaPlayer onPrepared")
                     if(listener!!.videoprogress>100) {
                         mediaPlayer.seekTo(listener!!.videoprogress)
                     }else{
@@ -388,12 +392,23 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == 3 && data != null) {
                 val mVideoURI = data.getData()
-                listener!!.videoPath = mVideoURI.toString()
+                listener!!.videoPath = getRealPathFromURI(requireContext(), mVideoURI)
                 Log.d("onActivityResult", mVideoURI.toString())
                 Log.d("Result videoString", listener!!.videoPath)
                 //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI))
             }
         }
+    }
+
+    fun getRealPathFromURI(context: Context, contentUri: Uri): String {
+        val proj = arrayOf(MediaStore.Images.Media.DATA)
+        val loader = CursorLoader(context, contentUri, proj, null, null, null)
+        val cursor = loader.loadInBackground()
+        val column_index = cursor!!.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+        cursor.moveToFirst()
+        val result = cursor.getString(column_index)
+        cursor.close()
+        return result
     }
     override fun onAttach(context: Context) {
         Log.i(TAG, "onAttach")
@@ -1098,7 +1113,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 }
                 Log.d(TAG, "play_Btn thouch")
                 if(mMediaPlayer == null) {
-                    mediaPlayerset()
+                    mediaPlayerset(listener!!.videoPath)
                 }
                 if(mMediaPlayer!!.isPlaying()){
                     play_Btn.setImageResource(R.drawable.play)
@@ -1130,7 +1145,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 if (listener!!.video_camera) {
                     listener!!.video_camera = false
                     if(mMediaPlayer == null) {
-                        mediaPlayerset()
+                        mediaPlayerset(listener!!.videoPath)
                     }else{
                         if (mMediaPlayer!!.isPlaying()) {
                             mMediaPlayer!!.stop()
