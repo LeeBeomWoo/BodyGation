@@ -3,6 +3,7 @@ package bodygate.bcns.bodygation
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,6 +19,7 @@ import android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATIO
 import android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION
 import android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW
 import android.hardware.camera2.CameraDevice.TEMPLATE_RECORD
+import android.media.MediaCodec
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
@@ -34,6 +36,8 @@ import android.support.v4.content.ContextCompat
 import android.support.v4.content.ContextCompat.checkSelfPermission
 import android.support.v4.content.ContextCompat.getDrawable
 import android.support.v4.content.CursorLoader
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
@@ -47,6 +51,20 @@ import bodygate.bcns.bodygation.camerause.ErrorDialog
 import bodygate.bcns.bodygation.support.rotationCallbackFn
 import bodygate.bcns.bodygation.support.rotationListenerHelper
 import cn.gavinliu.android.lib.scale.ScaleRelativeLayout
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.C.VideoScalingMode
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
+import com.google.android.exoplayer2.source.ExtractorMediaSource
+import com.google.android.exoplayer2.source.TrackGroupArray
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.trackselection.TrackSelection
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray
+import com.google.android.exoplayer2.ui.SimpleExoPlayerView
+import com.google.android.exoplayer2.upstream.BandwidthMeter
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.Util
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
@@ -167,127 +185,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
     }
 
-    private val videoTextureListener = object : TextureView.SurfaceTextureListener {
-
-        override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-            configureTransform(AutoView.width, AutoView.height)
-                if (listener!!.videoPath == "") {
-                    val intent = Intent(Intent.ACTION_GET_CONTENT);
-                    val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
-                    intent.setType("video/mp4");
-                    intent.putExtra(Intent.EXTRA_STREAM, uri)
-                    startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
-                    Log.i(TAG, "videoPath : " + listener!!.videoPath)
-                }
-                mediaPlayerset(listener!!.videoPath, Surface(texture))
-            }
-
-        override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
-            Log.i("camera", "onSurfaceTextureSizeChanged")
-            // configureTransform(width, height)
-        }
-
-        override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture):Boolean{
-            if(mMediaPlayer!!.currentPosition >0) {
-                listener!!.videoprogress = mMediaPlayer!!.currentPosition
-            }
-            mMediaPlayer!!.stop();
-            mMediaPlayer!!.release()
-            return false
-        }
-
-        override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
-                closeCamera()
-                if (listener!!.videoPath == "") {
-                    val intent = Intent(Intent.ACTION_GET_CONTENT);
-                    val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
-                    intent.setType("video/mp4");
-                    intent.putExtra(Intent.EXTRA_STREAM, uri)
-                    startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
-                }
-            mediaPlayerset(listener!!.videoPath, Surface(surfaceTexture))
-        }
-    }
     lateinit var textureView: AutoFitTextureView
-    lateinit var videotextureView: AutoFitTextureView
-    var mMediaPlayer:MediaPlayer? = null
+    lateinit var exoplayerView: SimpleExoPlayerView
 
-    fun mediaPlayerset(path:String, texure:Surface){
-
-        try {
-            mMediaPlayer = MediaPlayer()
-            mMediaPlayer!!.reset()
-            mMediaPlayer!!.setDataSource(path)
-            mMediaPlayer!!.setSurface(texure)
-            mMediaPlayer!!.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
-            // Play video when the media source is ready for playback.
-            mMediaPlayer!!.setOnErrorListener((object :MediaPlayer.OnErrorListener{
-                override fun onError(p0: MediaPlayer?, p1: Int, p2: Int): Boolean {
-                    Log.d(TAG, "Error-1 :" + p1.toString() + "  2 : " + p2)
-                    when(p1){
-                        MediaPlayer.MEDIA_ERROR_IO->{
-                            Log.i("MediaPlayer", "MEDIA_ERROR_IO")
-                        }
-                        MediaPlayer.MEDIA_ERROR_MALFORMED->{
-                            Log.i("MediaPlayer", "MEDIA_ERROR_MALFORMED")
-                        }
-                        MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK->{
-                            Log.i("MediaPlayer", "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK")
-                        }
-                        MediaPlayer.MEDIA_ERROR_TIMED_OUT->{
-                            Log.i("MediaPlayer", "MEDIA_ERROR_TIMED_OUT")
-                        }
-                        MediaPlayer.MEDIA_ERROR_UNKNOWN->{
-                            Log.i("MediaPlayer", "MEDIA_ERROR_UNKNOWN")
-                        }
-                        MediaPlayer.MEDIA_ERROR_UNSUPPORTED->{
-                            Log.i("MediaPlayer", "MEDIA_ERROR_UNSUPPORTED")
-                        }
-                    }
-                    when(p2){
-                        MediaPlayer.MEDIA_ERROR_IO->{
-                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_IO")
-                        }
-                        MediaPlayer.MEDIA_ERROR_MALFORMED->{
-                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_MALFORMED")
-                        }
-                        MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK->{
-                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK")
-                        }
-                        MediaPlayer.MEDIA_ERROR_TIMED_OUT->{
-                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_TIMED_OUT")
-                        }
-                        MediaPlayer.MEDIA_ERROR_UNKNOWN->{
-                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_UNKNOWN")
-                        }
-                        MediaPlayer.MEDIA_ERROR_UNSUPPORTED->{
-                            Log.i("MediaPlayer_p2", "MEDIA_ERROR_UNSUPPORTED")
-                        }
-                    }
-                    return false
-                }
-            }))
-            mMediaPlayer!!.setOnPreparedListener(object : MediaPlayer.OnPreparedListener {
-                override fun onPrepared(mediaPlayer: MediaPlayer) {
-                    Log.i(TAG, "mMediaPlayer onPrepared")
-                    if(listener!!.videoprogress>100) {
-                        mediaPlayer.seekTo(listener!!.videoprogress)
-                    }else{
-                        mediaPlayer.seekTo(100)
-                    }
-                }
-            })
-            mMediaPlayer!!.prepareAsync()
-        } catch (e: IllegalArgumentException) {
-            Log.d(TAG, e.toString());
-        } catch (e: SecurityException) {
-            Log.d(TAG, e.toString());
-        } catch (e: IllegalStateException) {
-            Log.d(TAG, e.toString());
-        } catch (e: IOException) {
-            Log.d(TAG, e.toString());
-        }
-    }
     private val stateCallback = object : CameraDevice.StateCallback() {
 
         override fun onOpened(cameraDevice: CameraDevice) {
@@ -320,8 +220,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         // 메시지 큐에 저장될 메시지의 내용;
                         val a = (progress.toDouble() / 100.0)
                         val b = a.toFloat()
+                        if(listener!!.videoPlaying){
+                            exoplayerView.setAlpha(b)
+                        }else{
                         if(textureView.isAvailable) {
                             textureView.setAlpha(b)
+                        }
                         }
                     }
                 })
@@ -345,6 +249,16 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
      */
     private var sensorOrientation = 0
 
+
+    // 1. Create a default TrackSelector
+    lateinit var mainHandler: Handler
+    lateinit var bandwidthMeter: BandwidthMeter
+    lateinit var videoTrackSelectionFactory: TrackSelection.Factory
+    lateinit var trackSelector:DefaultTrackSelector
+    private var playbackStateBuilder : PlaybackStateCompat.Builder? = null
+    private var mediaSession: MediaSessionCompat? = null
+        // 2. Create the player
+        lateinit var player : SimpleExoPlayer
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
@@ -365,16 +279,76 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             baseDir = Environment.DIRECTORY_MOVIES
         }
     }
+
+    private fun initializePlayer() {
+        // 1. Create a default TrackSelector
+        mainHandler = Handler()
+        bandwidthMeter = DefaultBandwidthMeter()
+        videoTrackSelectionFactory = AdaptiveTrackSelection.Factory(bandwidthMeter)
+        trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
+// 2. Create the player
+        player = ExoPlayerFactory.newSimpleInstance(this.requireContext(), trackSelector)
+        val userAgent = Util.getUserAgent(this.requireContext(), "Exo")
+        val mediaUri = Uri.parse(listener!!.videoPath)
+        val mediaSource = ExtractorMediaSource(mediaUri, DefaultDataSourceFactory(this.requireContext(), userAgent), DefaultExtractorsFactory(), null, null)
+
+        player.videoScalingMode = MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT
+        player.addListener(object : Player.EventListener{
+            override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
+
+            }
+
+            override fun onSeekProcessed() {
+            }
+
+            override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
+            }
+
+            override fun onPlayerError(error: ExoPlaybackException?) {
+            }
+
+            override fun onLoadingChanged(isLoading: Boolean) {
+            }
+
+            override fun onPositionDiscontinuity(reason: Int) {
+            }
+
+            override fun onRepeatModeChanged(repeatMode: Int) {
+            }
+
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
+
+            }
+
+            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                if(playWhenReady){
+                    if(listener!!.videoprogress > 100) {
+                        player.seekTo(listener!!.videoprogress.toLong())
+                    }else{
+                        player.seekTo(100.toLong())
+                    }
+                }
+            }
+        })
+        val componentName = ComponentName(this.requireContext(), "Exo")
+        mediaSession = MediaSessionCompat(this.requireContext(), "ExoPlayer", componentName, null)
+        playbackStateBuilder = PlaybackStateCompat.Builder()
+        playbackStateBuilder?.setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or
+                PlaybackStateCompat.ACTION_FAST_FORWARD)
+        mediaSession?.setPlaybackState(playbackStateBuilder?.build())
+        mediaSession?.isActive = true
+        exoplayerView.player = player
+        player.prepare(mediaSource)
+    }
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
         startBackgroundThread()
         if(listener!!.video_camera) {
-            if(videotextureView.isAvailable){
-
-            }else{
-                videotextureView.surfaceTextureListener = videoTextureListener
-            }
         }else{
             if (textureView.isAvailable) {
                 openCamera(textureView.width, textureView.height)
@@ -441,20 +415,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 Log.d("onActivityResult", mVideoURI.toString())
                 Log.d("Result videoString", listener!!.videoPath)
                 //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI))
+                initializePlayer()
             }
         }
     }
 
-    fun getRealPathFromURI(context: Context, contentUri: Uri): String {
-        val proj = arrayOf(MediaStore.Images.Media.DATA)
-        val loader = CursorLoader(context, contentUri, proj, null, null, null)
-        val cursor = loader.loadInBackground()
-        val column_index = cursor!!.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-        cursor.moveToFirst()
-        val result = cursor.getString(column_index)
-        cursor.close()
-        return result
-    }
     override fun onAttach(context: Context) {
         Log.i(TAG, "onAttach")
         super.onAttach(context)
@@ -535,12 +500,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control)
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
         youtube_layout.setLayoutParams(LandWebView)
+        exoplayerView.setLayoutParams(LandCamera)
+        textureView.setLayoutParams(LandCamera)
         if(listener!!.video_camera){
-            videotextureView.setLayoutParams(LandCamera)
-            videotextureView.setAlpha((0.5).toFloat())
-            videotextureView.setZ(2.toFloat())
+            exoplayerView.setAlpha((0.5).toFloat())
+            exoplayerView.setZ(2.toFloat())
         }else{
-            textureView.setLayoutParams(LandCamera)
             textureView.setAlpha((0.5).toFloat())
             textureView.setZ(2.toFloat())
         }
@@ -592,11 +557,11 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandCamera!!.addRule(ScaleRelativeLayout.START_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout)
         alpha_control.setVisibility(View.GONE)
+        textureView.setLayoutParams(LandCamera)
+        exoplayerView.setLayoutParams(LandCamera)
         if(listener!!.video_camera){
-            videotextureView.setLayoutParams(LandCamera)
-            videotextureView.setAlpha((1).toFloat())
+            exoplayerView.setAlpha((1).toFloat())
         }else{
-            textureView.setLayoutParams(LandCamera)
             textureView.setAlpha((1).toFloat())
         }
         youtube_layout.setAlpha((1).toFloat())
@@ -604,11 +569,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if(listener!!.video_camera){
-            videotextureView = view.findViewById(R.id.AutoView)
-        }else{
             textureView = view.findViewById(R.id.AutoView)
-        }
+        exoplayerView = view.findViewById(R.id.exoplayer)
         cameraId = CAMERA_FRONT
         startBackgroundThread()
         viewSet()
@@ -727,6 +689,16 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         })
         requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         alpha_control.setOnSeekBarChangeListener(this)
+        if(listener!!.videoPlaying){
+            if(listener!!.videoPath == ""){
+                val intent = Intent(Intent.ACTION_GET_CONTENT);
+                val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
+                intent.setType("video/mp4");
+                intent.putExtra(Intent.EXTRA_STREAM, uri)
+                startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
+                Log.i(TAG, "videoPath : " + listener!!.videoPath)
+            }
+        }
     }
     private fun viewSet(){
         record_Btn.setOnClickListener(this)
@@ -1137,8 +1109,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             {
                 if(listener!!.video_camera) {
                     listener!!.video_camera = false
-                    mMediaPlayer!!.stop()
-                    mMediaPlayer!!.release()
                     requireActivity().recreate()
                 }
                 Log.d(TAG, "record_Btn thouch")
@@ -1157,23 +1127,26 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     requireActivity().recreate()
                 }
                 Log.d(TAG, "play_Btn thouch")
-                if(mMediaPlayer!!.isPlaying()){
+                if(player.playbackState == PlaybackStateCompat.STATE_PLAYING){
                     play_Btn.setImageResource(R.drawable.play)
-                    mMediaPlayer!!.pause()
                 }else {
                     play_Btn.setImageResource(R.drawable.pause)
-                    mMediaPlayer!!.start()
                 }
             }
 
             R.id.load_Btn//파일불러오기
             -> {
+                listener!!.videoPath = ""
+                listener!!.videoprogress = 0
                 if(!listener!!.video_camera) {
                     listener!!.video_camera = true
                 }
-                listener!!.videoPath = ""
-                listener!!.videoprogress = 0
-                requireActivity().recreate()
+                val intent = Intent(Intent.ACTION_GET_CONTENT);
+                val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
+                intent.setType("video/mp4");
+                intent.putExtra(Intent.EXTRA_STREAM, uri)
+                startActivityForResult(Intent.createChooser(intent, "Select Video"), 3)
+                Log.i(TAG, "videoPath : " + listener!!.videoPath)
             }
 
             R.id.play_record_Btn//전후면 카메라변환
@@ -1186,11 +1159,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             -> {
                 if (listener!!.video_camera) {
                     listener!!.video_camera = false
-
-                        if (mMediaPlayer!!.isPlaying()) {
-                            mMediaPlayer!!.stop()
-                        }
-                        mMediaPlayer!!.release()
+                    player.release()
                 } else {
                     listener!!.video_camera = true
                     if (isRecordingVideo) {
