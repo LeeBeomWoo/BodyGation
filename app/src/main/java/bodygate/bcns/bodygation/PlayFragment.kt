@@ -220,7 +220,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         // 메시지 큐에 저장될 메시지의 내용;
                         val a = (progress.toDouble() / 100.0)
                         val b = a.toFloat()
-                        if(listener!!.videoPlaying){
+                        if(listener!!.video_camera){
                             exoplayerView.setAlpha(b)
                         }else{
                         if(textureView.isAvailable) {
@@ -349,12 +349,17 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         Log.d(TAG, "onResume")
         startBackgroundThread()
         if(listener!!.video_camera) {
+            textureView.visibility = View.GONE
+            exoplayerView.visibility = View.VISIBLE
+            initializePlayer()
         }else{
-            if (textureView.isAvailable) {
-                openCamera(textureView.width, textureView.height)
-            } else {
-                textureView.surfaceTextureListener = surfaceTextureListener
-            }
+            exoplayerView.visibility = View.GONE
+            textureView.visibility = View.VISIBLE
+        }
+        if (textureView.isAvailable) {
+            openCamera(textureView.width, textureView.height)
+        } else {
+            textureView.surfaceTextureListener = surfaceTextureListener
         }
     }
 
@@ -499,9 +504,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control)
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
-        youtube_layout.setLayoutParams(LandWebView)
-        exoplayerView.setLayoutParams(LandCamera)
-        textureView.setLayoutParams(LandCamera)
+        youtube_layout.setLayoutParams(LandCamera)
+        exoplayerView.setLayoutParams(LandWebView)
+        textureView.setLayoutParams(LandWebView)
         if(listener!!.video_camera){
             exoplayerView.setAlpha((0.5).toFloat())
             exoplayerView.setZ(2.toFloat())
@@ -569,7 +574,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-            textureView = view.findViewById(R.id.AutoView)
+        textureView = view.findViewById(R.id.AutoView)
         exoplayerView = view.findViewById(R.id.exoplayer)
         cameraId = CAMERA_FRONT
         startBackgroundThread()
@@ -689,7 +694,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         })
         requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         alpha_control.setOnSeekBarChangeListener(this)
-        if(listener!!.videoPlaying){
+        if(listener!!.video_camera){
             if(listener!!.videoPath == ""){
                 val intent = Intent(Intent.ACTION_GET_CONTENT);
                 val uri = Uri.parse(Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").getPath() + File.separator + "bodygation" + File.separator);
@@ -1109,7 +1114,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             {
                 if(listener!!.video_camera) {
                     listener!!.video_camera = false
-                    requireActivity().recreate()
                 }
                 Log.d(TAG, "record_Btn thouch")
                 if (textureView.isAvailable) {
@@ -1124,13 +1128,14 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             ->{
                 if(!listener!!.video_camera) {
                     listener!!.video_camera = true
-                    requireActivity().recreate()
                 }
                 Log.d(TAG, "play_Btn thouch")
-                if(player.playbackState == PlaybackStateCompat.STATE_PLAYING){
+                if(exoplayerView.player.playWhenReady){
                     play_Btn.setImageResource(R.drawable.play)
+                    exoplayerView.player.playWhenReady = false
                 }else {
                     play_Btn.setImageResource(R.drawable.pause)
+                    exoplayerView.player.playWhenReady = true
                 }
             }
 
@@ -1158,16 +1163,19 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             R.id.viewChange_Btn//파일과 카메라간 변환
             -> {
                 if (listener!!.video_camera) {
+                    exoplayerView.visibility = View.VISIBLE
+                    textureView.visibility = View.GONE
                     listener!!.video_camera = false
                     player.release()
                 } else {
+                    exoplayerView.visibility = View.GONE
+                    textureView.visibility = View.VISIBLE
                     listener!!.video_camera = true
                     if (isRecordingVideo) {
                         stopRecordingVideo()
                     }
                     closeCamera()
                 }
-                requireActivity().recreate()
             }
         }
     }

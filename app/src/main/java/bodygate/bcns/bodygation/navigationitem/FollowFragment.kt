@@ -216,6 +216,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
             R.id.search_Btn -> consume {
                 Log.i(TAG, "search_Btn")
                 onButtonPressed(search())
+                Log.i(TAG, search().toString())
             }
         }
     }

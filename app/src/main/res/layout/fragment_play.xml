@@ -25,12 +25,11 @@
         android:layout_toStartOf="@+id/button_layout"
         android:visibility="visible" />
 
-    <view
+    <com.google.android.exoplayer2.ui.SimpleExoPlayerView
         android:id="@+id/exoplayer"
-        class="com.google.android.exoplayer2.ui.SimpleExoPlayerView"
-        id="@+id/view"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        app:use_controller="false" />
 
     <cn.gavinliu.android.lib.scale.ScaleRelativeLayout
         android:id="@+id/button_layout"
