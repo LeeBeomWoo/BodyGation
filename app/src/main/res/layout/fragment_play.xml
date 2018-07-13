@@ -16,20 +16,23 @@
         android:visibility="gone" />
 
     <bodygate.bcns.bodygation.camerause.AutoFitTextureView
-        android:id="@+id/AutoView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/youtube_layout"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/button_layout"
-        android:visibility="visible" />
-
-    <com.google.android.exoplayer2.ui.SimpleExoPlayerView
-        android:id="@+id/exoplayer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:use_controller="false" />
+    android:id="@+id/AutoView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_above="@+id/youtube_layout"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"
+    android:layout_toStartOf="@+id/button_layout"
+    android:visibility="visible" />
+    <VideoView
+    android:id="@+id/VideoView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_above="@+id/youtube_layout"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"
+    android:layout_toStartOf="@+id/button_layout"
+    android:visibility="gone" />
 
     <cn.gavinliu.android.lib.scale.ScaleRelativeLayout
         android:id="@+id/button_layout"
@@ -104,7 +107,7 @@
 
     </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
 
-    <cn.gavinliu.android.lib.scale.ScaleFrameLayout
+    <WebView
         android:id="@+id/youtube_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

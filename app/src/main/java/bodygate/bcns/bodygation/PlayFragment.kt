@@ -19,14 +19,12 @@ import android.hardware.camera2.CameraCharacteristics.SCALER_STREAM_CONFIGURATIO
 import android.hardware.camera2.CameraCharacteristics.SENSOR_ORIENTATION
 import android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW
 import android.hardware.camera2.CameraDevice.TEMPLATE_RECORD
+import android.media.AudioManager
 import android.media.MediaCodec
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.os.HandlerThread
+import android.os.*
 import android.provider.MediaStore
 import android.support.annotation.NonNull
 import android.support.v4.app.ActivityCompat
@@ -42,29 +40,19 @@ import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.*
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebViewClient
 import android.widget.SeekBar
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
+import android.widget.VideoView
 import bodygate.bcns.bodygation.camerause.AutoFitTextureView
 import bodygate.bcns.bodygation.camerause.CompareSizesByArea
 import bodygate.bcns.bodygation.camerause.ErrorDialog
 import bodygate.bcns.bodygation.support.rotationCallbackFn
 import bodygate.bcns.bodygation.support.rotationListenerHelper
 import cn.gavinliu.android.lib.scale.ScaleRelativeLayout
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.C.VideoScalingMode
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
-import com.google.android.exoplayer2.source.ExtractorMediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.trackselection.TrackSelection
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView
-import com.google.android.exoplayer2.upstream.BandwidthMeter
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.util.Util
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
@@ -80,9 +68,12 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onStartTrackingTouch(p0: SeekBar?) {
 
     }
-
     override fun onStopTrackingTouch(p0: SeekBar?) {
     }
+    private val FURL = "<html><body><iframe width=\"1280\" height=\"720\" src=\""
+    private val BURL = "\" frameborder=\"0\" allowfullscreen></iframe></html></body>"
+    private val CHANGE = "https://www.youtube.com/embed/"
+    var URL:String? = null
     val REQUEST_VIDEO_PERMISSIONS = 1
     val VIDEO_PERMISSIONS = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
     private val ARG_PARAM1 = "url"
@@ -166,6 +157,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         append(Surface.ROTATION_180, 90)
         append(Surface.ROTATION_270, 0)
     }
+    lateinit var mMediaPlayer:MediaPlayer
     private val surfaceTextureListener = object : TextureView.SurfaceTextureListener {
 
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
@@ -186,7 +178,10 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     }
 
     lateinit var textureView: AutoFitTextureView
-    lateinit var exoplayerView: SimpleExoPlayerView
+    lateinit var video_View: VideoView
+
+    fun initPlayer(){
+    }
 
     private val stateCallback = object : CameraDevice.StateCallback() {
 
@@ -220,13 +215,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                         // 메시지 큐에 저장될 메시지의 내용;
                         val a = (progress.toDouble() / 100.0)
                         val b = a.toFloat()
-                        if(listener!!.video_camera){
-                            exoplayerView.setAlpha(b)
-                        }else{
-                        if(textureView.isAvailable) {
-                            textureView.setAlpha(b)
-                        }
-                        }
+                        youtube_layout.setAlpha(b)
                     }
                 })
             }
@@ -249,16 +238,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
      */
     private var sensorOrientation = 0
 
-
-    // 1. Create a default TrackSelector
-    lateinit var mainHandler: Handler
-    lateinit var bandwidthMeter: BandwidthMeter
-    lateinit var videoTrackSelectionFactory: TrackSelection.Factory
-    lateinit var trackSelector:DefaultTrackSelector
-    private var playbackStateBuilder : PlaybackStateCompat.Builder? = null
-    private var mediaSession: MediaSessionCompat? = null
-        // 2. Create the player
-        lateinit var player : SimpleExoPlayer
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
@@ -280,80 +259,15 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
     }
 
-    private fun initializePlayer() {
-        // 1. Create a default TrackSelector
-        mainHandler = Handler()
-        bandwidthMeter = DefaultBandwidthMeter()
-        videoTrackSelectionFactory = AdaptiveTrackSelection.Factory(bandwidthMeter)
-        trackSelector = DefaultTrackSelector(videoTrackSelectionFactory)
-// 2. Create the player
-        player = ExoPlayerFactory.newSimpleInstance(this.requireContext(), trackSelector)
-        val userAgent = Util.getUserAgent(this.requireContext(), "Exo")
-        val mediaUri = Uri.parse(listener!!.videoPath)
-        val mediaSource = ExtractorMediaSource(mediaUri, DefaultDataSourceFactory(this.requireContext(), userAgent), DefaultExtractorsFactory(), null, null)
-
-        player.videoScalingMode = MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT
-        player.addListener(object : Player.EventListener{
-            override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-
-            }
-
-            override fun onSeekProcessed() {
-            }
-
-            override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-            }
-
-            override fun onPlayerError(error: ExoPlaybackException?) {
-            }
-
-            override fun onLoadingChanged(isLoading: Boolean) {
-            }
-
-            override fun onPositionDiscontinuity(reason: Int) {
-            }
-
-            override fun onRepeatModeChanged(repeatMode: Int) {
-            }
-
-            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun onTimelineChanged(timeline: Timeline?, manifest: Any?, reason: Int) {
-
-            }
-
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                if(playWhenReady){
-                    if(listener!!.videoprogress > 100) {
-                        player.seekTo(listener!!.videoprogress.toLong())
-                    }else{
-                        player.seekTo(100.toLong())
-                    }
-                }
-            }
-        })
-        val componentName = ComponentName(this.requireContext(), "Exo")
-        mediaSession = MediaSessionCompat(this.requireContext(), "ExoPlayer", componentName, null)
-        playbackStateBuilder = PlaybackStateCompat.Builder()
-        playbackStateBuilder?.setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or
-                PlaybackStateCompat.ACTION_FAST_FORWARD)
-        mediaSession?.setPlaybackState(playbackStateBuilder?.build())
-        mediaSession?.isActive = true
-        exoplayerView.player = player
-        player.prepare(mediaSource)
-    }
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
         startBackgroundThread()
         if(listener!!.video_camera) {
             textureView.visibility = View.GONE
-            exoplayerView.visibility = View.VISIBLE
-            initializePlayer()
+            video_View.visibility = View.VISIBLE
         }else{
-            exoplayerView.visibility = View.GONE
+            video_View.visibility = View.GONE
             textureView.visibility = View.VISIBLE
         }
         if (textureView.isAvailable) {
@@ -420,7 +334,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 Log.d("onActivityResult", mVideoURI.toString())
                 Log.d("Result videoString", listener!!.videoPath)
                 //Log.d("getRealPathFromURI", getRealPathFromURI(getContext(), mVideoURI))
-                initializePlayer()
+                video_View.setVideoPath(listener!!.videoPath)
             }
         }
     }
@@ -498,27 +412,30 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         switchlayout!!.addRule(ScaleRelativeLayout.CENTER_VERTICAL)
         switchlayout!!.setMargins(getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item), getResources().getDimensionPixelSize(R.dimen.imageBtnmargine_item))
         viewChange_Btn.setLayoutParams(switchlayout);
+        alpha_control.setVisibility(View.VISIBLE)
         LandCamera!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
         LandCamera!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_END)
         LandWebView!!.addRule(ScaleRelativeLayout.BELOW, R.id.alpha_control)
         LandWebView!!.addRule(ScaleRelativeLayout.END_OF, R.id.button_layout)
-        youtube_layout.setLayoutParams(LandCamera)
-        exoplayerView.setLayoutParams(LandWebView)
-        textureView.setLayoutParams(LandWebView)
+        LandWebView!!.addRule(ScaleRelativeLayout.ALIGN_PARENT_BOTTOM)
+        youtube_layout.setLayoutParams(LandWebView)
+        video_View.setLayoutParams(LandCamera)
+        textureView.setLayoutParams(LandCamera)
         if(listener!!.video_camera){
-            exoplayerView.setAlpha((0.5).toFloat())
-            exoplayerView.setZ(2.toFloat())
+            video_View.visibility = View.VISIBLE
+            textureView.visibility = View.GONE
+            video_View.setZ(0.toFloat())
         }else{
-            textureView.setAlpha((0.5).toFloat())
-            textureView.setZ(2.toFloat())
+            textureView.visibility = View.VISIBLE
+            video_View.visibility = View.GONE
+            textureView.setZ(0.toFloat())
         }
         alpha_control.setProgress(50)
-        alpha_control.setVisibility(View.VISIBLE)
-        alpha_control.setZ(2.toFloat())
-        youtube_layout.setZ(0.toFloat())
-        youtube_layout.setAlpha((1).toFloat())
+        alpha_control.setZ(0.toFloat())
+        youtube_layout.setZ(2.toFloat())
+        youtube_layout.setAlpha((0.5).toFloat())
     }
     private fun PortrainSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -563,9 +480,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         LandCamera!!.addRule(ScaleRelativeLayout.ABOVE, R.id.youtube_layout)
         alpha_control.setVisibility(View.GONE)
         textureView.setLayoutParams(LandCamera)
-        exoplayerView.setLayoutParams(LandCamera)
+        video_View.setLayoutParams(LandCamera)
         if(listener!!.video_camera){
-            exoplayerView.setAlpha((1).toFloat())
+            video_View.setAlpha((1).toFloat())
         }else{
             textureView.setAlpha((1).toFloat())
         }
@@ -575,7 +492,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         textureView = view.findViewById(R.id.AutoView)
-        exoplayerView = view.findViewById(R.id.exoplayer)
+        video_View = view.findViewById(R.id.VideoView)
         cameraId = CAMERA_FRONT
         startBackgroundThread()
         viewSet()
@@ -631,68 +548,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             }
         })
         alpha_control.max = 90
-        youTubePlayerSupportFragment = YouTubePlayerSupportFragment.newInstance()
-        youTubePlayerSupportFragment!!.initialize(getString(R.string.API_key), object:YouTubePlayer.OnInitializedListener{
-            override fun onInitializationSuccess(p0: YouTubePlayer.Provider?, p1: YouTubePlayer?, p2: Boolean) {
-                Log.i("youtube", "youTubePlayerSupportFragment")
-                youtubePlayer = p1
-                youtubePlayer!!.cueVideo(param1)
-                youtubePlayer!!.setShowFullscreenButton(false)
-                youtubePlayer!!.setPlaybackEventListener(object : YouTubePlayer.PlaybackEventListener{
-                    override fun onSeekTo(p0: Int) {
-
-                    }
-
-                    override fun onBuffering(p0: Boolean) {
-                    }
-
-                    override fun onPlaying() {
-                        listener!!.youtubePlaying = true
-                        Log.i("youtube", "onPlaying")
-                    }
-
-                    override fun onStopped() {
-                        Log.i("youtube", "onStopped")
-                        Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
-                    }
-
-                    override fun onPaused() {
-                        listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
-                        listener!!.youtubePlaying = false
-                        Log.i("youtube", "onPaused")
-                        Log.i("youtube", "onSaveInstanceState_" +"progress :" + listener!!.youtubeprogress + "\t " + youtubePlayer!!.currentTimeMillis.toString())
-                    }
-                })
-                youtubePlayer!!.setPlayerStateChangeListener(object :YouTubePlayer.PlayerStateChangeListener{
-                    override fun onAdStarted() {
-                    }
-
-                    override fun onLoading() {
-                    }
-
-                    override fun onVideoStarted() {
-                    }
-
-                    override fun onLoaded(p0: String?) {
-                        if(listener!!.youtubeprogress > 1){
-                            youtubePlayer!!.seekToMillis(listener!!.youtubeprogress)
-                            youtubePlayer!!.play()
-                        }
-                    }
-
-                    override fun onVideoEnded() {
-                    }
-
-                    override fun onError(p0: YouTubePlayer.ErrorReason?) {
-                    }
-                })
-            }
-            override fun onInitializationFailure(p0: YouTubePlayer.Provider?, p1: YouTubeInitializationResult?) {
-                Log.i("youtube", "onInitializationFailure : " + p1.toString()
-                )
-            }
-        })
-        requireActivity().supportFragmentManager.beginTransaction().replace(R.id.youtube_layout, youTubePlayerSupportFragment!!).commit()
         alpha_control.setOnSeekBarChangeListener(this)
         if(listener!!.video_camera){
             if(listener!!.videoPath == ""){
@@ -711,6 +566,27 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         play_Btn.setOnClickListener(this)
         play_record_Btn.setOnClickListener(this)
         viewChange_Btn.setOnClickListener(this)
+        youtube_layout.setWebChromeClient(WebChromeClient())
+        youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
+        youtube_layout.setWebViewClient(WebViewClient())
+        val settings = youtube_layout.getSettings()
+        settings.setJavaScriptEnabled(true)
+        settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN)
+        settings.setJavaScriptCanOpenWindowsAutomatically(true)
+        settings.setPluginState(WebSettings.PluginState.ON)
+        settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK)
+        youtube_layout.getSettings().setSupportMultipleWindows(true)
+        settings.setLoadWithOverviewMode(true)
+        settings.setUseWideViewPort(true)
+        URL = FURL + CHANGE + param1 + BURL
+        youtube_layout.loadData(URL, "text/html", "charset=utf-8");
+        alpha_control.setOnSeekBarChangeListener(this)
+        video_View.setOnCompletionListener(object :MediaPlayer.OnCompletionListener{
+            override fun onCompletion(p0: MediaPlayer?) {
+                video_View.seekTo(100)
+                play_Btn.setImageResource(R.drawable.play)
+            }
+        })
     }
 
     @SuppressLint("MissingPermission")
@@ -884,7 +760,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         }
 
         mediaRecorder?.apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setOutputFile(nextVideoAbsolutePath)
@@ -1130,12 +1005,16 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     listener!!.video_camera = true
                 }
                 Log.d(TAG, "play_Btn thouch")
-                if(exoplayerView.player.playWhenReady){
+                if(video_View.isPlaying){
                     play_Btn.setImageResource(R.drawable.play)
-                    exoplayerView.player.playWhenReady = false
+                    video_View.pause()
                 }else {
+                    if(video_View.currentPosition > 100) {
+                        video_View.resume()
+                    }else{
+                        video_View.start()
+                    }
                     play_Btn.setImageResource(R.drawable.pause)
-                    exoplayerView.player.playWhenReady = true
                 }
             }
 
@@ -1163,12 +1042,15 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             R.id.viewChange_Btn//파일과 카메라간 변환
             -> {
                 if (listener!!.video_camera) {
-                    exoplayerView.visibility = View.VISIBLE
+                    video_View.visibility = View.VISIBLE
                     textureView.visibility = View.GONE
+                    if(video_View.isPlaying){
+                        play_Btn.setImageResource(R.drawable.play)
+                        video_View.stopPlayback()
+                    }
                     listener!!.video_camera = false
-                    player.release()
                 } else {
-                    exoplayerView.visibility = View.GONE
+                    video_View.visibility = View.GONE
                     textureView.visibility = View.VISIBLE
                     listener!!.video_camera = true
                     if (isRecordingVideo) {
