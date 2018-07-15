@@ -2,9 +2,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/accountchange_Btn"
+        android:title="@string/accountchange" />
+    <item
         android:id="@+id/pesnaldatarefresh_Btn"
         android:title="@string/pesnaldatarefresh" />
     <item
-        android:id="@+id/accountchange_Btn"
-        android:title="@string/accountchange" />
+        android:id="@+id/dataupload_Btn"
+        android:title="@string/upload" />
 </menu>

@@ -6,46 +6,21 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
-import android.support.annotation.NonNull
 import android.support.v4.app.Fragment
+import android.support.v4.widget.NestedScrollView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import bodygate.bcns.bodygation.MainActivity
 import bodygate.bcns.bodygation.R
-import bodygate.bcns.bodygation.R.id.walk_Btn
-import bodygate.bcns.bodygation.support.CheckableImageButton
-import com.github.mikephil.charting.charts.CombinedChart
-import com.github.mikephil.charting.components.AxisBase
+import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.data.CombinedData
-import com.github.mikephil.charting.formatter.IAxisValueFormatter
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.fitness.Fitness
-import com.google.android.gms.fitness.data.Bucket
-import com.google.android.gms.fitness.data.DataSet
-import com.google.android.gms.fitness.data.Field
-import com.google.android.gms.fitness.result.DataReadResponse
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.Task
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_for_me.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import java.lang.Exception
-import java.text.SimpleDateFormat
-import java.util.*
-import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
 
 /**
@@ -57,7 +32,7 @@ import kotlin.collections.ArrayList
  * create an instance of this fragment.
  */
 @SuppressLint("SetTextI18n")
-class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
+class ForMeFragment : Fragment() {
     private var mParam1: String? = null
     private var mListener: OnForMeInteraction? = null
     val TAG = "ForMeFragment_"
@@ -75,181 +50,109 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_for_me, container, false)
     }
-    override fun onCheckedChanged(button: CheckableImageButton?, check: Boolean) {
-        Log.i(TAG, "onCheckedChanged")
-        if (graph.getData() != null &&
-                graph.getData().getDataSetCount() > 0) {
-            graph.data.clearValues()
-        }
-        when (button!!.id) {
-            R.id.weight_Btn -> {
-                weight_Btn.setChecked(check)
-                if (walk_Btn.isChecked)
-                    walk_Btn.setChecked(!check)
-                if (kal_Btn.isChecked)
-                    kal_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked)
-                    bfp_Btn.setChecked(!check)
-                if (muscle_Btn.isChecked)
-                    muscle_Btn.setChecked(!check)
-                if (bmi_Btn.isChecked)
-                    bmi_Btn.setChecked(!check)
-                if (weight_Btn.isChecked){
-                    graph.setData(mListener!!.OnForMeInteraction(0))
-                    Log.i(TAG, "display_label_3 :" + mListener!!.display_label.size.toString())
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
-                    graph.invalidate()
-                    if (mListener!!.last_position > 0) {
-                        mListener!!.current_position = mListener!!.last_position
-                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
-                        Log.i(TAG, "display_label_4 :" + mListener!!.display_label.size.toString())
-                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
-                        section = 1
-                    }
-                }
-            }
-            R.id.walk_Btn -> {
-                walk_Btn.setChecked(check)
-                if (weight_Btn.isChecked)
-                    weight_Btn.setChecked(!check)
-                if (kal_Btn.isChecked)
-                    kal_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked)
-                    bfp_Btn.setChecked(!check)
-                if (muscle_Btn.isChecked)
-                    muscle_Btn.setChecked(!check)
-                if (bmi_Btn.isChecked)
-                    bmi_Btn.setChecked(!check)
-                if (walk_Btn.isChecked){
-                    graph.setData(mListener!!.OnForMeInteraction(1))
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
-                    graph.invalidate()
-                    if (mListener!!.last_position > 0) {
-                        mListener!!.current_position = mListener!!.last_position
-                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
-                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "걸음"
-                        section = 5
-                    }
-                }
-            }
-            R.id.kal_Btn -> {
-                kal_Btn.setChecked(check)
-                if (walk_Btn.isChecked)
-                    walk_Btn.setChecked(!check)
-                if (weight_Btn.isChecked)
-                    weight_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked)
-                    bfp_Btn.setChecked(!check)
-                if (muscle_Btn.isChecked)
-                    muscle_Btn.setChecked(!check)
-                if (bmi_Btn.isChecked)
-                    bmi_Btn.setChecked(!check)
-                if (kal_Btn.isChecked) {
-                    graph.setData(mListener!!.OnForMeInteraction(2))
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
-                    graph.invalidate()
-                    if (mListener!!.last_position > 0) {
-                        mListener!!.current_position = mListener!!.last_position
-                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
-                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"
-                        section = 4
-                    }
-                }
-            }
-            R.id.bfp_Btn -> {
-                bfp_Btn.setChecked(check)
-                if (walk_Btn.isChecked)
-                    walk_Btn.setChecked(!check)
-                if (weight_Btn.isChecked)
-                    weight_Btn.setChecked(!check)
-                if (kal_Btn.isChecked)
-                    kal_Btn.setChecked(!check)
-                if (muscle_Btn.isChecked)
-                    muscle_Btn.setChecked(!check)
-                if (bmi_Btn.isChecked)
-                    bmi_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked) {
-                    graph.setData(mListener!!.OnForMeInteraction(3))
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
-                    graph.invalidate()
-                    if (mListener!!.last_position > 0) {
-                        mListener!!.current_position = mListener!!.last_position
-                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
-                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "%"
-                        section = 3
-                    }
-                }
-            }
-            R.id.bmi_Btn -> {
-                bmi_Btn.setChecked(check)
-                if (walk_Btn.isChecked)
-                    walk_Btn.setChecked(!check)
-                if (weight_Btn.isChecked)
-                    weight_Btn.setChecked(!check)
-                if (kal_Btn.isChecked)
-                    kal_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked)
-                    bfp_Btn.setChecked(!check)
-                if (muscle_Btn.isChecked)
-                    muscle_Btn.setChecked(!check)
-                if (bmi_Btn.isChecked){
-                    graph.setData(mListener!!.OnForMeInteraction(5))
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
-                    graph.invalidate()
-                    if (mListener!!.last_position > 0) {
-                        mListener!!.current_position = mListener!!.last_position
-                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
-                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"
-                        section = 0
-                    }
-                }
-            }
-            R.id.muscle_Btn -> {
-                muscle_Btn.setChecked(check)
-                if (walk_Btn.isChecked)
-                    walk_Btn.setChecked(!check)
-                if (weight_Btn.isChecked)
-                    weight_Btn.setChecked(!check)
-                if (kal_Btn.isChecked)
-                    kal_Btn.setChecked(!check)
-                if (bfp_Btn.isChecked)
-                    bfp_Btn.setChecked(!check)
-                if (bmi_Btn.isChecked)
-                    bmi_Btn.setChecked(!check)
-                if (muscle_Btn.isChecked){
-                    graph.setData(mListener!!.OnForMeInteraction(4))
-                    graph.data.notifyDataChanged()
-                    graph.notifyDataSetChanged()
-                    graph.invalidate()
-                    if (mListener!!.last_position > 0) {
-                        mListener!!.current_position = mListener!!.last_position
-                        Log.i(TAG, "graph_change : " + mListener!!.last_position.toString())
-                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                        main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
-                        section = 2
-                    }
-                }
-            }
-        }
-    }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        weight_Btn.setOnCheckedChangeListener(this)
-        kal_Btn.setOnCheckedChangeListener(this)
-        walk_Btn.setOnCheckedChangeListener(this)
-        bfp_Btn.setOnCheckedChangeListener(this)
-        bmi_Btn.setOnCheckedChangeListener(this)
-        muscle_Btn.setOnCheckedChangeListener(this)
+        setGraph(graph_bmi)
+        graph_bmi.data = mListener!!.OnForMeInteraction(0)
+        setGraph(graph_bmr)
+        graph_bmr.data = mListener!!.OnForMeInteraction(4)
+        setGraph(graph_fat)
+        graph_fat.data = mListener!!.OnForMeInteraction(3)
+        setGraph(graph_muscle)
+        graph_muscle.data = mListener!!.OnForMeInteraction(2)
+        setGraph(graph_walk)
+        graph_walk.data = mListener!!.OnForMeInteraction(5)
+        setGraph(graph_weight)
+        graph_weight.data = mListener!!.OnForMeInteraction(1)
+        scrollView.isSmoothScrollingEnabled = true
+        scrollView.setOnScrollChangeListener(object : NestedScrollView.OnScrollChangeListener{
+            override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
+                if(0 < scroll_child.height/6 && scroll_child.height/6 < 1.1 ){
+                    section = 1
+                }else if(1 < scroll_child.height/6 && scroll_child.height/6 < 2.1 ){section=2
+                }else if(2 < scroll_child.height/6 && scroll_child.height/6 < 3.1 ){section=3
+                }else if(3 < scroll_child.height/6 && scroll_child.height/6 < 4.1 ){section=4
+                }else if(4 < scroll_child.height/6 && scroll_child.height/6 < 5.1 ){section=0
+                }else if(5 < scroll_child.height/6 && scroll_child.height/6 < 7 ){section=5
+                }
+            }
+        })
+        pre_Btn.setOnClickListener(object
+            :View.OnClickListener{
+            override fun onClick(v: View?) {
+                Log.i("Button_pre_Btn", "onClick")
+                    if (mListener!!.current_position > 0) {
+                        mListener!!.current_position -= 1
+                        when (section) {
+                            0 -> {//bmi
+                                main_lbl.text = mListener!!.bmi_series.get(mListener!!.current_position).y.toString() + "Kg/" + "m\u00B2"
+                                cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.current_position)
+                            }
+                            1 -> {//체중
+                                main_lbl.text = mListener!!.weight_series.get(mListener!!.current_position).y.toString() + "Kg"
+                                cal_lbl.text = mListener!!.weight_Label.get(mListener!!.current_position)
+                            }
+                            2 -> {//골격근
+                                main_lbl.text = mListener!!.muscle_series.get(mListener!!.current_position).y.toString() + "Kg"
+                                cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.current_position)
+                            }
+                            3 -> {//체지방
+                                main_lbl.text = mListener!!.fat_series.get(mListener!!.current_position).y.toString() + "%"
+                                cal_lbl.text = mListener!!.fat_Label.get(mListener!!.current_position)
+                            }
+                            4 -> {//소모칼로리
+                                main_lbl.text = mListener!!.kcal_series.get(mListener!!.current_position).y.toString() + "Kcal"
+                                cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.current_position)
+                            }
+                            5 -> {//걸음수
+                                main_lbl.text = mListener!!.walk_series.get(mListener!!.current_position).y.toString() + "걸음"
+                                cal_lbl.text = mListener!!.walk_Label.get(mListener!!.current_position)
+                            }
+                        }
+                    } else if (mListener!!.current_position == 0) {
+                        Toast.makeText(mListener!!.context, "첫번째 자료입니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+        })
+        next_Btn.setOnClickListener(object
+            :View.OnClickListener{
+            override fun onClick(v: View?) {
+                Log.i("Button_next_Btn", "onClick")
+                    if (mListener!!.current_position < mListener!!.last_position) {
+                        mListener!!.current_position += 1
+                        when (section) {
+                            0 -> {//bmi
+                                main_lbl.text = mListener!!.bmi_series.get(mListener!!.current_position).y.toString() + "Kg/" + "m\u00B2"
+                                cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.current_position)
+                            }
+                            1 -> {//체중
+                                main_lbl.text = mListener!!.weight_series.get(mListener!!.current_position).y.toString() + "Kg"
+                                cal_lbl.text = mListener!!.weight_Label.get(mListener!!.current_position)
+                            }
+                            2 -> {//골격근
+                                main_lbl.text = mListener!!.muscle_series.get(mListener!!.current_position).y.toString() + "Kg"
+                                cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.current_position)
+                            }
+                            3 -> {//체지방
+                                main_lbl.text = mListener!!.fat_series.get(mListener!!.current_position).y.toString() + "%"
+                                cal_lbl.text = mListener!!.fat_Label.get(mListener!!.current_position)
+                            }
+                            4 -> {//소모칼로리
+                                main_lbl.text = mListener!!.kcal_series.get(mListener!!.current_position).y.toString() + "Kcal"
+                                cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.current_position)
+                            }
+                            5 -> {//걸음수
+                                main_lbl.text = mListener!!.walk_series.get(mListener!!.current_position).y.toString() + "걸음"
+                                cal_lbl.text = mListener!!.walk_Label.get(mListener!!.current_position)
+                            }
+                        }
+                    } else if (mListener!!.current_position == mListener!!.last_position) {
+                        Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+        })
+    }
+    fun setGraph(graph: BarChart){
         graph.getDescription().setEnabled(false)
         graph.setPinchZoom(true)
         graph.setDrawBarShadow(false)
@@ -278,90 +181,9 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         }else{
             Picasso.get().load(R.mipmap.toolbarlogo_round).into(profile_Image)
         }
-        graph.setNoDataText("위 버튼을 클릭하시면 해당 기록이 이곳에 보여집니다.")
+        graph.setNoDataText("데이터가 없습니다.")
         graph.setNoDataTextColor(R.color.colorPrimaryDark)
         graph.setBackgroundColor(resources.getColor(R.color.whiteback))
-        pre_Btn.setOnClickListener(object
-            :View.OnClickListener{
-            override fun onClick(v: View?) {
-                Log.i("Button_pre_Btn", "onClick")
-                if(graph.barData != null) {
-                    if (mListener!!.current_position > 0 && graph.barData.dataSetCount > 0) {
-                        mListener!!.current_position -= 1
-                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                        when (section) {
-                            0 -> {//bmi
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            1 -> {//체중
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            2 -> {//골격근
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            3 -> {//체지방
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "%"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            4 -> {//소모칼로리
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            5 -> {//걸음수
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "걸음"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                        }
-                    } else if (mListener!!.current_position == 0 && graph.barData.dataSetCount > 0) {
-                        Toast.makeText(mListener!!.context, "첫번째 자료입니다.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-
-        })
-        next_Btn.setOnClickListener(object
-            :View.OnClickListener{
-            override fun onClick(v: View?) {
-                Log.i("Button_next_Btn", "onClick")
-                if (graph.barData != null) {
-                    if (mListener!!.current_position < mListener!!.last_position && graph.barData.dataSetCount > 0) {
-                        mListener!!.current_position += 1
-                        cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                        when (section) {
-                            0 -> {//bmi
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg/" + "m\u00B2"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            1 -> {//체중
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            2 -> {//골격근
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kg"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            3 -> {//체지방
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "%"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            4 -> {//소모칼로리
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "Kcal"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                            5 -> {//걸음수
-                                main_lbl.text = mListener!!.display_series.get(mListener!!.current_position) + "걸음"
-                                cal_lbl.text = mListener!!.display_label.get(mListener!!.current_position)
-                            }
-                        }
-                    } else if (mListener!!.current_position == mListener!!.last_position && graph.barData.dataSetCount > 0) {
-                        Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        })
     }
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -392,6 +214,19 @@ class ForMeFragment : Fragment(), CheckableImageButton.OnCheckedChangeListener {
         var display_label:MutableList<String>
         var display_series: MutableList<String>
         val context:Context
+        val weight_series: MutableList<BarEntry>
+        val muscle_series: MutableList<BarEntry>
+        val walk_series: MutableList<BarEntry>
+        val fat_series: MutableList<BarEntry>
+        val bmi_series: MutableList<BarEntry>
+        val kcal_series: MutableList<BarEntry>
+
+        val weight_Label:MutableList<String>
+        val kcal_Label:MutableList<String>
+        val walk_Label:MutableList<String>
+        val fat_Label:MutableList<String>
+        val muscle_Label:MutableList<String>
+        val bmi_Label:MutableList<String>
     }
 
     companion object {

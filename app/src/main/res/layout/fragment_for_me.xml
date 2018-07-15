@@ -102,113 +102,79 @@
 
         </LinearLayout>
 
-        <LinearLayout
-        android:id="@+id/second_layout"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:orientation="horizontal"
-        android:padding="3dp"
-        app:layout_constraintTop_toBottomOf="@+id/first_layout">
-
-
-        <bodygate.bcns.bodygation.support.CheckableImageButton
-            android:id="@+id/bmi_Btn"
+        <android.support.v4.widget.NestedScrollView
+            android:id="@+id/scrollView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="2dp"
-            android:layout_marginBottom="5dp"
-            android:layout_weight="1"
-            android:background="@color/nocolor"
-            android:scaleType="centerInside"
-            android:src="@drawable/bmi_selector" />
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:fillViewport="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/first_layout"
+            app:layout_constraintVertical_bias="1.0"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteX="0dp">
 
-        <bodygate.bcns.bodygation.support.CheckableImageButton
-            android:id="@+id/weight_Btn"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="2dp"
-            android:layout_marginBottom="5dp"
-            android:layout_weight="1"
-            android:background="@color/nocolor"
-            android:scaleType="centerInside"
-            android:src="@drawable/weight_selector" />
-    </LinearLayout>
+            <LinearLayout
+                android:id="@+id/scroll_child"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/third_layout"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:orientation="horizontal"
-        android:padding="3dp"
-        app:layout_constraintTop_toBottomOf="@+id/second_layout">
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/graph_weight"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:background="@color/colorBottomNavigationActiveColored"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:layout_editor_absoluteY="350dp" />
 
-        <bodygate.bcns.bodygation.support.CheckableImageButton
-            android:id="@+id/muscle_Btn"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="2dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            android:layout_weight="1"
-            android:background="@color/nocolor"
-            android:scaleType="centerInside"
-            android:src="@drawable/muscle_selector" />
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/graph_muscle"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:background="@color/colorBottomNavigationActiveColored"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:layout_editor_absoluteY="350dp" />
 
-        <bodygate.bcns.bodygation.support.CheckableImageButton
-            android:id="@+id/bfp_Btn"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="2dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            android:layout_weight="1"
-            android:background="@color/nocolor"
-            android:scaleType="centerInside"
-            android:src="@drawable/fat_selector" />
-    </LinearLayout>
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/graph_fat"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:background="@color/colorBottomNavigationActiveColored"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:layout_editor_absoluteY="350dp" />
 
-    <LinearLayout
-        android:id="@+id/forth_layout"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:orientation="horizontal"
-        android:padding="3dp"
-        app:layout_constraintTop_toBottomOf="@+id/third_layout">
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/graph_bmr"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:background="@color/colorBottomNavigationActiveColored"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:layout_editor_absoluteY="350dp" />
 
-        <bodygate.bcns.bodygation.support.CheckableImageButton
-            android:id="@+id/kal_Btn"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="2dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            android:layout_weight="1"
-            android:background="@color/nocolor"
-            android:scaleType="centerInside"
-            android:src="@drawable/kcal_selector"
-            android:text="@string/calore" />
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/graph_bmi"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:background="@color/colorBottomNavigationActiveColored"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:layout_editor_absoluteY="350dp" />
 
-        <bodygate.bcns.bodygation.support.CheckableImageButton
-            android:id="@+id/walk_Btn"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="2dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            android:layout_weight="1"
-            android:background="@color/nocolor"
-            android:scaleType="centerInside"
-            android:src="@drawable/walk_selector" />
-    </LinearLayout>
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/graph_walk"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:background="@color/colorBottomNavigationActiveColored"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:layout_editor_absoluteY="350dp" />
+            </LinearLayout>
+        </android.support.v4.widget.NestedScrollView>
 
-        <com.github.mikephil.charting.charts.BarChart
-            android:id="@+id/graph"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_weight="0.75"
-            android:background="@color/colorBottomNavigationActiveColored"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/forth_layout" />
     </android.support.constraint.ConstraintLayout>
 </cn.gavinliu.android.lib.scale.ScaleLinearLayout>

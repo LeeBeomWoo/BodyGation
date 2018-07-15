@@ -118,19 +118,19 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var display_series: MutableList<String> = ArrayList()
     var custom_Type:DataType? = null
 
-    val weight_series: MutableList<BarEntry> = ArrayList()
-    val muscle_series: MutableList<BarEntry> = ArrayList()
-    val walk_series: MutableList<BarEntry> = ArrayList()
-    val fat_series: MutableList<BarEntry> = ArrayList()
-    val bmi_series: MutableList<BarEntry> = ArrayList()
-    val kcal_series: MutableList<BarEntry> = ArrayList()
+    override val weight_series: MutableList<BarEntry> = ArrayList()
+    override val muscle_series: MutableList<BarEntry> = ArrayList()
+    override val walk_series: MutableList<BarEntry> = ArrayList()
+    override val fat_series: MutableList<BarEntry> = ArrayList()
+    override val bmi_series: MutableList<BarEntry> = ArrayList()
+    override val kcal_series: MutableList<BarEntry> = ArrayList()
 
-    val weight_Label:MutableList<String> =  ArrayList()
-    val kcal_Label:MutableList<String> =  ArrayList()
-    val walk_Label:MutableList<String> =  ArrayList()
-    val fat_Label:MutableList<String> =  ArrayList()
-    val muscle_Label:MutableList<String> =  ArrayList()
-    val bmi_Label:MutableList<String> =  ArrayList()
+    override val weight_Label:MutableList<String> =  ArrayList()
+    override val kcal_Label:MutableList<String> =  ArrayList()
+    override val walk_Label:MutableList<String> =  ArrayList()
+    override val fat_Label:MutableList<String> =  ArrayList()
+    override val muscle_Label:MutableList<String> =  ArrayList()
+    override val bmi_Label:MutableList<String> =  ArrayList()
     var ib = 0
 
     var goalFragment:GoalFragment? = null
@@ -451,30 +451,28 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             signIn()
         }
         // Create items
-        val item1 = AHBottomNavigationItem(getString(R.string.title_goal), getDrawable(R.drawable.select_goalmenu))
         val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
         val item3 = AHBottomNavigationItem(getString(R.string.title_infome), getDrawable(R.drawable.select_formemenu))
-        bottom_navigation.addItem(item1)
         bottom_navigation.addItem(item2)
         bottom_navigation.addItem(item3)
         bottom_navigation.setDefaultBackgroundColor(Color.parseColor("#FFFFFFFF"))
         followFragment = supportFragmentManager.findFragmentByTag("follow") as FollowFragment?
-        goalFragment = supportFragmentManager.findFragmentByTag("goal") as GoalFragment?
         youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult?
         forMeFragment = supportFragmentManager.findFragmentByTag("forme") as ForMeFragment?
+        goalFragment = supportFragmentManager.findFragmentByTag("goal") as GoalFragment?
         bottom_navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
             override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
                 when (item) {
                 //해당 페이지로 이동
                     0 -> {
-                        if(goalFragment == null) {
+                        if (forMeFragment == null) {
                             supportFragmentManager
                                     .beginTransaction()
-                                    .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "goal")
+                                    .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()), "forme")
                                     .commit()
                         }else{
                             supportFragmentManager
-                                    .beginTransaction().replace(R.id.root_layout, goalFragment!!).commit()
+                                    .beginTransaction().replace(R.id.root_layout, forMeFragment!!).commit()
                         }
                         return true
                     }
@@ -489,21 +487,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                                         .commit()
                             }
                         }else {
-                                supportFragmentManager
-                                        .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
-                        }
-                            return true
-
-                    }
-                    2 -> {
-                        if (forMeFragment == null) {
                             supportFragmentManager
-                                    .beginTransaction()
-                                    .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()), "forme")
-                                    .commit()
-                        }else{
-                            supportFragmentManager
-                                    .beginTransaction().replace(R.id.root_layout, forMeFragment!!).commit()
+                                    .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
                         }
                         return true
                     }
@@ -723,6 +708,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     Log.i(TAG, "display_label_1 :" + display_label.size.toString())
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
+                    current_position = last_position
+                    val xA = graph_weight.xAxis
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
                 }else{
                     Log.i(TAG, "체중 없음")
                     Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
@@ -739,6 +727,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
+                    current_position = last_position
+                    val xA = graph_walk.xAxis
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
                 }else{
                     Log.i(TAG, "걷기자료 없음")
                     Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
@@ -755,6 +746,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
+                    current_position = last_position
+                    val xA = graph_bmr.xAxis
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
                 }else{
                     Log.i(TAG, "칼로리 없음")
                     Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
@@ -771,6 +765,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
+                    current_position = last_position
+                    val xA = graph_fat.xAxis
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
                 }else{
                     Log.i(TAG, "체지방비율 없음")
                     Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
@@ -787,6 +784,9 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
+                    current_position = last_position
+                    val xA = graph_muscle.xAxis
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
                 }else{
                     Log.i(TAG, "골격근 없음")
                     Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
@@ -803,16 +803,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
+                    current_position = last_position
+                    val xA = graph_bmi.xAxis
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
                 }else{
                     Log.i(TAG, "BMI 없음")
                     Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
                 }
             }
         }
-        current_position = last_position
-        val xA = graph.xAxis
         Log.i(TAG, "display_label_2 :" + display_label.size.toString())
-        xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
         Log.i(TAG, "label , series :" + last_position.toString())
         return data
     }
@@ -1190,7 +1190,19 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         fat_Label.clear()
                         muscle_Label.clear()
                         bmi_Label.clear()
+                        return true
+                    }
+                    R.id.dataupload_Btn->{
 
+                        if(goalFragment == null) {
+                            supportFragmentManager
+                                    .beginTransaction()
+                                    .replace(R.id.root_layout, GoalFragment.newInstance(ID, PW), "goal")
+                                    .commit()
+                        }else{
+                            supportFragmentManager
+                                    .beginTransaction().replace(R.id.root_layout, goalFragment!!).commit()
+                        }
                         return true
                     }
                 }
