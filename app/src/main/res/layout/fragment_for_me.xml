@@ -120,55 +120,109 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+                <TextView
+                    android:id="@+id/charttitle_weight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/backline"
+                    android:text="@string/weight"
+                    android:textAlignment="center"
+                    android:textSize="26sp" />
+
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/graph_weight"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"
+                    android:layout_height="350dp"
+                    android:layout_marginBottom="10dp"
                     android:background="@color/colorBottomNavigationActiveColored"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     tools:layout_editor_absoluteY="350dp" />
 
+                <TextView
+                    android:id="@+id/charttitle_muscle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/backline"
+                    android:text="@string/musclemass"
+                    android:textAlignment="center"
+                    android:textSize="26sp" />
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/graph_muscle"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"
+                    android:layout_height="350dp"
+                    android:layout_marginBottom="10dp"
                     android:background="@color/colorBottomNavigationActiveColored"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     tools:layout_editor_absoluteY="350dp" />
 
+                <TextView
+                    android:id="@+id/charttitle_fat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/backline"
+                    android:text="@string/bodyfat"
+                    android:textAlignment="center"
+                    android:textSize="26sp" />
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/graph_fat"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"
+                    android:layout_height="350dp"
+                    android:layout_marginBottom="10dp"
                     android:background="@color/colorBottomNavigationActiveColored"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     tools:layout_editor_absoluteY="350dp" />
 
+                <TextView
+                    android:id="@+id/charttitle_bmr"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/backline"
+                    android:text="@string/caloreb"
+                    android:textAlignment="center"
+                    android:textSize="26sp" />
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/graph_bmr"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"
+                    android:layout_height="350dp"
+                    android:layout_marginBottom="10dp"
                     android:background="@color/colorBottomNavigationActiveColored"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     tools:layout_editor_absoluteY="350dp" />
 
+                <TextView
+                    android:id="@+id/charttitle_bmi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/backline"
+                    android:text="@string/bmi"
+                    android:textAlignment="center"
+                    android:textSize="26sp" />
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/graph_bmi"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"
+                    android:layout_height="350dp"
+                    android:layout_marginBottom="10dp"
                     android:background="@color/colorBottomNavigationActiveColored"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     tools:layout_editor_absoluteY="350dp" />
 
+                <TextView
+                    android:id="@+id/charttitle_walk"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/backline"
+                    android:text="@string/walk"
+                    android:textAlignment="center"
+                    android:textSize="26sp" />
                 <com.github.mikephil.charting.charts.BarChart
                     android:id="@+id/graph_walk"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"
+                    android:layout_height="350dp"
                     android:background="@color/colorBottomNavigationActiveColored"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
