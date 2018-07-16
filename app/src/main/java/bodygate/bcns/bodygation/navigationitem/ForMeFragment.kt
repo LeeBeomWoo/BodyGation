@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.NestedScrollView
 import android.util.Log
+import android.util.TimeUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,7 @@ import bodygate.bcns.bodygation.R
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarEntry
 import com.squareup.picasso.Picasso
@@ -52,35 +54,62 @@ class ForMeFragment : Fragment() {
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        graph_bmi.data = mListener!!.OnForMeInteraction(5)
-        setGraph(graph_bmi)
-        graph_bmr.data = mListener!!.OnForMeInteraction(2)
-        setGraph(graph_bmr)
-        graph_fat.data = mListener!!.OnForMeInteraction(3)
-        setGraph(graph_fat)
-        graph_muscle.data = mListener!!.OnForMeInteraction(4)
-        setGraph(graph_muscle)
-        graph_walk.data = mListener!!.OnForMeInteraction(1)
-        setGraph(graph_walk)
-        graph_weight.data = mListener!!.OnForMeInteraction(0)
-        setGraph(graph_weight)
+        if(!mListener!!.dataCom) {
+        }else{
+            graphdata()
+        }
         scrollView.isSmoothScrollingEnabled = true
         scrollView.setOnScrollChangeListener(object : NestedScrollView.OnScrollChangeListener{
             override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
                 Log.i(TAG, "scroll_child-scrollY: " + (scroll_child.height/6).toString())
                 if( -1 < scrollY  && scrollY < scroll_child.height/6 ){
-                    section = 1
+                    if(section != 1){
+                        main_lbl.text = mListener!!.weight_series.get(mListener!!.weight_position).y.toString() + "Kg"
+                        cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)
+                        section = 1
+                    }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
-                }else if(scroll_child.height/6  < scrollY && scrollY <(scroll_child.height/6)*2 ){section=2
+                    Log.i(TAG, "scroll section 1")
+                }else if(scroll_child.height/6  < scrollY && scrollY <(scroll_child.height/6)*2 ){
+                    if(section != 2){
+                        main_lbl.text = mListener!!.muscle_series.get(mListener!!.muscle_position).y.toString() + "Kg"
+                        cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)
+                        section=2
+                    }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
-                }else if((scroll_child.height/6)*2 < scrollY && scrollY < (scroll_child.height/6)*3 ){section=3
+                    Log.i(TAG, "scroll section 2")
+                }else if((scroll_child.height/6)*2 < scrollY && scrollY < (scroll_child.height/6)*3 ){
+                    if(section != 3){
+                        main_lbl.text = mListener!!.fat_series.get(mListener!!.fat_position).y.toString() + "%"
+                        cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)
+                        section=3
+                    }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
-                }else if((scroll_child.height/6)*3 <scrollY && scrollY < (scroll_child.height/6)*4 ){section=4
+                    Log.i(TAG, "scroll section 3")
+                }else if((scroll_child.height/6)*3 <scrollY && scrollY < (scroll_child.height/6)*4 ){
+                    if(section != 4) {
+                        main_lbl.text = mListener!!.kcal_series.get(mListener!!.bmr_position).y.toString() + "Kcal"
+                        cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.bmr_position)
+                        section = 4
+                    }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
-                }else if((scroll_child.height/6)*4 < scrollY && scrollY <(scroll_child.height/6)*5 ){section=0
+                    Log.i(TAG, "scroll section 4")
+                }else if((scroll_child.height/6)*4 < scrollY && scrollY <(scroll_child.height/6)*5 ){
+                    if(section != 0) {
+                        main_lbl.text = mListener!!.bmi_series.get(mListener!!.bmi_position).y.toString() + "Kg/" + "m\u00B2"
+                        cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.bmi_position)
+                        section = 0
+                    }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
-                }else if((scroll_child.height/6)*5 < scrollY && scrollY < (scroll_child.height/6)*6 ){section=5
+                    Log.i(TAG, "scroll section 5")
+                }else if((scroll_child.height/6)*5 < scrollY && scrollY < (scroll_child.height/6)*6 ){
+                    if(section != 5) {
+                        main_lbl.text = mListener!!.walk_series.get(mListener!!.walk_position).y.toString() + "걸음"
+                        cal_lbl.text = mListener!!.walk_Label.get(mListener!!.walk_position)
+                        section = 5
+                    }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
+                    Log.i(TAG, "scroll section 6")
                 }
             }
         })
@@ -90,19 +119,20 @@ class ForMeFragment : Fragment() {
                 Log.i("Button_pre_Btn", "onClick")
                         when (section) {
                             0 -> {//bmi
-                                if (mListener!!.bmi_position < mListener!!.bmi_series.size-1) {
+                                if (mListener!!.bmi_position < mListener!!.bmi_series.size) {
                                     mListener!!.bmi_position -= 1
                                     main_lbl.text = mListener!!.bmi_series.get(mListener!!.bmi_position).y.toString() + "Kg/" + "m\u00B2"
                                     cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.bmi_position)
-                                }else if (mListener!!.bmi_position == mListener!!.bmi_series.size) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                                }else if (mListener!!.bmi_position == 0) {
+                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
                                 }
                             }
                             1 -> {//체중
-                                if (mListener!!.weight_position < mListener!!.weight_series.size-1) {
+                                if (mListener!!.weight_position < mListener!!.weight_series.size) {
                                     mListener!!.weight_position -= 1
                                     main_lbl.text = mListener!!.weight_series.get(mListener!!.weight_position).y.toString() + "Kg"
-                                    cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)}else if (mListener!!.weight_position == mListener!!.weight_series.size-1) {
+                                    cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)
+                                }else if (mListener!!.weight_position == 0) {
                                     Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
 
                                 }
@@ -111,38 +141,35 @@ class ForMeFragment : Fragment() {
                                 if (mListener!!.muscle_position < mListener!!.muscle_series.size) {
                                     mListener!!.muscle_position -= 1
                                     main_lbl.text = mListener!!.muscle_series.get(mListener!!.muscle_position).y.toString() + "Kg"
-                                    cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)}else if (mListener!!.muscle_position == mListener!!.muscle_series.size) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-
+                                    cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)}else if (mListener!!.muscle_position == 0) {
+                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
                                 }
                             }
                             3 -> {//체지방
-                                if (mListener!!.fat_position < mListener!!.fat_series.size-1) {
+                                if (mListener!!.fat_position < mListener!!.fat_series.size) {
                                     mListener!!.fat_position -= 1
                                     main_lbl.text = mListener!!.fat_series.get(mListener!!.fat_position).y.toString() + "%"
-                                    cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)}else if (mListener!!.fat_position == mListener!!.fat_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-
+                                    cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)}else if (mListener!!.fat_position == 0) {
+                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
                                 }
                             }
                             4 -> {
                                 //소모칼로리
-                                if (mListener!!.bmr_position < mListener!!.kcal_series.size-1) {
+                                if (mListener!!.bmr_position < mListener!!.kcal_series.size) {
                                     mListener!!.bmr_position -= 1
                                     main_lbl.text = mListener!!.kcal_series.get(mListener!!.bmr_position).y.toString() + "Kcal"
                                     cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.bmr_position)
-                                } else if (mListener!!.bmr_position == mListener!!.kcal_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-
+                                } else if (mListener!!.bmr_position == 0) {
+                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
                                 }
                             }
                             5 -> {//걸음수
-                                if (mListener!!.walk_position < mListener!!.walk_series.size-1) {
+                                if (mListener!!.walk_position < mListener!!.walk_series.size) {
                                     mListener!!.walk_position -= 1
                                     main_lbl.text = mListener!!.walk_series.get(mListener!!.walk_position).y.toString() + "걸음"
                                     cal_lbl.text = mListener!!.walk_Label.get(mListener!!.walk_position)
-                                }else if (mListener!!.walk_position == mListener!!.walk_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                                }else if (mListener!!.walk_position== 0) {
+                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -154,44 +181,43 @@ class ForMeFragment : Fragment() {
                 Log.i("Button_next_Btn", "onClick")
                         when (section) {
                             0 -> {//bmi
-                                if (mListener!!.bmi_position < mListener!!.bmi_series.size-1) {
+                                if (mListener!!.bmi_position < mListener!!.bmi_series.size) {
                                     mListener!!.bmi_position += 1
-                                main_lbl.text = mListener!!.bmi_series.get(mListener!!.bmi_position).y.toString() + "Kg/" + "m\u00B2"
-                                cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.bmi_position)
-                            }else if (mListener!!.bmi_position == mListener!!.bmi_series.size) {
+                                    main_lbl.text = mListener!!.bmi_series.get(mListener!!.bmi_position).y.toString() + "Kg/" + "m\u00B2"
+                                    cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.bmi_position)
+                                }else if (mListener!!.bmi_position == mListener!!.bmi_series.size-1) {
                                     Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
                                 }
                             }
                             1 -> {//체중
-                                    if (mListener!!.weight_position < mListener!!.weight_series.size-1) {
-                                        mListener!!.weight_position += 1
-                                main_lbl.text = mListener!!.weight_series.get(mListener!!.weight_position).y.toString() + "Kg"
-                                cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)}else if (mListener!!.weight_position == mListener!!.weight_series.size-1) {
-                                            Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-
-                                    }
+                                if (mListener!!.weight_position < mListener!!.weight_series.size) {
+                                    mListener!!.weight_position += 1
+                                    main_lbl.text = mListener!!.weight_series.get(mListener!!.weight_position).y.toString() + "Kg"
+                                    cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)}else if (mListener!!.weight_position == mListener!!.weight_series.size-1) {
+                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                                }
                             }
                             2 -> {//골격근
-                                        if (mListener!!.muscle_position < mListener!!.muscle_series.size) {
-                                            mListener!!.muscle_position += 1
-                                main_lbl.text = mListener!!.muscle_series.get(mListener!!.muscle_position).y.toString() + "Kg"
-                                cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)}else if (mListener!!.muscle_position == mListener!!.muscle_series.size) {
-                                                Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                                if (mListener!!.muscle_position < mListener!!.muscle_series.size) {
+                                    mListener!!.muscle_position += 1
+                                    main_lbl.text = mListener!!.muscle_series.get(mListener!!.muscle_position).y.toString() + "Kg"
+                                    cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)}else if (mListener!!.muscle_position == mListener!!.muscle_series.size-1) {
+                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
 
-                                        }
+                                }
                             }
                             3 -> {//체지방
-                                            if (mListener!!.fat_position < mListener!!.fat_series.size-1) {
-                                                mListener!!.fat_position += 1
-                                main_lbl.text = mListener!!.fat_series.get(mListener!!.fat_position).y.toString() + "%"
-                                cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)}else if (mListener!!.fat_position == mListener!!.fat_series.size-1) {
-                                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                                if (mListener!!.fat_position < mListener!!.fat_series.size) {
+                                    mListener!!.fat_position += 1
+                                    main_lbl.text = mListener!!.fat_series.get(mListener!!.fat_position).y.toString() + "%"
+                                    cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)}else if (mListener!!.fat_position == mListener!!.fat_series.size-1) {
+                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
 
-                                            }
+                                }
                             }
                             4 -> {
                                 //소모칼로리
-                                if (mListener!!.bmr_position < mListener!!.kcal_series.size-1) {
+                                if (mListener!!.bmr_position < mListener!!.kcal_series.size) {
                                     mListener!!.bmr_position += 1
                                     main_lbl.text = mListener!!.kcal_series.get(mListener!!.bmr_position).y.toString() + "Kcal"
                                     cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.bmr_position)
@@ -201,18 +227,32 @@ class ForMeFragment : Fragment() {
                                 }
                             }
                             5 -> {//걸음수
-                                                    if (mListener!!.walk_position < mListener!!.walk_series.size-1) {
-                                                        mListener!!.walk_position += 1
-                                main_lbl.text = mListener!!.walk_series.get(mListener!!.walk_position).y.toString() + "걸음"
-                                cal_lbl.text = mListener!!.walk_Label.get(mListener!!.walk_position)
-                                                    }else if (mListener!!.walk_position == mListener!!.walk_series.size-1) {
-                                                        Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-                                                    }
+                                if (mListener!!.walk_position < mListener!!.walk_series.size) {
+                                    mListener!!.walk_position += 1
+                                    main_lbl.text = mListener!!.walk_series.get(mListener!!.walk_position).y.toString() + "걸음"
+                                    cal_lbl.text = mListener!!.walk_Label.get(mListener!!.walk_position)
+                                }else if (mListener!!.walk_position == mListener!!.walk_series.size-1) {
+                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
 
                 }
         })
+    }
+    fun graphdata(){
+        graph_bmi.data = mListener!!.bmi_data
+        setGraph(graph_bmi)
+        graph_bmr.data = mListener!!.kcal_data
+        setGraph(graph_bmr)
+        graph_fat.data = mListener!!.fat_data
+        setGraph(graph_fat)
+        graph_muscle.data = mListener!!.muscle_data
+        setGraph(graph_muscle)
+        graph_walk.data = mListener!!.walk_data
+        setGraph(graph_walk)
+        graph_weight.data = mListener!!.weight_data
+        setGraph(graph_weight)
     }
     fun setGraph(graph: BarChart){
         val l = graph.getLegend()
@@ -230,7 +270,7 @@ class ForMeFragment : Fragment() {
         xAxis.setTextColor(Color.DKGRAY);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(false);
-        xAxis.setGranularity(1f)
+        xAxis.setGranularity(2f)
         xAxis.setLabelCount(5, true)
         if(mParam1 !=  null){
             Picasso.get().load(Uri.parse(mParam1))
@@ -241,7 +281,8 @@ class ForMeFragment : Fragment() {
         }
         graph.isDragEnabled = true
         graph.isScaleYEnabled = false
-        graph.viewPortHandler.setMaximumScaleX(10.toFloat())
+        graph.setVisibleXRangeMaximum(3.toFloat())
+        graph.setVisibleXRangeMinimum(5.toFloat())
         graph.getDescription().setEnabled(false)
         graph.setPinchZoom(true)
         graph.setDrawBarShadow(false)
@@ -250,6 +291,7 @@ class ForMeFragment : Fragment() {
         graph.setNoDataTextColor(R.color.colorPrimaryDark)
         graph.setBackgroundColor(resources.getColor(R.color.whiteback))
         graph.invalidate()
+        graph.centerViewToAnimated(graph.data.xMax, graph.data.yMax, YAxis.AxisDependency.RIGHT, 2000)
     }
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -281,8 +323,6 @@ class ForMeFragment : Fragment() {
         var fat_position :Int
         var bmr_position :Int
         var bmi_position :Int
-        var display_label:MutableList<String>
-        var display_series: MutableList<String>
         val context:Context
         val weight_series: MutableList<BarEntry>
         val muscle_series: MutableList<BarEntry>
@@ -297,6 +337,14 @@ class ForMeFragment : Fragment() {
         val fat_Label:MutableList<String>
         val muscle_Label:MutableList<String>
         val bmi_Label:MutableList<String>
+
+        var dataCom:Boolean
+        var weight_data: BarData
+        var muscle_data: BarData
+        var walk_data: BarData
+        var fat_data: BarData
+        var bmi_data: BarData
+        var kcal_data: BarData
     }
 
     companion object {

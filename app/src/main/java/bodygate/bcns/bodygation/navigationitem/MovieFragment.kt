@@ -115,7 +115,6 @@ class MovieFragment : Fragment() {
         fun OnMovieInteraction(item: DummyContent.DummyItem)
         suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
         val context:Context
-        fun stopProgress(i:Int)
     }
 
     companion object {

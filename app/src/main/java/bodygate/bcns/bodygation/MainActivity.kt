@@ -118,8 +118,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override var walk_position = 0
     override var bmi_position = 0
 
-    override var display_label:MutableList<String> =  ArrayList()
-    override var display_series: MutableList<String> = ArrayList()
     var custom_Type:DataType? = null
 
     override val weight_series: MutableList<BarEntry> = ArrayList()
@@ -128,6 +126,12 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override val fat_series: MutableList<BarEntry> = ArrayList()
     override val bmi_series: MutableList<BarEntry> = ArrayList()
     override val kcal_series: MutableList<BarEntry> = ArrayList()
+    override lateinit var weight_data: BarData
+    override lateinit var muscle_data: BarData
+    override lateinit var walk_data: BarData
+    override lateinit var fat_data: BarData
+    override lateinit var bmi_data: BarData
+    override lateinit var kcal_data: BarData
 
     override val weight_Label:MutableList<String> =  ArrayList()
     override val kcal_Label:MutableList<String> =  ArrayList()
@@ -141,6 +145,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var followFragment:FollowFragment? = null
     var forMeFragment:ForMeFragment? = null
     var youTubeResult:YouTubeResult? = null
+    override var dataCom:Boolean = false
 
     override fun stopProgress(i:Int) {
         when(i) {
@@ -164,34 +169,34 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     }
     fun startProgress(i:Int) {
         when(i) {
-            0-> if(!mPb!!.isShowing) {
-                Log.i(TAG, "startProgress")
-                mPb!!.setTitle("데이터 받기")
-                mPb!!.setMessage("유튜브 데이터를 받아오는 중입니다")
+            0-> if(mPb == null) {
+                mPb = ProgressDialog.show(this, "데이터 받기", "유튜브 데이터를 받아오는 중입니다")
                 mPb!!.setCancelable(false)
-                mPb!!.show()
+            }else if(!mPb!!.isShowing) {
+                    Log.i(TAG, "startProgress")
+                    mPb!!.show()
             }
-            1->  if(!cPb!!.isShowing) {
-                Log.i(TAG, "startProgress")
-                cPb!!.setTitle("데이터 받기")
-                cPb!!.setMessage("구글 핏 데이터를 받아오는 중입니다")
+            1->  if(cPb == null) {
+                cPb = ProgressDialog.show(this, "데이터 받기", "피트니스 데이터를 받아오는 중입니다")
                 cPb!!.setCancelable(false)
+            }else if(!cPb!!.isShowing) {
+                Log.i(TAG, "startProgress")
                 cPb!!.show()
+            }
 
-            }
-            2-> if(!pPb!!.isShowing) {
-                Log.i(TAG, "startProgress")
-                pPb!!.setTitle("데이터 올리기")
-                pPb!!.setMessage("구글핏 데이터를 업로드 하는 중입니다")
+            2-> if(pPb == null) {
+                pPb = ProgressDialog.show(this, "데이터 받기", "유튜브 데이터를 받아오는 중입니다")
                 pPb!!.setCancelable(false)
-                pPb!!.show()
+            }else if (!pPb!!.isShowing) {
+                    Log.i(TAG, "startProgress")
+                    pPb!!.show()
             }
-            3->   if(!nPb!!.isShowing) {
-                Log.i(TAG, "startProgress")
-                nPb!!.setTitle("데이터 받기")
-                nPb!!.setMessage("유튜브 데이터를 받아오는 중입니다")
+            3->  if(nPb == null) {
+                nPb = ProgressDialog.show(this, "데이터 받기", "유튜브 데이터를 받아오는 중입니다")
                 nPb!!.setCancelable(false)
-                nPb!!.show()
+            }else if (!nPb!!.isShowing) {
+                    Log.i(TAG, "startProgress")
+                    nPb!!.show()
             }
         }
     }
@@ -564,7 +569,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         getProfileInformation(currentUser)
     }
     fun accessGoogleFit(acc:GoogleSignInAccount){
-        startProgress(1)
         val credential = GoogleAuthProvider.getCredential(acc.idToken, null)
         mAuth!!.signInWithCredential(credential)
                 .addOnCompleteListener(object : OnCompleteListener<AuthResult>{
@@ -581,8 +585,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                                     val c =  customDataType(acc)
                                     fitloading = false
                                     fitcomp = true
-                                    stopProgress(1)
                                 }.join()
+                                launch (UI){stopProgress(1) }.join()
                             }
                         }else{
                             getProfileInformation(null)
@@ -694,23 +698,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     @SuppressLint("SetTextI18n")
     override fun OnForMeInteraction(section:Int):BarData {
         val data = BarData()
-        display_label.clear()
-        display_series.clear()
         when (section) {
             0 -> {//체중
                 if(weight_series.size >0) {
                     Log.i(TAG, "체중 있음")
-                    walk_position = weight_series.size - 1
-                    for(i:Int in 0..walk_position){
-                        display_series.add(String.format("%.1f", weight_series[i].y.toDouble()))
-                        display_label.add(weight_Label[i])
-                    }
+                    weight_position = weight_series.size - 1
                     val set1 = BarDataSet(weight_series, getString(R.string.weight))
-                    Log.i(TAG, "display_label_1 :" + display_label.size.toString())
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_weight.xAxis
-                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(weight_Label.toTypedArray()))
                 }else{
                     Log.i(TAG, "체중 없음")
                     Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
@@ -720,15 +717,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 if(walk_series.size >0) {
                     Log.i(TAG, "걷기자료 있음")
                     walk_position = walk_series.size - 1
-                    for(i:Int in 0..walk_position){
-                        display_series.add(String.format("%.0f",walk_series[i].y.toDouble()))
-                        display_label.add(walk_Label[i])
-                    }
                     val set1 = BarDataSet(walk_series, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_walk.xAxis
-                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(walk_Label.toTypedArray()))
                 }else{
                     Log.i(TAG, "걷기자료 없음")
                     Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
@@ -738,15 +731,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 if(kcal_series.size >0) {
                     Log.i(TAG, "칼로리 있음")
                     bmr_position = kcal_series.size - 1
-                    for(i:Int in 0..bmr_position){
-                        display_series.add(String.format("%.0f",kcal_series[i].y.toDouble()))
-                        display_label.add(kcal_Label[i])
-                    }
                     val set1 = BarDataSet(kcal_series, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_bmr.xAxis
-                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(kcal_Label.toTypedArray()))
                 }else{
                     Log.i(TAG, "칼로리 없음")
                     Toast.makeText(this, "현재 구글핏에서 데이터를 받아오지 못했습니다. 구글핏을 확인하시고 데이터가 있는데도 반복될 경우 개발자에게 오류보고 부탁드립니다.", Toast.LENGTH_SHORT).show()
@@ -756,15 +745,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 if(fat_series.size >0) {
                     Log.i(TAG, "체지방비율 있음")
                     fat_position = fat_series.size - 1
-                    for(i:Int in 0..fat_position){
-                        display_series.add(String.format("%.2f",fat_series[i].y.toDouble()))
-                        display_label.add(fat_Label[i])
-                    }
                     val set1 = BarDataSet(fat_series, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_fat.xAxis
-                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(fat_Label.toTypedArray()))
                 }else{
                     Log.i(TAG, "체지방비율 없음")
                     Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
@@ -774,15 +759,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 if(muscle_series.size >0) {
                     Log.i(TAG, "골격근 있음")
                     muscle_position = muscle_series.size - 1
-                    for(i:Int in 0..muscle_position){
-                        display_series.add(String.format("%.0f",muscle_series[i].y.toDouble()))
-                        display_label.add(muscle_Label[i])
-                    }
                     val set1 = BarDataSet(muscle_series, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_muscle.xAxis
-                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(muscle_Label.toTypedArray()))
                 }else{
                     Log.i(TAG, "골격근 없음")
                     Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
@@ -792,22 +773,17 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 if(bmi_series.size >0) {
                     Log.i(TAG, "BMI 있음")
                     bmi_position = bmi_series.size - 1
-                    for(i:Int in 0..bmi_position){
-                        display_series.add(String.format("%.2f",bmi_series[i].y.toDouble()))
-                        display_label.add(bmi_Label[i])
-                    }
                     val set1 = BarDataSet(bmi_series, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_bmi.xAxis
-                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(display_label.toTypedArray()))
+                    xA.setValueFormatter(MainActivity.MyXAxisValueFormatter(bmi_Label.toTypedArray()))
                 }else{
                     Log.i(TAG, "BMI 없음")
                     Toast.makeText(this, "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
                 }
             }
         }
-        Log.i(TAG, "display_label_2 :" + display_label.size.toString())
         return data
     }
     override fun onConnectionFailed(result: ConnectionResult) {
@@ -1096,7 +1072,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnCompleteListener(object :OnCompleteListener<DataReadResponse>{
                     override fun onComplete(p0: Task<DataReadResponse>) {
                         Log.i(TAG, "readDataType OnCompleteListener")
-
                     }
                 })
     }
@@ -1116,6 +1091,29 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 dumpDataSet(dataSet)
             }
         }
+        for(i:Int in 0..5) {
+            when (i) {
+                0 -> {
+                    weight_data = OnForMeInteraction(0)
+                }
+                1 -> {
+                    walk_data = OnForMeInteraction(i)
+                }
+                2 -> {
+                    kcal_data = OnForMeInteraction(i)
+                }
+                3 -> {
+                    fat_data = OnForMeInteraction(i)
+                }
+                4 -> {
+                    muscle_data = OnForMeInteraction(i)
+                }
+                5 -> {
+                    bmi_data = OnForMeInteraction(i)
+                }
+            }
+        }
+        dataCom = true
     }
     @SuppressLint("SimpleDateFormat")
     fun dumpDataSet(dataSet:DataSet) {
@@ -1169,8 +1167,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         return true
                     }
                     R.id.pesnaldatarefresh_Btn->{
-                        display_label.clear()
-                        display_series.clear()
                         weight_series.clear()
                         muscle_series.clear()
                         walk_series.clear()
@@ -1183,6 +1179,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         fat_Label.clear()
                         muscle_Label.clear()
                         bmi_Label.clear()
+                        dataCom = false
                         return true
                     }
                     R.id.dataupload_Btn->{
