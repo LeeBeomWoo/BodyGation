@@ -11,6 +11,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
+import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.PopupMenu
@@ -21,6 +22,7 @@ import android.widget.TextView
 import android.widget.Toast
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
+import bodygate.bcns.bodygation.support.MainPageAdapter
 import cn.gavinliu.android.lib.scale.config.ScaleConfig
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem
@@ -82,7 +84,7 @@ import kotlin.collections.ArrayList
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN", "CAST_NEVER_SUCCEEDS")
 class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListener, FollowFragment.OnFollowInteraction,
-        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.OnConnectionFailedListener {
+        ForMeFragment.OnForMeInteraction, MovieFragment.OnMovieInteraction, YouTubeResult.OnYoutubeResultInteraction, GoogleApiClient.OnConnectionFailedListener, MainTabFragment.mainTab {
     val LIST_STATE_KEY:String = "recycler_list_state";
     var listState: Parcelable? = null
     private val GOOGLE_FIT_PERMISSIONS_REQUEST_CODE = 1
@@ -142,10 +144,13 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var ib = 0
 
     var goalFragment:GoalFragment? = null
-    var followFragment:FollowFragment? = null
-    var forMeFragment:ForMeFragment? = null
+    override var followFragment:FollowFragment? = null
+    override var forMeFragment:ForMeFragment? = null
     var youTubeResult:YouTubeResult? = null
+    var mainTabFragment:MainTabFragment? = null
     override var dataCom:Boolean = false
+    override var tabadapter:MainPageAdapter? = null
+    val listFragment:MutableList<Fragment> = ArrayList()
 
     override fun stopProgress(i:Int) {
         when(i) {
@@ -458,63 +463,30 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }else{
             signIn()
         }
-        // Create items
-        val item2 = AHBottomNavigationItem(getString(R.string.follow_media), getDrawable(R.drawable.select_followmenu))
-        val item3 = AHBottomNavigationItem(getString(R.string.title_infome), getDrawable(R.drawable.select_formemenu))
-        bottom_navigation.addItem(item2)
-        bottom_navigation.addItem(item3)
-        bottom_navigation.setDefaultBackgroundColor(Color.parseColor("#FFFFFFFF"))
         followFragment = supportFragmentManager.findFragmentByTag("follow") as FollowFragment?
         youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult?
         forMeFragment = supportFragmentManager.findFragmentByTag("forme") as ForMeFragment?
         goalFragment = supportFragmentManager.findFragmentByTag("goal") as GoalFragment?
-        bottom_navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
-            override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
-                when (item) {
-                //해당 페이지로 이동
-                    0 -> {
-                        if (forMeFragment == null) {
-                            supportFragmentManager
-                                    .beginTransaction()
-                                    .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()), "forme")
-                                    .commit()
-                        }else{
-                            supportFragmentManager
-                                    .beginTransaction().replace(R.id.root_layout, forMeFragment!!).commit()
-                        }
-                        return true
-                    }
-                    1 -> {
-                        if (followFragment == null) {
-                            if (sendquery != null) {
-                                OnFollowInteraction(sendquery, 0)
-                            } else {
-                                supportFragmentManager
-                                        .beginTransaction()
-                                        .replace(R.id.root_layout, FollowFragment.newInstance(), "follow")
-                                        .commit()
-                            }
-                        }else {
-                            supportFragmentManager
-                                    .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
-                        }
-                        return true
-                    }
-                }
-                return false
-            }
-
-        })
-        bottom_navigation.setTitleState(AHBottomNavigation.TitleState.SHOW_WHEN_ACTIVE)
-        if(savedInstanceState == null ) {
-            bottom_navigation.setCurrentItem(1)
-        }else{
-            bottom_navigation.setCurrentItem(savedInstanceState.getInt("section"))
+        mainTabFragment = supportFragmentManager.findFragmentByTag("maintab") as MainTabFragment?
+        if(followFragment == null){
+            followFragment = FollowFragment.newInstance()
         }
-        bottom_navigation.setForceTint(true)
-        bottom_navigation.setAccentColor(Color.parseColor("#41c0c1"))
-        bottom_navigation.setInactiveColor(Color.parseColor("#696969"))
-        bottom_navigation.setTranslucentNavigationEnabled(true)
+        if(forMeFragment == null){
+            forMeFragment = ForMeFragment.newInstance(personUrl.toString())
+        }
+        supportFragmentManager.putFragment(null, )
+        listFragment.add(followFragment!!)
+        listFragment.add(forMeFragment!!)
+        tabadapter = MainPageAdapter(supportFragmentManager, listFragment.toList())
+        if(mainTabFragment == null){
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.root_layout, MainTabFragment.newInstance(), "maintab")
+                    .commit()
+        }else{
+            supportFragmentManager
+                    .beginTransaction().replace(R.id.root_layout, mainTabFragment!!).commit()
+        }
         toolbarhome.setOnClickListener(object :View.OnClickListener{
             override fun onClick(v: View?) {
                 if(sendquery != null)

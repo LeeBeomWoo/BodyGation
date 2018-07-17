@@ -1,11 +1,11 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="Bodygator" parent="AppTheme" >
         <item name="android:navigationBarColor">@color/bodynavigationbar</item>
-        <item name="android:colorForeground">@color/foreground_material_light</item>
+        <item name="android:colorForeground" tools:ignore="PrivateResource">@color/foreground_material_light</item>
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="android:colorBackground">@color/background_material_light</item>
+        <item name="android:colorBackground" tools:ignore="PrivateResource">@color/background_material_light</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:fitsSystemWindows">true</item>
     </style>

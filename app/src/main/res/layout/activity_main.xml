@@ -29,14 +29,4 @@
             tools:layout_behavior="android.support.design.widget.AppBarLayout$ScrollingViewBehavior" />
     </android.support.constraint.ConstraintLayout>
 
-    <com.aurelhubert.ahbottomnavigation.AHBottomNavigation
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#df32a0a1"
-        app:elevation="8dp"
-        app:itemTextColor="@drawable/select_bottom"
-        app:menu="@menu/navigation" />
-
 </android.support.design.widget.CoordinatorLayout>
