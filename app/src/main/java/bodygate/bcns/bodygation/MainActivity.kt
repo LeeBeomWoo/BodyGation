@@ -143,14 +143,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override val bmi_Label:MutableList<String> =  ArrayList()
     var ib = 0
 
-    var goalFragment:GoalFragment? = null
-    override var followFragment:FollowFragment? = null
-    override var forMeFragment:ForMeFragment? = null
+    var goalFragment:Fragment? = null
+    override var followFragment:Fragment? = null
+    override var forMeFragment:Fragment? = null
     var youTubeResult:YouTubeResult? = null
-    var mainTabFragment:MainTabFragment? = null
+    var mainTabFragment:Fragment? = null
     override var dataCom:Boolean = false
-    override var tabadapter:MainPageAdapter? = null
-    val listFragment:MutableList<Fragment> = ArrayList()
+
+    override var tabadapter: MainPageAdapter? = null
 
     override fun stopProgress(i:Int) {
         when(i) {
@@ -467,25 +467,49 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult?
         forMeFragment = supportFragmentManager.findFragmentByTag("forme") as ForMeFragment?
         goalFragment = supportFragmentManager.findFragmentByTag("goal") as GoalFragment?
-        mainTabFragment = supportFragmentManager.findFragmentByTag("maintab") as MainTabFragment?
-        if(followFragment == null){
-            followFragment = FollowFragment.newInstance()
-        }
-        if(forMeFragment == null){
-            forMeFragment = ForMeFragment.newInstance(personUrl.toString())
-        }
-        supportFragmentManager.putFragment(null, )
-        listFragment.add(followFragment!!)
-        listFragment.add(forMeFragment!!)
-        tabadapter = MainPageAdapter(supportFragmentManager, listFragment.toList())
-        if(mainTabFragment == null){
-            supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.root_layout, MainTabFragment.newInstance(), "maintab")
-                    .commit()
+        mainTabFragment = supportFragmentManager.findFragmentByTag("main") as MainTabFragment?
+        tabadapter = MainPageAdapter(supportFragmentManager)
+        bottom_navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
+            override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
+                when (item) {
+                //해당 페이지로 이동
+                    0 -> {
+                        if (forMeFragment == null) {
+                            supportFragmentManager
+                                    .beginTransaction()
+                                    .replace(R.id.root_layout, ForMeFragment.newInstance(personUrl.toString()), "forme")
+                                    .commit()
+                        }else{
+                            supportFragmentManager
+                                    .beginTransaction().replace(R.id.root_layout, forMeFragment!!).commit()
+                        }
+                        return true
+                    }
+                    1 -> {
+                        if (followFragment == null) {
+                            if (sendquery != null) {
+                                OnFollowInteraction(sendquery, 0)
+                            } else {
+                                supportFragmentManager
+                                        .beginTransaction()
+                                        .replace(R.id.root_layout, FollowFragment.newInstance(), "follow")
+                                        .commit()
+                            }
+                        }else {
+                            supportFragmentManager
+                                    .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
+                        }
+                        return true
+                    }
+                }
+                return false
+            }
+
+        })
+        if(savedInstanceState == null ) {
+            bottom_navigation.setCurrentItem(1)
         }else{
-            supportFragmentManager
-                    .beginTransaction().replace(R.id.root_layout, mainTabFragment!!).commit()
+            bottom_navigation.setCurrentItem(savedInstanceState.getInt("section"))
         }
         toolbarhome.setOnClickListener(object :View.OnClickListener{
             override fun onClick(v: View?) {

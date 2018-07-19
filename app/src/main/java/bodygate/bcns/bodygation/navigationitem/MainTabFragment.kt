@@ -1,46 +1,22 @@
 package bodygate.bcns.bodygation.navigationitem
 
-
 import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.support.v4.app.FragmentTabHost
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.support.MainPageAdapter
-import kotlinx.android.synthetic.main.maintablayout.*
 
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [MainTabFragment.newInstance] factory method to
- * create an instance of this fragment.
- *
- */
-class MainTabFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: Fragment? = null
-    private var param2: Fragment? = null
-
+class MainTabFragment: Fragment(){
     private var mListener: mainTab? = null
     val list:MutableList<Fragment> = ArrayList()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        mListener!!.tabadapter!!.addFragment(R.drawable.select_followmenu, getString(R.string.follow_media), mListener!!.forMeFragment!!)
+        mListener!!.tabadapter!!.addFragment(R.drawable.select_followmenu, getString(R.string.follow_media), mListener!!.forMeFragment!!)
     }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_main_tab, container, false)
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is MainTabFragment.mainTab) {
@@ -50,18 +26,10 @@ class MainTabFragment : Fragment() {
         }
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        mListener = null
-    }
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewPager.adapter = mListener!!.tabadapter!!
-    }
     interface mainTab{
-        var tabadapter:MainPageAdapter?
-        var followFragment:FollowFragment?
-        var forMeFragment:ForMeFragment?
+        var tabadapter: MainPageAdapter?
+        var followFragment:Fragment?
+        var forMeFragment: Fragment?
     }
     companion object {
         /**
@@ -76,5 +44,9 @@ class MainTabFragment : Fragment() {
         @JvmStatic
         fun newInstance() =
                 MainTabFragment()
+    }
+    override fun onDetach() {
+        super.onDetach()
+        mListener = null
     }
 }

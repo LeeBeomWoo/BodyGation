@@ -117,127 +117,127 @@ class ForMeFragment : Fragment() {
             :View.OnClickListener{
             override fun onClick(v: View?) {
                 Log.i("Button_pre_Btn", "onClick")
-                        when (section) {
-                            0 -> {//bmi
-                                if (mListener!!.bmi_position < mListener!!.bmi_series.size) {
-                                    mListener!!.bmi_position -= 1
-                                    main_lbl.text = mListener!!.bmi_series.get(mListener!!.bmi_position).y.toString() + "Kg/" + "m\u00B2"
-                                    cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.bmi_position)
-                                }else if (mListener!!.bmi_position == 0) {
-                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            1 -> {//체중
-                                if (mListener!!.weight_position < mListener!!.weight_series.size) {
-                                    mListener!!.weight_position -= 1
-                                    main_lbl.text = mListener!!.weight_series.get(mListener!!.weight_position).y.toString() + "Kg"
-                                    cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)
-                                }else if (mListener!!.weight_position == 0) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-
-                                }
-                            }
-                            2 -> {//골격근
-                                if (mListener!!.muscle_position < mListener!!.muscle_series.size) {
-                                    mListener!!.muscle_position -= 1
-                                    main_lbl.text = mListener!!.muscle_series.get(mListener!!.muscle_position).y.toString() + "Kg"
-                                    cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)}else if (mListener!!.muscle_position == 0) {
-                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            3 -> {//체지방
-                                if (mListener!!.fat_position < mListener!!.fat_series.size) {
-                                    mListener!!.fat_position -= 1
-                                    main_lbl.text = mListener!!.fat_series.get(mListener!!.fat_position).y.toString() + "%"
-                                    cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)}else if (mListener!!.fat_position == 0) {
-                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            4 -> {
-                                //소모칼로리
-                                if (mListener!!.bmr_position < mListener!!.kcal_series.size) {
-                                    mListener!!.bmr_position -= 1
-                                    main_lbl.text = mListener!!.kcal_series.get(mListener!!.bmr_position).y.toString() + "Kcal"
-                                    cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.bmr_position)
-                                } else if (mListener!!.bmr_position == 0) {
-                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            5 -> {//걸음수
-                                if (mListener!!.walk_position < mListener!!.walk_series.size) {
-                                    mListener!!.walk_position -= 1
-                                    main_lbl.text = mListener!!.walk_series.get(mListener!!.walk_position).y.toString() + "걸음"
-                                    cal_lbl.text = mListener!!.walk_Label.get(mListener!!.walk_position)
-                                }else if (mListener!!.walk_position== 0) {
-                                    Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                when (section) {
+                    0 -> {//bmi
+                        if (mListener!!.bmi_position < mListener!!.bmi_series.size) {
+                            mListener!!.bmi_position -= 1
+                            main_lbl.text = mListener!!.bmi_series.get(mListener!!.bmi_position).y.toString() + "Kg/" + "m\u00B2"
+                            cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.bmi_position)
+                        }else if (mListener!!.bmi_position == 0) {
+                            Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
                         }
+                    }
+                    1 -> {//체중
+                        if (mListener!!.weight_position < mListener!!.weight_series.size) {
+                            mListener!!.weight_position -= 1
+                            main_lbl.text = mListener!!.weight_series.get(mListener!!.weight_position).y.toString() + "Kg"
+                            cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)
+                        }else if (mListener!!.weight_position == 0) {
+                            Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+
+                        }
+                    }
+                    2 -> {//골격근
+                        if (mListener!!.muscle_position < mListener!!.muscle_series.size) {
+                            mListener!!.muscle_position -= 1
+                            main_lbl.text = mListener!!.muscle_series.get(mListener!!.muscle_position).y.toString() + "Kg"
+                            cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)}else if (mListener!!.muscle_position == 0) {
+                            Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    3 -> {//체지방
+                        if (mListener!!.fat_position < mListener!!.fat_series.size) {
+                            mListener!!.fat_position -= 1
+                            main_lbl.text = mListener!!.fat_series.get(mListener!!.fat_position).y.toString() + "%"
+                            cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)}else if (mListener!!.fat_position == 0) {
+                            Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    4 -> {
+                        //소모칼로리
+                        if (mListener!!.bmr_position < mListener!!.kcal_series.size) {
+                            mListener!!.bmr_position -= 1
+                            main_lbl.text = mListener!!.kcal_series.get(mListener!!.bmr_position).y.toString() + "Kcal"
+                            cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.bmr_position)
+                        } else if (mListener!!.bmr_position == 0) {
+                            Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    5 -> {//걸음수
+                        if (mListener!!.walk_position < mListener!!.walk_series.size) {
+                            mListener!!.walk_position -= 1
+                            main_lbl.text = mListener!!.walk_series.get(mListener!!.walk_position).y.toString() + "걸음"
+                            cal_lbl.text = mListener!!.walk_Label.get(mListener!!.walk_position)
+                        }else if (mListener!!.walk_position== 0) {
+                            Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
+            }
         })
         next_Btn.setOnClickListener(object
             :View.OnClickListener{
             override fun onClick(v: View?) {
                 Log.i("Button_next_Btn", "onClick")
-                        when (section) {
-                            0 -> {//bmi
-                                if (mListener!!.bmi_position < mListener!!.bmi_series.size) {
-                                    mListener!!.bmi_position += 1
-                                    main_lbl.text = mListener!!.bmi_series.get(mListener!!.bmi_position).y.toString() + "Kg/" + "m\u00B2"
-                                    cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.bmi_position)
-                                }else if (mListener!!.bmi_position == mListener!!.bmi_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            1 -> {//체중
-                                if (mListener!!.weight_position < mListener!!.weight_series.size) {
-                                    mListener!!.weight_position += 1
-                                    main_lbl.text = mListener!!.weight_series.get(mListener!!.weight_position).y.toString() + "Kg"
-                                    cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)}else if (mListener!!.weight_position == mListener!!.weight_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            2 -> {//골격근
-                                if (mListener!!.muscle_position < mListener!!.muscle_series.size) {
-                                    mListener!!.muscle_position += 1
-                                    main_lbl.text = mListener!!.muscle_series.get(mListener!!.muscle_position).y.toString() + "Kg"
-                                    cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)}else if (mListener!!.muscle_position == mListener!!.muscle_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-
-                                }
-                            }
-                            3 -> {//체지방
-                                if (mListener!!.fat_position < mListener!!.fat_series.size) {
-                                    mListener!!.fat_position += 1
-                                    main_lbl.text = mListener!!.fat_series.get(mListener!!.fat_position).y.toString() + "%"
-                                    cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)}else if (mListener!!.fat_position == mListener!!.fat_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-
-                                }
-                            }
-                            4 -> {
-                                //소모칼로리
-                                if (mListener!!.bmr_position < mListener!!.kcal_series.size) {
-                                    mListener!!.bmr_position += 1
-                                    main_lbl.text = mListener!!.kcal_series.get(mListener!!.bmr_position).y.toString() + "Kcal"
-                                    cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.bmr_position)
-                                } else if (mListener!!.bmr_position == mListener!!.kcal_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-
-                                }
-                            }
-                            5 -> {//걸음수
-                                if (mListener!!.walk_position < mListener!!.walk_series.size) {
-                                    mListener!!.walk_position += 1
-                                    main_lbl.text = mListener!!.walk_series.get(mListener!!.walk_position).y.toString() + "걸음"
-                                    cal_lbl.text = mListener!!.walk_Label.get(mListener!!.walk_position)
-                                }else if (mListener!!.walk_position == mListener!!.walk_series.size-1) {
-                                    Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                when (section) {
+                    0 -> {//bmi
+                        if (mListener!!.bmi_position < mListener!!.bmi_series.size) {
+                            mListener!!.bmi_position += 1
+                            main_lbl.text = mListener!!.bmi_series.get(mListener!!.bmi_position).y.toString() + "Kg/" + "m\u00B2"
+                            cal_lbl.text = mListener!!.bmi_Label.get(mListener!!.bmi_position)
+                        }else if (mListener!!.bmi_position == mListener!!.bmi_series.size-1) {
+                            Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
                         }
+                    }
+                    1 -> {//체중
+                        if (mListener!!.weight_position < mListener!!.weight_series.size) {
+                            mListener!!.weight_position += 1
+                            main_lbl.text = mListener!!.weight_series.get(mListener!!.weight_position).y.toString() + "Kg"
+                            cal_lbl.text = mListener!!.weight_Label.get(mListener!!.weight_position)}else if (mListener!!.weight_position == mListener!!.weight_series.size-1) {
+                            Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    2 -> {//골격근
+                        if (mListener!!.muscle_position < mListener!!.muscle_series.size) {
+                            mListener!!.muscle_position += 1
+                            main_lbl.text = mListener!!.muscle_series.get(mListener!!.muscle_position).y.toString() + "Kg"
+                            cal_lbl.text = mListener!!.muscle_Label.get(mListener!!.muscle_position)}else if (mListener!!.muscle_position == mListener!!.muscle_series.size-1) {
+                            Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
 
+                        }
+                    }
+                    3 -> {//체지방
+                        if (mListener!!.fat_position < mListener!!.fat_series.size) {
+                            mListener!!.fat_position += 1
+                            main_lbl.text = mListener!!.fat_series.get(mListener!!.fat_position).y.toString() + "%"
+                            cal_lbl.text = mListener!!.fat_Label.get(mListener!!.fat_position)}else if (mListener!!.fat_position == mListener!!.fat_series.size-1) {
+                            Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+
+                        }
+                    }
+                    4 -> {
+                        //소모칼로리
+                        if (mListener!!.bmr_position < mListener!!.kcal_series.size) {
+                            mListener!!.bmr_position += 1
+                            main_lbl.text = mListener!!.kcal_series.get(mListener!!.bmr_position).y.toString() + "Kcal"
+                            cal_lbl.text = mListener!!.kcal_Label.get(mListener!!.bmr_position)
+                        } else if (mListener!!.bmr_position == mListener!!.kcal_series.size-1) {
+                            Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+
+                        }
+                    }
+                    5 -> {//걸음수
+                        if (mListener!!.walk_position < mListener!!.walk_series.size) {
+                            mListener!!.walk_position += 1
+                            main_lbl.text = mListener!!.walk_series.get(mListener!!.walk_position).y.toString() + "걸음"
+                            cal_lbl.text = mListener!!.walk_Label.get(mListener!!.walk_position)
+                        }else if (mListener!!.walk_position == mListener!!.walk_series.size-1) {
+                            Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
+
+            }
         })
     }
     fun graphdata(){
