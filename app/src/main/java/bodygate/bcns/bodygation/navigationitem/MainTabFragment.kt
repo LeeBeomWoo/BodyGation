@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.View
 import android.support.v4.app.FragmentTabHost
+import android.util.Log
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.support.MainPageAdapter
 import kotlinx.android.synthetic.main.maintablayout.*
@@ -14,6 +15,7 @@ class MainTabFragment: Fragment(){
     val list:MutableList<Fragment> = ArrayList()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.i("mainTabFragment", "onViewCreated")
         if(mListener!!.tabadapter == null){
             mListener!!.tabadapter = MainPageAdapter(requireFragmentManager())
         }
