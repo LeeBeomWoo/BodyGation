@@ -67,6 +67,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_follow.*
 import kotlinx.android.synthetic.main.fragment_for_me.*
 import kotlinx.android.synthetic.main.fragment_goal.*
+import kotlinx.android.synthetic.main.maintablayout.*
 import kotlinx.android.synthetic.main.toolbar_custom.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
@@ -378,16 +379,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override fun onBackPressed() {
         Log.i(TAG,"onBackPressed")
         // Do something
-        when (bottom_navigation.currentItem) {
+        when (viewPager.currentItem) {
             0 -> {
                 doubleBackToExitPressedOnce = false
-                bottom_navigation.currentItem = 1
+                viewPager.currentItem = 1
             }
             1 -> {
                 if (visableFragment == "YouTubeResult") {
                     sendquery = null
                     data.clear()
-                    bottom_navigation.setCurrentItem(1)
+                    viewPager.setCurrentItem(1)
                 } else {
                     if (doubleBackToExitPressedOnce) {
                         moveTaskToBack(true)
@@ -417,10 +418,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
             2 -> {
                 doubleBackToExitPressedOnce = false
-                bottom_navigation.currentItem = 1
+                viewPager.currentItem = 1
             }
         }
     }
+    @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ScaleConfig.create(this,
@@ -469,6 +471,24 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         goalFragment = supportFragmentManager.findFragmentByTag("goal") as GoalFragment?
         mainTabFragment = supportFragmentManager.findFragmentByTag("main") as MainTabFragment?
         tabadapter = MainPageAdapter(supportFragmentManager)
+        if (mainTabFragment == null) {
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.root_layout, MainTabFragment.newInstance(), "main")
+                    .commit()
+        }else{
+            supportFragmentManager
+                    .beginTransaction().replace(R.id.root_layout, mainTabFragment!!).commit()
+        }
+        if (forMeFragment == null) {
+            forMeFragment = ForMeFragment.newInstance(personUrl.toString())
+            supportFragmentManager.openTransaction().add(forMeFragment!!, "forme")
+        }
+        if (followFragment == null) {
+                followFragment = FollowFragment.newInstance()
+                supportFragmentManager.openTransaction().add(followFragment!!, "follow")
+        }
+        /*
         bottom_navigation.setOnTabSelectedListener(object: AHBottomNavigation.OnTabSelectedListener{
             override fun onTabSelected(item: Int, wasSelected: Boolean): Boolean {
                 when (item) {
@@ -528,7 +548,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
 
-        })
+        })*/
     }
     private fun signIn() {
         Log.i(TAG, "signIn")
@@ -623,7 +643,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onSaveInstanceState(outState)
         outState!!.putBoolean("loading", fitloading)
         outState.putBoolean("sending", fitsending)
-        outState.putInt("section", bottom_navigation.currentItem)
+       // if(viewPager != null)
+      //  outState.putInt("section", viewPager.currentItem)
         if(fitsending) {
             outState.putString("bmi", my_bmi_txtB.text.toString())
             outState.putString("weight", my_weight_txtB.text.toString())
@@ -880,7 +901,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         Log.i(TAG, "insertData OnCompleteListener")
                         Toast.makeText(this@MainActivity, "전송이 완료되었습니다 매달 체크하여 건강하고 행복하세요~", Toast.LENGTH_SHORT).show()
                         accessGoogleFit(acc)
-                        bottom_navigation.currentItem = 1
+                        viewPager.currentItem = 1
                     }
                 })
     }

@@ -7,15 +7,23 @@ import android.view.View
 import android.support.v4.app.FragmentTabHost
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.support.MainPageAdapter
-
+import kotlinx.android.synthetic.main.maintablayout.*
 
 class MainTabFragment: Fragment(){
     private var mListener: mainTab? = null
     val list:MutableList<Fragment> = ArrayList()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mListener!!.tabadapter!!.addFragment(R.drawable.select_followmenu, getString(R.string.follow_media), mListener!!.forMeFragment!!)
-        mListener!!.tabadapter!!.addFragment(R.drawable.select_followmenu, getString(R.string.follow_media), mListener!!.forMeFragment!!)
+        if(mListener!!.tabadapter == null){
+            mListener!!.tabadapter = MainPageAdapter(requireFragmentManager())
+        }
+        mListener!!.tabadapter!!.addFragment(R.drawable.select_formemenu, getString(R.string.title_infome), mListener!!.forMeFragment!!)
+        mListener!!.tabadapter!!.addFragment(R.drawable.select_followmenu, getString(R.string.follow_media), mListener!!.followFragment!!)
+        viewPager.adapter = mListener!!.tabadapter!!
+        tabs.setupWithViewPager(viewPager)
+        for (i in 0 until viewPager.getAdapter()!!.getCount()) {
+            tabs.getTabAt(i)!!.setIcon(mListener!!.tabadapter!!.getFragmentInfo(i).iconResId)
+        }
     }
     override fun onAttach(context: Context) {
         super.onAttach(context)
