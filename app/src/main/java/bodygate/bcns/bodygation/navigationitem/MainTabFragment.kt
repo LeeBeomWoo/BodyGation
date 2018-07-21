@@ -6,18 +6,35 @@ import android.support.v4.app.Fragment
 import android.view.View
 import android.support.v4.app.FragmentTabHost
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.support.MainPageAdapter
 import kotlinx.android.synthetic.main.maintablayout.*
 
 class MainTabFragment: Fragment(){
+    val TAG = "MainTabFragment"
+    private var mParam1: String? = null
     private var mListener: mainTab? = null
     val list:MutableList<Fragment> = ArrayList()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.i(TAG, "onCreate")
+        if (arguments != null) {
+            mParam1 = arguments!!.getString(ARG_PARAM1)
+        }
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.i("mainTabFragment", "onViewCreated")
+        Log.i(TAG, "onViewCreated")
         if(mListener!!.tabadapter == null){
             mListener!!.tabadapter = MainPageAdapter(requireFragmentManager())
+        }
+        if (requireFragmentManager().findFragmentByTag("forme") == null) {
+            mListener!!.forMeFragment = ForMeFragment.newInstance(mParam1)
+        }
+        if (requireFragmentManager().findFragmentByTag("follow") == null) {
+            mListener!!.followFragment = FollowFragment.newInstance()
         }
         mListener!!.tabadapter!!.addFragment(R.drawable.select_formemenu, getString(R.string.title_infome), mListener!!.forMeFragment!!)
         mListener!!.tabadapter!!.addFragment(R.drawable.select_followmenu, getString(R.string.follow_media), mListener!!.followFragment!!)
@@ -26,6 +43,7 @@ class MainTabFragment: Fragment(){
         for (i in 0 until viewPager.getAdapter()!!.getCount()) {
             tabs.getTabAt(i)!!.setIcon(mListener!!.tabadapter!!.getFragmentInfo(i).iconResId)
         }
+        viewPager.currentItem = 1
     }
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -36,12 +54,18 @@ class MainTabFragment: Fragment(){
         }
     }
 
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        Log.i(TAG, "onCreateView")
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.maintablayout, container, false)
+    }
     interface mainTab{
         var tabadapter: MainPageAdapter?
         var followFragment:Fragment?
         var forMeFragment: Fragment?
     }
     companion object {
+        private val ARG_PARAM1 = "img"
         /**
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
@@ -51,9 +75,13 @@ class MainTabFragment: Fragment(){
          * @return A new instance of fragment MainTabFragment.
          */
         // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance() =
-                MainTabFragment()
+        fun newInstance(param1: String?): MainTabFragment {
+            val fragment = MainTabFragment()
+            val args = Bundle()
+            args.putString(ARG_PARAM1, param1)
+            fragment.arguments = args
+            return fragment
+        }
     }
     override fun onDetach() {
         super.onDetach()

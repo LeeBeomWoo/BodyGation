@@ -71,56 +71,67 @@ class ForMeFragment : Fragment() {
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        graphdata()
         scrollView.isSmoothScrollingEnabled = true
         scrollView.setOnScrollChangeListener(object : NestedScrollView.OnScrollChangeListener{
             override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
                 Log.i(TAG, "scroll_child-scrollY: " + (scroll_child.height/6).toString())
                 if( -1 < scrollY  && scrollY < scroll_child.height/6 ){
                     if(section != 1){
-                        main_lbl.text = mListener!!.weight_series.get(weight_position).y.toString() + "Kg"
-                        cal_lbl.text = mListener!!.weight_Label.get(weight_position)
-                        section = 1
+                        if(mListener!!.weight_series.size > 0) {
+                            main_lbl.text = mListener!!.weight_series.get(weight_position).y.toString() + "Kg"
+                            cal_lbl.text = mListener!!.weight_Label.get(weight_position)
+                            section = 1
+                        }
                     }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
                     Log.i(TAG, "scroll section 1")
                 }else if(scroll_child.height/6  < scrollY && scrollY <(scroll_child.height/6)*2 ){
                     if(section != 2){
+                        if(mListener!!.muscle_series.size > 0) {
                         main_lbl.text = mListener!!.muscle_series.get(muscle_position).y.toString() + "Kg"
                         cal_lbl.text = mListener!!.muscle_Label.get(muscle_position)
                         section=2
+                    }
                     }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
                     Log.i(TAG, "scroll section 2")
                 }else if((scroll_child.height/6)*2 < scrollY && scrollY < (scroll_child.height/6)*3 ){
                     if(section != 3){
+                        if(mListener!!.fat_series.size > 0) {
                         main_lbl.text = mListener!!.fat_series.get(fat_position).y.toString() + "%"
                         cal_lbl.text = mListener!!.fat_Label.get(fat_position)
                         section=3
+                    }
                     }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
                     Log.i(TAG, "scroll section 3")
                 }else if((scroll_child.height/6)*3 <scrollY && scrollY < (scroll_child.height/6)*4 ){
                     if(section != 4) {
+                        if(mListener!!.kcal_series.size > 0) {
                         main_lbl.text = mListener!!.kcal_series.get(bmr_position).y.toString() + "Kcal"
                         cal_lbl.text = mListener!!.kcal_Label.get(bmr_position)
                         section = 4
+                    }
                     }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
                     Log.i(TAG, "scroll section 4")
                 }else if((scroll_child.height/6)*4 < scrollY && scrollY <(scroll_child.height/6)*5 ){
                     if(section != 0) {
+                        if(mListener!!.bmi_series.size > 0) {
                         main_lbl.text = mListener!!.bmi_series.get(bmi_position).y.toString() + "Kg/" + "m\u00B2"
                         cal_lbl.text = mListener!!.bmi_Label.get(bmi_position)
                         section = 0
+                    }
                     }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
                     Log.i(TAG, "scroll section 5")
                 }else if((scroll_child.height/6)*5 < scrollY && scrollY < (scroll_child.height/6)*6 ){
                     if(section != 5) {
-                        main_lbl.text = mListener!!.walk_series.get(walk_position).y.toString() + "걸음"
-                        cal_lbl.text = mListener!!.walk_Label.get(walk_position)
-                        section = 5
+                        if (mListener!!.walk_series.size > 0) {
+                            main_lbl.text = mListener!!.walk_series.get(walk_position).y.toString() + "걸음"
+                            cal_lbl.text = mListener!!.walk_Label.get(walk_position)
+                            section = 5
+                        }
                     }
                     Log.i(TAG, "scrollY: " + scrollY.toString())
                     Log.i(TAG, "scroll section 6")

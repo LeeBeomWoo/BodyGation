@@ -138,6 +138,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     var youTubeResult:YouTubeResult? = null
     var mainTabFragment:Fragment? = null
     override var tabadapter: MainPageAdapter? = null
+    var tabpage =0
 
     override fun stopProgress(i:Int) {
         when(i) {
@@ -456,19 +457,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             Log.i(TAG, "mainTabFragment")
             supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.root_layout, MainTabFragment.newInstance(), "main")
+                    .replace(R.id.root_layout, MainTabFragment.newInstance(personUrl.toString()), "main")
                     .commit()
         }else{
             supportFragmentManager
                     .beginTransaction().replace(R.id.root_layout, mainTabFragment!!).commit()
-        }
-        if (forMeFragment == null) {
-            forMeFragment = ForMeFragment.newInstance(personUrl.toString())
-            supportFragmentManager.openTransaction().add(forMeFragment!!, "forme")
-        }
-        if (followFragment == null) {
-                followFragment = FollowFragment.newInstance()
-                supportFragmentManager.openTransaction().add(followFragment!!, "follow")
         }
         if(mGoogleSignInClient.silentSignIn().isSuccessful){
             accessGoogleFit(mGoogleSignInClient.silentSignIn().result)
@@ -512,18 +505,18 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 return false
             }
 
-        })
+        })*/
         if(savedInstanceState == null ) {
-            bottom_navigation.setCurrentItem(1)
+            tabpage = 1
         }else{
-            bottom_navigation.setCurrentItem(savedInstanceState.getInt("section"))
+            tabpage = savedInstanceState.getInt("section")
         }
         toolbarhome.setOnClickListener(object :View.OnClickListener{
             override fun onClick(v: View?) {
                 if(sendquery != null)
                     sendquery = null
                 data.clear()
-                bottom_navigation.setCurrentItem(1)
+                viewPager.setCurrentItem(1)
             }
 
         })
@@ -535,7 +528,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 }
             }
 
-        })*/
+        })
     }
     private fun signIn() {
         Log.i(TAG, "signIn")
@@ -589,7 +582,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                                     fitloading = false
                                     fitcomp = true
                                 }.join()
-                                launch (UI){stopProgress(1) }.join()
                             }
                         }else{
                             getProfileInformation(null)
@@ -630,8 +622,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         super.onSaveInstanceState(outState)
         outState!!.putBoolean("loading", fitloading)
         outState.putBoolean("sending", fitsending)
-       // if(viewPager != null)
-      //  outState.putInt("section", viewPager.currentItem)
+        if(viewPager != null)
+        outState.putInt("section", viewPager.currentItem)
         if(fitsending) {
             outState.putString("bmi", my_bmi_txtB.text.toString())
             outState.putString("weight", my_weight_txtB.text.toString())
@@ -890,7 +882,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnCompleteListener(object :OnCompleteListener<DataType>{
                     override fun onComplete(p0: Task<DataType>) {
                         Log.i(TAG, "readDataType OnCompleteListener")
-
+                        (forMeFragment!! as ForMeFragment).graphdata()
                     }
                 })
     }

@@ -366,7 +366,6 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:background="@color/colorBottomNavigationActiveColored"
-                android:drawableStart="@drawable/ic_search_black_24dp"
                 android:paddingStart="10dp"
                 android:text="@string/search"
                 android:textAlignment="center"
