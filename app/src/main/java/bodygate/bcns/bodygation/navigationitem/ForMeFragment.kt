@@ -266,32 +266,34 @@ class ForMeFragment : Fragment() {
         })
     }
     fun graphdata(){
+        Log.i(TAG, "graphdata")
         bmi_data = BarData()
         kcal_data = BarData()
         fat_data = BarData()
         muscle_data = BarData()
         walk_data = BarData()
         weight_data = BarData()
-        dataSet(bmi_data!!)
+        dataSet(bmi_data!!, 5)
         graph_bmi.data = bmi_data
         setGraph(graph_bmi)
-        dataSet(kcal_data!!)
+        dataSet(kcal_data!!, 2)
         graph_bmr.data = kcal_data
         setGraph(graph_bmr)
-        dataSet(fat_data!!)
+        dataSet(fat_data!!, 3)
         graph_fat.data = fat_data
         setGraph(graph_fat)
-        dataSet(muscle_data!!)
+        dataSet(muscle_data!!, 4)
         graph_muscle.data = muscle_data
         setGraph(graph_muscle)
-        dataSet(walk_data!!)
+        dataSet(walk_data!!, 1)
         graph_walk.data = walk_data
         setGraph(graph_walk)
-        dataSet(weight_data!!)
+        dataSet(weight_data!!, 0)
         graph_weight.data = weight_data
         setGraph(graph_weight)
     }
     fun setGraph(graph: BarChart){
+        Log.i(TAG, "setGraph")
         val l = graph.getLegend()
         l.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM)
         l.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT)
@@ -341,8 +343,7 @@ class ForMeFragment : Fragment() {
             }
         }
     }
-    fun dataSet(data:BarData) {
-        for(section : Int in 0..5){
+    fun dataSet(data:BarData, section : Int) {
         when (section) {
             0 -> {//체중
                 if (mListener!!.weight_series.size > 0) {
@@ -428,7 +429,6 @@ class ForMeFragment : Fragment() {
                     Toast.makeText(this.requireContext(), "업로드 하신 개인 자료가 존재하지 않습니다. 달성목표로 가셔서 개인 자료를 업로드 하신 후 이용하여 주세요", Toast.LENGTH_SHORT).show()
                 }
             }
-        }
         }
     }
     override fun onAttach(context: Context) {
