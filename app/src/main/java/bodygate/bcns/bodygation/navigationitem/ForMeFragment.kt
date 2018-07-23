@@ -71,6 +71,14 @@ class ForMeFragment : Fragment() {
     }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        if(mParam1 !=  null){
+            Picasso.get().load(Uri.parse(mParam1))
+                    .placeholder(R.mipmap.toolbarlogo_round)
+                    .error(R.mipmap.toolbarlogo_round).into(profile_Image)
+        }else{
+            Picasso.get().load(R.mipmap.toolbarlogo_round).into(profile_Image)
+        }
+        graphdata()
         scrollView.isSmoothScrollingEnabled = true
         scrollView.setOnScrollChangeListener(object : NestedScrollView.OnScrollChangeListener{
             override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
@@ -311,13 +319,6 @@ class ForMeFragment : Fragment() {
         xAxis.setDrawGridLines(false);
         xAxis.setGranularity(2f)
         xAxis.setLabelCount(5, true)
-        if(mParam1 !=  null){
-            Picasso.get().load(Uri.parse(mParam1))
-                    .placeholder(R.mipmap.toolbarlogo_round)
-                    .error(R.mipmap.toolbarlogo_round).into(profile_Image)
-        }else{
-            Picasso.get().load(R.mipmap.toolbarlogo_round).into(profile_Image)
-        }
         graph.isDragEnabled = true
         graph.isScaleYEnabled = false
         graph.setVisibleXRangeMaximum(3.toFloat())

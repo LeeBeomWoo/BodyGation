@@ -455,6 +455,16 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         goalFragment = supportFragmentManager.findFragmentByTag("goal") as GoalFragment?
         mainTabFragment = supportFragmentManager.findFragmentByTag("main") as MainTabFragment?
         tabadapter = MainPageAdapter(supportFragmentManager)
+        if(mGoogleSignInClient.silentSignIn().isSuccessful){
+            accessGoogleFit(mGoogleSignInClient.silentSignIn().result)
+        }else{
+            signIn()
+        }
+        if(savedInstanceState == null ) {
+            tabpage = 1
+        }else{
+            tabpage = savedInstanceState.getInt("section")
+        }
         if (mainTabFragment == null) {
             Log.i(TAG, "mainTabFragment")
             supportFragmentManager
@@ -464,18 +474,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         }else{
             supportFragmentManager
                     .beginTransaction().replace(R.id.root_layout, mainTabFragment!!).commit()
-        }
-        if(mGoogleSignInClient.silentSignIn().isSuccessful){
-            accessGoogleFit(mGoogleSignInClient.silentSignIn().result)
-        }else{
-            signIn()
-        }
-        ReadData(mGoogleSignInClient.silentSignIn().result)
-        customReadData(mGoogleSignInClient.silentSignIn().result)
-        if(savedInstanceState == null ) {
-            tabpage = 1
-        }else{
-            tabpage = savedInstanceState.getInt("section")
         }
         toolbarhome.setOnClickListener(object :View.OnClickListener{
             override fun onClick(v: View?) {
@@ -553,6 +551,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             startProgress(1)
                             val user = mAuth!!.currentUser
                             getProfileInformation(user!!)
+                            launch(UI) {
+                            ReadData(acc)
+                            customReadData(acc)
+                            }
                             /*
                             launch (UI) {
                                 startProgress(1)
@@ -882,8 +884,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .build()
         return Fitness.getHistoryClient(this, acc).readData(request)
                 .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
-                    override fun onSuccess(p0: DataReadResponse?) {
-                        printData(p0!!)
+                    override fun onSuccess(p0: DataReadResponse) {
+                        printData(p0)
                     }
                 })
                 .addOnFailureListener(object :OnFailureListener{
@@ -914,7 +916,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .build()
         return Fitness.getHistoryClient(this, acc).readData(request)
                 .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
-                    override fun onSuccess(p0: DataReadResponse?) {printData(p0!!)
+                    override fun onSuccess(p0: DataReadResponse) {
+                        printData(p0)
                     }
                 })
                 .addOnFailureListener(object :OnFailureListener{
@@ -926,7 +929,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnCompleteListener(object :OnCompleteListener<DataReadResponse>{
                     override fun onComplete(p0: Task<DataReadResponse>) {
                         Log.i(TAG, "readRequest_arr OnCompleteListener")
-                    stopProgress(1)
                     }
                 })
     }
@@ -944,7 +946,8 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .build()
        return Fitness.getHistoryClient(this, acc).readData(request)
                 .addOnSuccessListener(object :OnSuccessListener<DataReadResponse>{
-                    override fun onSuccess(p0: DataReadResponse?) {printData(p0!!)
+                    override fun onSuccess(p0: DataReadResponse) {
+                        printData(p0)
                     }
                 })
                 .addOnFailureListener(object :OnFailureListener{
@@ -956,6 +959,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .addOnCompleteListener(object :OnCompleteListener<DataReadResponse>{
                     override fun onComplete(p0: Task<DataReadResponse>) {
                         Log.i(TAG, "readRequest_custom OnCompleteListener")
+                        stopProgress(1)
                     }
                 })
     }
@@ -965,14 +969,14 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         ib =0
         Log.i(TAG, "ptrintdata")
         if (dataReadResult.buckets.size > 0) {
-            for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.getBuckets()) {
+            for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.buckets) {
                 for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
                     dumpDataSet(dataset)
                     ib += 1
                 }
             }
-        } else if (dataReadResult.getDataSets().size > 0) {
-            for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.getDataSets()) {
+        } else if (dataReadResult.dataSets.size > 0) {
+            for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.dataSets) {
                 dumpDataSet(dataSet)
             }
         }
@@ -985,8 +989,11 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         val label = SimpleDateFormat("MM/dd")
         for ( dp :com.google.android.gms.fitness.data.DataPoint in dataSet.dataPoints)
         {
+            Log.i(TAG, "Data point:");
+            Log.i(TAG, "\tType: " + dp.getDataType().getName());
             for (field:com.google.android.gms.fitness.data.Field in dp.dataType.fields)
             {
+                Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
                 when(field.name){
                     "bmi" -> {
                         bmi_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
