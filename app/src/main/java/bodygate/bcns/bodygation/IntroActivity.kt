@@ -1,7 +1,9 @@
 package bodygate.bcns.bodygation
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.AsyncTask
@@ -12,6 +14,7 @@ import bodygate.bcns.bodygation.dummy.DataClass
 import bodygate.bcns.bodygation.navigationitem.*
 import bodygate.bcns.bodygation.support.FitConnect
 import bodygate.bcns.bodygation.support.MainPageAdapter
+import com.github.mikephil.charting.data.BarEntry
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -27,6 +30,18 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.experimental.launch
 
 class IntroActivity : AppCompatActivity() , FitConnect{
+    override var weight_series: MutableList<BarEntry> = ArrayList()
+    override var muscle_series: MutableList<BarEntry> = ArrayList()
+    override var walk_series: MutableList<BarEntry> = ArrayList()
+    override var fat_series: MutableList<BarEntry> = ArrayList()
+    override var bmi_series: MutableList<BarEntry> = ArrayList()
+    override var kcal_series: MutableList<BarEntry> = ArrayList()
+    override var weight_Label: MutableList<String> = ArrayList()
+    override var kcal_Label: MutableList<String> = ArrayList()
+    override var walk_Label: MutableList<String> = ArrayList()
+    override var fat_Label: MutableList<String> = ArrayList()
+    override var muscle_Label: MutableList<String> = ArrayList()
+    override var bmi_Label: MutableList<String> = ArrayList()
     override var ib: Int
         get() = 0
         set(value) {}
@@ -47,6 +62,7 @@ class IntroActivity : AppCompatActivity() , FitConnect{
                     // Make sure the app is not already connected or attempting to connectTask<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                     val task = GoogleSignIn.getSignedInAccountFromIntent(data)
                     handleSignInResult(task)
+                    account = task.result
                     Log.i(TAG, data.toString())
                 }
             }
@@ -80,29 +96,81 @@ class IntroActivity : AppCompatActivity() , FitConnect{
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
         if(mGoogleSignInClient.silentSignIn().isSuccessful){
             accessGoogleFit(mGoogleSignInClient.silentSignIn().result)
+            account = mGoogleSignInClient.silentSignIn().result
         }else{
             signIn()
         }
-
-        customReadData(GoogleSignIn.getLastSignedInAccount(this)!!)
-    }
-    fun ReadData(acc:GoogleSignInAccount) {
-        readRequest_weight(acc, this.applicationContext).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataReadResponse, Task<DataReadResponse>> {
-            override fun then(p0: Task<DataReadResponse>): Task<DataReadResponse> {
-                return readRequest_arr(acc, this@IntroActivity.applicationContext)
-            }
-        })
-    }
-    fun customReadData(acc:GoogleSignInAccount) {
-        customDataType(acc, this.applicationContext).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataType, Task<DataReadResponse>> {
-            override fun then(p0: Task<DataType>): Task<DataReadResponse> {
-                return readRequest_custom(acc, p0.result, this@IntroActivity.applicationContext)
-            }
-        })
+        val task = someTask(account, this.applicationContext)
+        data = task.get()
+        val intent = Intent(baseContext, MainActivity::class.java)
+        intent.putExtra("EXTRA_SESSION_ID", data)
+        startActivity(intent)
     }
     private fun signIn() {
         Log.i(TAG, "signIn")
         val signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, REQUEST_OAUTH)
+    }
+    class someTask(acc: GoogleSignInAccount, cont:Context) : AsyncTask<Void, Void, DataClass>(), FitConnect {
+        override var ib: Int
+            get() = 0
+            set(value) {}
+
+        override var weight_series: MutableList<BarEntry> = ArrayList()
+        override var muscle_series: MutableList<BarEntry> = ArrayList()
+        override var walk_series: MutableList<BarEntry> = ArrayList()
+        override var fat_series: MutableList<BarEntry> = ArrayList()
+        override var bmi_series: MutableList<BarEntry> = ArrayList()
+        override var kcal_series: MutableList<BarEntry> = ArrayList()
+        override var weight_Label: MutableList<String> = ArrayList()
+        override var kcal_Label: MutableList<String> = ArrayList()
+        override var walk_Label: MutableList<String> = ArrayList()
+        override var fat_Label: MutableList<String> = ArrayList()
+        override var muscle_Label: MutableList<String> = ArrayList()
+        override var bmi_Label: MutableList<String> = ArrayList()
+        override lateinit var custom_Type: DataType
+        override lateinit var account: GoogleSignInAccount
+        @SuppressLint("StaticFieldLeak")
+        var contextContext:Context
+        override lateinit var mAuth: FirebaseAuth
+        override lateinit var personUrl: Uri
+        lateinit var mGoogleSignInClient: GoogleSignInClient
+        private val REQUEST_OAUTH = 1001
+        override lateinit var data:DataClass
+        init {
+            account = acc
+            contextContext = cont
+        }
+        override fun doInBackground(vararg params: Void?): DataClass? {
+            ReadData(account)
+            customReadData(account)
+            return data
+        }
+
+
+        fun ReadData(acc:GoogleSignInAccount) {
+            readRequest_weight(acc, contextContext).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataReadResponse, Task<DataReadResponse>> {
+                override fun then(p0: Task<DataReadResponse>): Task<DataReadResponse> {
+                    return readRequest_arr(acc, contextContext)
+                }
+            })
+        }
+        fun customReadData(acc:GoogleSignInAccount) {
+            customDataType(acc, contextContext).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataType, Task<DataReadResponse>> {
+                override fun then(p0: Task<DataType>): Task<DataReadResponse> {
+                    return readRequest_custom(acc, p0.result, contextContext)
+                }
+            })
+        }
+
+        override fun onPreExecute() {
+            super.onPreExecute()
+        }
+
+        override fun onPostExecute(result: DataClass?) {
+            super.onPostExecute(result)
+            // ...
+
+        }
     }
 }

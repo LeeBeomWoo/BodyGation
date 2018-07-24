@@ -42,6 +42,23 @@ interface FitConnect{
     var data:DataClass
     var ib:Int
 
+    var weight_series: MutableList<BarEntry>
+    var muscle_series: MutableList<BarEntry>
+    var walk_series: MutableList<BarEntry>
+    var fat_series: MutableList<BarEntry>
+    var bmi_series: MutableList<BarEntry>
+    var kcal_series: MutableList<BarEntry>
+
+    var weight_Label:MutableList<String>
+    var kcal_Label:MutableList<String>
+    var walk_Label:MutableList<String>
+    var fat_Label:MutableList<String>
+    var muscle_Label:MutableList<String>
+    var bmi_Label:MutableList<String>
+    fun dataClass():DataClass{
+        return data
+    }
+
     fun makeData(acc: GoogleSignInAccount, context:Context): Task<DataType> {
         Log.i(TAG, "makeData")
         Log.i(TAG, "custom_routine" + "makeData")

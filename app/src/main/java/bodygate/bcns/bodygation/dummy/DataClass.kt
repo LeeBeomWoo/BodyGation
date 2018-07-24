@@ -1,9 +1,10 @@
 package bodygate.bcns.bodygation.dummy
 
 import com.github.mikephil.charting.data.BarEntry
+import java.io.Serializable
 
 class DataClass(gs:MutableList<BarEntry>, cs:MutableList<BarEntry>, ks:MutableList<BarEntry>, ts:MutableList<BarEntry>, ms:MutableList<BarEntry>, ls:MutableList<BarEntry>
-                , gl:MutableList<String>, cl:MutableList<String>, kl:MutableList<String>, tl:MutableList<String>, ml:MutableList<String>, ll:MutableList<String>) {
+                , gl:MutableList<String>, cl:MutableList<String>, kl:MutableList<String>, tl:MutableList<String>, ml:MutableList<String>, ll:MutableList<String>) :Serializable {
 
     var weight_series: MutableList<BarEntry> = ArrayList()
     var muscle_series: MutableList<BarEntry> = ArrayList()
