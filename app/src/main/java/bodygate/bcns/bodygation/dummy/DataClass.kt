@@ -1,10 +1,10 @@
 package bodygate.bcns.bodygation.dummy
 
+import android.net.Uri
 import com.github.mikephil.charting.data.BarEntry
 import java.io.Serializable
 
-class DataClass(gs:MutableList<BarEntry>, cs:MutableList<BarEntry>, ks:MutableList<BarEntry>, ts:MutableList<BarEntry>, ms:MutableList<BarEntry>, ls:MutableList<BarEntry>
-                , gl:MutableList<String>, cl:MutableList<String>, kl:MutableList<String>, tl:MutableList<String>, ml:MutableList<String>, ll:MutableList<String>) :Serializable {
+class DataClass() :Serializable {
 
     var weight_series: MutableList<BarEntry> = ArrayList()
     var muscle_series: MutableList<BarEntry> = ArrayList()
@@ -19,7 +19,9 @@ class DataClass(gs:MutableList<BarEntry>, cs:MutableList<BarEntry>, ks:MutableLi
     var fat_Label:MutableList<String> =  ArrayList()
     var muscle_Label:MutableList<String> =  ArrayList()
     var bmi_Label:MutableList<String> =  ArrayList()
-    init{
+    var personUrl: Uri? = null
+    fun setData(gs:MutableList<BarEntry>, cs:MutableList<BarEntry>, ks:MutableList<BarEntry>, ts:MutableList<BarEntry>, ms:MutableList<BarEntry>, ls:MutableList<BarEntry>
+                , gl:MutableList<String>, cl:MutableList<String>, kl:MutableList<String>, tl:MutableList<String>, ml:MutableList<String>, ll:MutableList<String>){
         weight_series = gs
         muscle_series = cs
         walk_series = ks
@@ -33,5 +35,8 @@ class DataClass(gs:MutableList<BarEntry>, cs:MutableList<BarEntry>, ks:MutableLi
         fat_Label =  tl
         muscle_Label = ml
         bmi_Label = ll
+    }
+    fun setImg(url:Uri){
+        personUrl = url
     }
 }

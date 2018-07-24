@@ -21,6 +21,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import bodygate.bcns.bodygation.dummy.DataClass
 import bodygate.bcns.bodygation.dummy.DummyContent
 import bodygate.bcns.bodygation.navigationitem.*
 import bodygate.bcns.bodygation.support.MainPageAdapter
@@ -116,22 +117,10 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
     override val context:Context = this
     override var sendquery:ArrayList<String>? = null
     override var data: MutableList<SearchResult> = arrayListOf()
+    lateinit var dataclass:DataClass
 
     var custom_Type:DataType? = null
 
-    override val weight_series: MutableList<BarEntry> = ArrayList()
-    override val muscle_series: MutableList<BarEntry> = ArrayList()
-    override val walk_series: MutableList<BarEntry> = ArrayList()
-    override val fat_series: MutableList<BarEntry> = ArrayList()
-    override val bmi_series: MutableList<BarEntry> = ArrayList()
-    override val kcal_series: MutableList<BarEntry> = ArrayList()
-
-    override val weight_Label:MutableList<String> =  ArrayList()
-    override val kcal_Label:MutableList<String> =  ArrayList()
-    override val walk_Label:MutableList<String> =  ArrayList()
-    override val fat_Label:MutableList<String> =  ArrayList()
-    override val muscle_Label:MutableList<String> =  ArrayList()
-    override val bmi_Label:MutableList<String> =  ArrayList()
     var ib = 0
 
     var goalFragment:Fragment? = null
@@ -426,6 +415,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         // pPb = ProgressDialog(this)
         // nPb = ProgressDialog(this)
         mAuth = FirebaseAuth.getInstance()
+        dataclass = (intent.getSerializableExtra("EXTRA_SESSION_ID") as? DataClass)!!
         cPb = ProgressDialog(this)
         val fitnessOptions = FitnessOptions.builder()
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
@@ -469,7 +459,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             Log.i(TAG, "mainTabFragment")
             supportFragmentManager
                     .beginTransaction()
-                    .replace(R.id.root_layout, MainTabFragment.newInstance(personUrl.toString()), "main")
+                    .replace(R.id.root_layout, MainTabFragment.newInstance(dataclass), "img")
                     .commit()
         }else{
             supportFragmentManager
@@ -527,7 +517,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
        val currentUser = mAuth!!.getCurrentUser()
         if(currentUser != null)
         getProfileInformation(currentUser)
-    }
+    }/*
     fun ReadData(acc:GoogleSignInAccount) {
         readRequest_weight(acc).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataReadResponse, Task<DataReadResponse>> {
             override fun then(p0: Task<DataReadResponse>): Task<DataReadResponse> {
@@ -541,7 +531,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 return readRequest_custom(acc, p0.result)
             }
         })
-    }
+    }*/
     fun accessGoogleFit(acc:GoogleSignInAccount){
         val credential = GoogleAuthProvider.getCredential(acc.idToken, null)
         mAuth!!.signInWithCredential(credential)
@@ -551,10 +541,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                             startProgress(1)
                             val user = mAuth!!.currentUser
                             getProfileInformation(user!!)
-                            launch(UI) {
-                            ReadData(acc)
-                            customReadData(acc)
-                            }
                             /*
                             launch (UI) {
                                 startProgress(1)
@@ -971,17 +957,18 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         if (dataReadResult.buckets.size > 0) {
             for (bucket: com.google.android.gms.fitness.data.Bucket in dataReadResult.buckets) {
                 for(dataset: com.google.android.gms.fitness.data.DataSet in bucket.dataSets) {
-                    dumpDataSet(dataset)
+                   // dumpDataSet(dataset)
                     ib += 1
                 }
             }
         } else if (dataReadResult.dataSets.size > 0) {
             for (dataSet: com.google.android.gms.fitness.data.DataSet in dataReadResult.dataSets) {
-                dumpDataSet(dataSet)
+               // dumpDataSet(dataSet)
             }
         }
     }
     @SuppressLint("SimpleDateFormat")
+    /*
     fun dumpDataSet(dataSet:DataSet) {
         Log.i(TAG, "dumpDataSet")
             Log.i(TAG, dataSet.toString())
@@ -1030,7 +1017,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
             }
         }
     }
-    @SuppressLint("InflateParams")
+    */
     fun menupopup(v:View){
         mPopupWindow = PopupMenu(this@MainActivity, v);
         mPopupWindow!!.getMenuInflater().inflate(R.menu.menu, mPopupWindow!!.getMenu())
@@ -1044,18 +1031,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                         return true
                     }
                     R.id.pesnaldatarefresh_Btn->{
-                        weight_series.clear()
-                        muscle_series.clear()
-                        walk_series.clear()
-                        fat_series.clear()
-                        bmi_series.clear()
-                        kcal_series.clear()
-                        weight_Label.clear()
-                        kcal_Label.clear()
-                        walk_Label.clear()
-                        fat_Label.clear()
-                        muscle_Label.clear()
-                        bmi_Label.clear()
                         return true
                     }
                     R.id.dataupload_Btn->{
