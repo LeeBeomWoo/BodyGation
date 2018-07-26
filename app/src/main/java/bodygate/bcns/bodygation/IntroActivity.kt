@@ -185,17 +185,20 @@ class IntroActivity : AppCompatActivity() {
         override fun doInBackground(vararg params: Void?):Void? {
             ReadData(account)
             customReadData(account)
-            thread.join(5000)
+            thread.join(3000)
             return null
         }
 
 
         fun ReadData(acc:GoogleSignInAccount) {
+            readRequest_weight(acc, contextContext)
+            readRequest_arr(acc, contextContext)
+            /*
             readRequest_weight(acc, contextContext).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataReadResponse, Task<DataReadResponse>> {
                 override fun then(p0: Task<DataReadResponse>): Task<DataReadResponse> {
                     return readRequest_arr(acc, contextContext)
                 }
-            })
+            })*/
         }
         fun customReadData(acc:GoogleSignInAccount) {
             customDataType(acc, contextContext).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataType, Task<DataReadResponse>> {
@@ -388,27 +391,27 @@ class IntroActivity : AppCompatActivity() {
                     Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
                     when(field.name){
                         "bmi" -> {
-                            bmi_series.add(dp.getValue(field).asFloat())
+                            bmi_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             bmi_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                             Log.i(TAG, "bmi"  + dp.getValue(field).asFloat().toString() + ", " + bmi_Label.last())
                         }
                         "muscle" -> {
-                            muscle_series.add(dp.getValue(field).asFloat())
+                            muscle_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             muscle_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                             Log.i(TAG, "muscle"  + dp.getValue(field).asFloat().toString() + ", " + muscle_Label.last())
                         }
                         "fat" -> {
-                            fat_series.add(dp.getValue(field).asFloat())
+                            fat_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             fat_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                             Log.i(TAG, "fat"  + dp.getValue(field).asFloat().toString() + ", " + fat_Label.last())
                         }
                         Field.FIELD_WEIGHT.name ->{
-                            weight_series.add(dp.getValue(field).asFloat())
+                            weight_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             weight_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
                             Log.i(TAG, "weight"  + dp.getValue(field).asFloat().toString() + ", " + weight_Label.last())
                         }
                         Field.FIELD_CALORIES.name ->{
-                            kcal_series.add(dp.getValue(field).asFloat())
+                            kcal_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             kcal_Label.add(label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
                             Log.i(TAG, " kcal"  + dp.getValue(field).asFloat().toString() + ", " + kcal_Label.last())
                         }
