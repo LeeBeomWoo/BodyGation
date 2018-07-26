@@ -172,6 +172,11 @@ class IntroActivity : AppCompatActivity() {
         var kcal_Label:MutableList<String> = ArrayList()
         var personUrl: Uri
         var cPb: ProgressDialog? = null
+        var first_job = false
+        var second_job = false
+        var third_job = false
+        var fourth_job = false
+        var thread:Thread = Thread.currentThread()
         init {
             account = acc
             contextContext = cont
@@ -180,6 +185,7 @@ class IntroActivity : AppCompatActivity() {
         override fun doInBackground(vararg params: Void?):Void? {
             ReadData(account)
             customReadData(account)
+            thread.join(5000)
             return null
         }
 
