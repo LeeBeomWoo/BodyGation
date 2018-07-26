@@ -4,18 +4,16 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.NestedScrollView
 import android.util.Log
-import android.util.TimeUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import bodygate.bcns.bodygation.DataClass
 import bodygate.bcns.bodygation.R
-import bodygate.bcns.bodygation.dummy.DataClass
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.Legend
@@ -55,7 +53,7 @@ class ForMeFragment : Fragment() {
         super.onCreate(savedInstanceState)
         Log.i(TAG, "onCreate")
         if (arguments != null) {
-            mParam1 = arguments!!.getSerializable(ARG_PARAM1) as DataClass
+            mParam1 = arguments!!.getParcelable(ARG_PARAM1)
         }
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -76,7 +74,7 @@ class ForMeFragment : Fragment() {
                 if( -1 < scrollY  && scrollY < scroll_child.height/6 ){
                     if(section != 1){
                         if(mParam1.weight_series.size > 0) {
-                            main_lbl.text = mParam1.weight_series.get(weight_position).y.toString() + "Kg"
+                            main_lbl.text = mParam1.weight_series.get(weight_position).toString() + "Kg"
                             cal_lbl.text = mParam1.weight_Label.get(weight_position)
                             section = 1
                         }
@@ -86,7 +84,7 @@ class ForMeFragment : Fragment() {
                 }else if(scroll_child.height/6  < scrollY && scrollY <(scroll_child.height/6)*2 ){
                     if(section != 2){
                         if(mParam1.muscle_series.size > 0) {
-                        main_lbl.text = mParam1.muscle_series.get(muscle_position).y.toString() + "Kg"
+                        main_lbl.text = mParam1.muscle_series.get(muscle_position).toString() + "Kg"
                         cal_lbl.text = mParam1.muscle_Label.get(muscle_position)
                         section=2
                     }
@@ -96,7 +94,7 @@ class ForMeFragment : Fragment() {
                 }else if((scroll_child.height/6)*2 < scrollY && scrollY < (scroll_child.height/6)*3 ){
                     if(section != 3){
                         if(mParam1.fat_series.size > 0) {
-                        main_lbl.text = mParam1.fat_series.get(fat_position).y.toString() + "%"
+                        main_lbl.text = mParam1.fat_series.get(fat_position).toString() + "%"
                         cal_lbl.text = mParam1.fat_Label.get(fat_position)
                         section=3
                     }
@@ -106,7 +104,7 @@ class ForMeFragment : Fragment() {
                 }else if((scroll_child.height/6)*3 <scrollY && scrollY < (scroll_child.height/6)*4 ){
                     if(section != 4) {
                         if(mParam1.kcal_series.size > 0) {
-                        main_lbl.text = mParam1.kcal_series.get(bmr_position).y.toString() + "Kcal"
+                        main_lbl.text = mParam1.kcal_series.get(bmr_position).toString() + "Kcal"
                         cal_lbl.text = mParam1.kcal_Label.get(bmr_position)
                         section = 4
                     }
@@ -116,7 +114,7 @@ class ForMeFragment : Fragment() {
                 }else if((scroll_child.height/6)*4 < scrollY && scrollY <(scroll_child.height/6)*5 ){
                     if(section != 0) {
                         if(mParam1.bmi_series.size > 0) {
-                        main_lbl.text = mParam1.bmi_series.get(bmi_position).y.toString() + "Kg/" + "m\u00B2"
+                        main_lbl.text = mParam1.bmi_series.get(bmi_position).toString() + "Kg/" + "m\u00B2"
                         cal_lbl.text = mParam1.bmi_Label.get(bmi_position)
                         section = 0
                     }
@@ -126,7 +124,7 @@ class ForMeFragment : Fragment() {
                 }else if((scroll_child.height/6)*5 < scrollY && scrollY < (scroll_child.height/6)*6 ){
                     if(section != 5) {
                         if (mParam1.walk_series.size > 0) {
-                            main_lbl.text = mParam1.walk_series.get(walk_position).y.toString() + "걸음"
+                            main_lbl.text = mParam1.walk_series.get(walk_position).toString() + "걸음"
                             cal_lbl.text = mParam1.walk_Label.get(walk_position)
                             section = 5
                         }
@@ -144,7 +142,7 @@ class ForMeFragment : Fragment() {
                     0 -> {//bmi
                         if (bmi_position < mParam1.bmi_series.size) {
                             bmi_position -= 1
-                            main_lbl.text = mParam1.bmi_series.get(bmi_position).y.toString() + "Kg/" + "m\u00B2"
+                            main_lbl.text = mParam1.bmi_series.get(bmi_position).toString() + "Kg/" + "m\u00B2"
                             cal_lbl.text = mParam1.bmi_Label.get(bmi_position)
                         }else if (bmi_position == 0) {
                             Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
@@ -153,7 +151,7 @@ class ForMeFragment : Fragment() {
                     1 -> {//체중
                         if (weight_position < mParam1.weight_series.size) {
                             weight_position -= 1
-                            main_lbl.text = mParam1.weight_series.get(weight_position).y.toString() + "Kg"
+                            main_lbl.text = mParam1.weight_series.get(weight_position).toString() + "Kg"
                             cal_lbl.text = mParam1.weight_Label.get(weight_position)
                         }else if (weight_position == 0) {
                             Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
@@ -163,7 +161,7 @@ class ForMeFragment : Fragment() {
                     2 -> {//골격근
                         if (muscle_position < mParam1.muscle_series.size) {
                             muscle_position -= 1
-                            main_lbl.text = mParam1.muscle_series.get(muscle_position).y.toString() + "Kg"
+                            main_lbl.text = mParam1.muscle_series.get(muscle_position).toString() + "Kg"
                             cal_lbl.text = mParam1.muscle_Label.get(muscle_position)}else if (muscle_position == 0) {
                             Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
                         }
@@ -171,7 +169,7 @@ class ForMeFragment : Fragment() {
                     3 -> {//체지방
                         if (fat_position < mParam1.fat_series.size) {
                             fat_position -= 1
-                            main_lbl.text = mParam1.fat_series.get(fat_position).y.toString() + "%"
+                            main_lbl.text = mParam1.fat_series.get(fat_position).toString() + "%"
                             cal_lbl.text = mParam1.fat_Label.get(fat_position)}else if (fat_position == 0) {
                             Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
                         }
@@ -180,7 +178,7 @@ class ForMeFragment : Fragment() {
                         //소모칼로리
                         if (bmr_position < mParam1.kcal_series.size) {
                             bmr_position -= 1
-                            main_lbl.text = mParam1.kcal_series.get(bmr_position).y.toString() + "Kcal"
+                            main_lbl.text = mParam1.kcal_series.get(bmr_position).toString() + "Kcal"
                             cal_lbl.text = mParam1.kcal_Label.get(bmr_position)
                         } else if (bmr_position == 0) {
                             Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
@@ -189,7 +187,7 @@ class ForMeFragment : Fragment() {
                     5 -> {//걸음수
                         if (walk_position < mParam1.walk_series.size) {
                             walk_position -= 1
-                            main_lbl.text = mParam1.walk_series.get(walk_position).y.toString() + "걸음"
+                            main_lbl.text = mParam1.walk_series.get(walk_position).toString() + "걸음"
                             cal_lbl.text = mParam1.walk_Label.get(walk_position)
                         }else if (walk_position== 0) {
                             Toast.makeText(mListener!!.context, "가장 오래된 자료입니다.", Toast.LENGTH_SHORT).show()
@@ -206,7 +204,7 @@ class ForMeFragment : Fragment() {
                     0 -> {//bmi
                         if (bmi_position < mParam1.bmi_series.size) {
                             bmi_position += 1
-                            main_lbl.text = mParam1.bmi_series.get(bmi_position).y.toString() + "Kg/" + "m\u00B2"
+                            main_lbl.text = mParam1.bmi_series.get(bmi_position).toString() + "Kg/" + "m\u00B2"
                             cal_lbl.text = mParam1.bmi_Label.get(bmi_position)
                         }else if (bmi_position == mParam1.bmi_series.size-1) {
                             Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
@@ -215,7 +213,7 @@ class ForMeFragment : Fragment() {
                     1 -> {//체중
                         if (weight_position < mParam1.weight_series.size) {
                             weight_position += 1
-                            main_lbl.text = mParam1.weight_series.get(weight_position).y.toString() + "Kg"
+                            main_lbl.text = mParam1.weight_series.get(weight_position).toString() + "Kg"
                             cal_lbl.text = mParam1.weight_Label.get(weight_position)}else if (weight_position == mParam1.weight_series.size-1) {
                             Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
                         }
@@ -223,7 +221,7 @@ class ForMeFragment : Fragment() {
                     2 -> {//골격근
                         if (muscle_position < mParam1.muscle_series.size) {
                             muscle_position += 1
-                            main_lbl.text = mParam1.muscle_series.get(muscle_position).y.toString() + "Kg"
+                            main_lbl.text = mParam1.muscle_series.get(muscle_position).toString() + "Kg"
                             cal_lbl.text = mParam1.muscle_Label.get(muscle_position)}else if (muscle_position == mParam1.muscle_series.size-1) {
                             Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
 
@@ -232,7 +230,7 @@ class ForMeFragment : Fragment() {
                     3 -> {//체지방
                         if (fat_position < mParam1.fat_series.size) {
                             fat_position += 1
-                            main_lbl.text = mParam1.fat_series.get(fat_position).y.toString() + "%"
+                            main_lbl.text = mParam1.fat_series.get(fat_position).toString() + "%"
                             cal_lbl.text = mParam1.fat_Label.get(fat_position)}else if (fat_position == mParam1.fat_series.size-1) {
                             Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
 
@@ -242,7 +240,7 @@ class ForMeFragment : Fragment() {
                         //소모칼로리
                         if (bmr_position < mParam1.kcal_series.size) {
                             bmr_position += 1
-                            main_lbl.text = mParam1.kcal_series.get(bmr_position).y.toString() + "Kcal"
+                            main_lbl.text = mParam1.kcal_series.get(bmr_position).toString() + "Kcal"
                             cal_lbl.text = mParam1.kcal_Label.get(bmr_position)
                         } else if (bmr_position == mParam1.kcal_series.size-1) {
                             Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
@@ -252,7 +250,7 @@ class ForMeFragment : Fragment() {
                     5 -> {//걸음수
                         if (walk_position < mParam1.walk_series.size) {
                             walk_position += 1
-                            main_lbl.text = mParam1.walk_series.get(walk_position).y.toString() + "걸음"
+                            main_lbl.text = mParam1.walk_series.get(walk_position).toString() + "걸음"
                             cal_lbl.text = mParam1.walk_Label.get(walk_position)
                         }else if (walk_position == mParam1.walk_series.size-1) {
                             Toast.makeText(mListener!!.context, "가장 최근 자료입니다.", Toast.LENGTH_SHORT).show()
@@ -330,12 +328,16 @@ class ForMeFragment : Fragment() {
     }
     fun dataSet(section : Int):BarData {
         val data = BarData()
+        val list:MutableList<BarEntry> = ArrayList()
         when (section) {
             0 -> {//체중
                 if (mParam1.weight_series.size > 0) {
                     Log.i(TAG, "체중 있음")
+                    for(i:Int in mParam1.weight_series.indices){
+                        list.add(BarEntry(i.toFloat(), mParam1.weight_series[i]))
+                    }
                     weight_position = mParam1.weight_series.size - 1
-                    val set1 = BarDataSet(mParam1.weight_series, getString(R.string.weight))
+                    val set1 = BarDataSet(list, getString(R.string.weight))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_weight.xAxis
@@ -348,8 +350,11 @@ class ForMeFragment : Fragment() {
             1 -> {//걷기
                 if (mParam1.walk_series.size > 0) {
                     Log.i(TAG, "걷기자료 있음")
+                    for(i:Int in mParam1.walk_series.indices){
+                        list.add(BarEntry(i.toFloat(), mParam1.walk_series[i].toFloat()))
+                    }
                     walk_position = mParam1.walk_series.size - 1
-                    val set1 = BarDataSet(mParam1.walk_series, getString(R.string.walk))
+                    val set1 = BarDataSet(list, getString(R.string.walk))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_walk.xAxis
@@ -362,8 +367,11 @@ class ForMeFragment : Fragment() {
             2 -> {//칼로리
                 if (mParam1.kcal_series.size > 0) {
                     Log.i(TAG, "칼로리 있음")
+                    for(i:Int in mParam1.kcal_series.indices){
+                        list.add(BarEntry(i.toFloat(), mParam1.kcal_series[i]))
+                    }
                     bmr_position = mParam1.kcal_series.size - 1
-                    val set1 = BarDataSet(mParam1.kcal_series, getString(R.string.calore))
+                    val set1 = BarDataSet(list, getString(R.string.calore))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_bmr.xAxis
@@ -376,8 +384,11 @@ class ForMeFragment : Fragment() {
             3 -> {//체지방비율
                 if (mParam1.fat_series.size > 0) {
                     Log.i(TAG, "체지방비율 있음")
+                    for(i:Int in mParam1.fat_series.indices){
+                        list.add(BarEntry(i.toFloat(), mParam1.fat_series[i]))
+                    }
                     fat_position = mParam1.fat_series.size - 1
-                    val set1 = BarDataSet(mParam1.fat_series, getString(R.string.bodyfat))
+                    val set1 = BarDataSet(list, getString(R.string.bodyfat))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_fat.xAxis
@@ -390,8 +401,11 @@ class ForMeFragment : Fragment() {
             4 -> {//골격근
                 if (mParam1.muscle_series.size > 0) {
                     Log.i(TAG, "골격근 있음")
+                    for(i:Int in mParam1.muscle_series.indices){
+                        list.add(BarEntry(i.toFloat(), mParam1.muscle_series[i]))
+                    }
                     muscle_position = mParam1.muscle_series.size - 1
-                    val set1 = BarDataSet(mParam1.muscle_series, getString(R.string.musclemass))
+                    val set1 = BarDataSet(list, getString(R.string.musclemass))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_muscle.xAxis
@@ -404,8 +418,11 @@ class ForMeFragment : Fragment() {
             5 -> {//BMI
                 if (mParam1.bmi_series.size > 0) {
                     Log.i(TAG, "BMI 있음")
+                    for(i:Int in mParam1.bmi_series.indices){
+                        list.add(BarEntry(i.toFloat(), mParam1.bmi_series[i]))
+                    }
                     bmi_position = mParam1.bmi_series.size - 1
-                    val set1 = BarDataSet(mParam1.bmi_series, getString(R.string.bmi))
+                    val set1 = BarDataSet(list, getString(R.string.bmi))
                     set1.setColors(Color.rgb(65, 192, 193))
                     data.addDataSet(set1)
                     val xA = graph_bmi.xAxis
@@ -462,7 +479,7 @@ class ForMeFragment : Fragment() {
             Log.i(TAG, "ForMeFragment")
             val fragment = ForMeFragment()
             val args = Bundle()
-            args.putSerializable(ARG_PARAM1, param1)
+            args.putParcelable(ARG_PARAM1, param1)
             Log.i(TAG, "ForMeFragment")
             fragment.arguments = args
             return fragment

@@ -4,12 +4,11 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.View
-import android.support.v4.app.FragmentTabHost
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import bodygate.bcns.bodygation.DataClass
 import bodygate.bcns.bodygation.R
-import bodygate.bcns.bodygation.dummy.DataClass
 import bodygate.bcns.bodygation.support.MainPageAdapter
 import kotlinx.android.synthetic.main.maintablayout.*
 
@@ -22,7 +21,7 @@ class MainTabFragment: Fragment(){
         super.onCreate(savedInstanceState)
         Log.i(TAG, "onCreate")
         if (arguments != null) {
-            mParam1 = arguments!!.getSerializable(ARG_PARAM1) as DataClass
+            mParam1 = arguments!!.getParcelable(ARG_PARAM1)
         }
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -79,7 +78,7 @@ class MainTabFragment: Fragment(){
         fun newInstance(param1: DataClass?): MainTabFragment {
             val fragment = MainTabFragment()
             val args = Bundle()
-            args.putSerializable(ARG_PARAM1, param1)
+            args.putParcelable(ARG_PARAM1, param1)
             fragment.arguments = args
             return fragment
         }

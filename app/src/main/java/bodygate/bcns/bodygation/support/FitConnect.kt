@@ -1,44 +1,20 @@
 package bodygate.bcns.bodygation.support
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.net.Uri
 import android.util.Log
-import android.widget.Toast
-import bodygate.bcns.bodygation.dummy.DataClass
-import com.github.mikephil.charting.data.BarEntry
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.fitness.Fitness
-import com.google.android.gms.fitness.data.*
-import com.google.android.gms.fitness.request.DataReadRequest
-import com.google.android.gms.fitness.request.DataTypeCreateRequest
-import com.google.android.gms.fitness.result.DataReadResponse
 import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import kotlinx.android.synthetic.main.fragment_goal.*
-import kotlinx.android.synthetic.main.maintablayout.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import java.lang.Exception
-import java.text.SimpleDateFormat
-import java.util.*
-import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
 interface FitConnect{
     val TAG: String
         get() = "FitConnect"
     var account:GoogleSignInAccount
     var  mAuth: FirebaseAuth
-    var personUrl:Uri
-    var data:DataClass
 
     fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
         try {
@@ -64,8 +40,6 @@ interface FitConnect{
             //user email id
             val personEmail = acct.getEmail()
 
-            //user profile pic
-            personUrl = acct.photoUrl!!
             Log.i("profile", "getProfileInformation : " + personName + "\t" + acct.photoUrl.toString() + "\t"+ personEmail +"\t" + acct.toString())
         }
     }

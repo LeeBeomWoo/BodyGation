@@ -14,6 +14,9 @@ android {
         // but continue the build even when errors are found:
         abortOnError false
     }
+    androidExtensions {
+        experimental = true
+    }
     configurations.all {
         resolutionStrategy.force 'com.google.code.findbugs:jsr305:1.3.9'
     }

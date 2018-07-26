@@ -9,21 +9,15 @@ import android.net.Uri
 import android.os.AsyncTask
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
+import android.os.Parcelable
 import android.support.v4.content.ContextCompat.startActivity
 import android.util.Log
-import android.widget.ProgressBar
-import android.widget.Toast
-import bodygate.bcns.bodygation.dummy.DataClass
-import bodygate.bcns.bodygation.navigationitem.*
-import bodygate.bcns.bodygation.support.FitConnect
-import bodygate.bcns.bodygation.support.MainPageAdapter
-import com.github.mikephil.charting.data.BarEntry
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.Scopes
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.FitnessOptions
@@ -35,23 +29,25 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.android.parcel.Parcelize
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class IntroActivity : AppCompatActivity(), FitConnect {
+class IntroActivity : AppCompatActivity() {
+    var personUrl: Uri? = null
 
     lateinit var custom_Type: DataType
-    override lateinit var account: GoogleSignInAccount
-    override lateinit var mAuth: FirebaseAuth
-    override lateinit var personUrl: Uri
+    lateinit var account: GoogleSignInAccount
+    lateinit var mAuth: FirebaseAuth
     lateinit var mGoogleSignInClient: GoogleSignInClient
     private val REQUEST_OAUTH = 1001
-    override var data:DataClass = DataClass()
+    val TAG = "IntroActivity-"
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
@@ -94,37 +90,97 @@ class IntroActivity : AppCompatActivity(), FitConnect {
                 .build()
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
         if(mGoogleSignInClient.silentSignIn().isSuccessful){
+            Log.i(TAG, "mGoogleSignInClient.silentSignIn().isSuccessful")
             accessGoogleFit(mGoogleSignInClient.silentSignIn().result)
             account = mGoogleSignInClient.silentSignIn().result
         }else{
+            Log.i(TAG, "mGoogleSignInClient.silentSignIn().isFailed")
             signIn()
         }
-        data.setImg(personUrl)
-        val task = someTask(account, this.applicationContext, data)
-        task.execute()
+    }
+    fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
+        Log.i(TAG, "handleSignInResult")
+        try {
+            val account = completedTask.getResult(ApiException::class.java)
+
+            // Signed in successfully, show authenticated UI.
+            accessGoogleFit(account)
+        } catch (e: ApiException) {
+            // The ApiException status code indicates the detailed failure reason.
+            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            Log.w(TAG, "signInResult:failed code=" + e.statusCode)
+            getProfileInformation(null)
+        }
+
+    }
+    private fun getProfileInformation(acct: FirebaseUser?) {
+        //if account is not null fetch the information
+        if (acct != null) {
+            //user display name
+            val personName = acct.getDisplayName()
+
+
+            //user email id
+            val personEmail = acct.getEmail()
+
+            personUrl = acct.photoUrl
+
+            val task = someTask(account, this@IntroActivity, personUrl!!)
+            task.execute()
+            Log.i("profile", "getProfileInformation : " + personName + "\t" + acct.photoUrl.toString() + "\t"+ personEmail +"\t" + acct.toString())
+        }
+    }
+
+    fun accessGoogleFit(acc:GoogleSignInAccount){
+        Log.i(TAG, "accessGoogleFit")
+        val credential = GoogleAuthProvider.getCredential(acc.idToken, null)
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(object : OnCompleteListener<AuthResult>{
+                    override fun onComplete(p0: Task<AuthResult>) {
+                        if(p0.isSuccessful){
+                            val user = mAuth.currentUser
+                            getProfileInformation(user!!)
+                        }else{
+                            getProfileInformation(null)
+                        }
+                    }
+                })
     }
     private fun signIn() {
         Log.i(TAG, "signIn")
         val signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, REQUEST_OAUTH)
     }
-    class someTask(acc: GoogleSignInAccount, cont:Context, data:DataClass) : AsyncTask<Void, Void, DataClass>() {
+    class someTask(acc: GoogleSignInAccount, cont:Context, uri:Uri) : AsyncTask<Void, Void, Void?>() {
         var ib = 0
         var account: GoogleSignInAccount
         @SuppressLint("StaticFieldLeak")
         var contextContext:Context
-        var data:DataClass
         val TAG = "someTask"
+        var bmi_series:MutableList<Float> = ArrayList()
+        var muscle_series:MutableList<Float> = ArrayList()
+        var walk_series:MutableList<Int> = ArrayList()
+        var fat_series:MutableList<Float> = ArrayList()
+        var weight_series:MutableList<Float> = ArrayList()
+        var kcal_series:MutableList<Float> = ArrayList()
+
+        var bmi_Label:MutableList<String> = ArrayList()
+        var muscle_Label:MutableList<String> = ArrayList()
+        var walk_Label:MutableList<String> = ArrayList()
+        var weight_Label:MutableList<String> = ArrayList()
+        var fat_Label:MutableList<String> = ArrayList()
+        var kcal_Label:MutableList<String> = ArrayList()
+        var personUrl: Uri
         var cPb: ProgressDialog? = null
         init {
             account = acc
             contextContext = cont
-            this.data = data
+            personUrl = uri
         }
-        override fun doInBackground(vararg params: Void?): DataClass? {
+        override fun doInBackground(vararg params: Void?):Void? {
             ReadData(account)
             customReadData(account)
-            return data
+            return null
         }
 
 
@@ -326,34 +382,34 @@ class IntroActivity : AppCompatActivity(), FitConnect {
                     Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
                     when(field.name){
                         "bmi" -> {
-                            data.bmi_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            data.bmi_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                            Log.i(TAG, "bmi"  + dp.getValue(field).asFloat().toString() + ", " + data.bmi_Label.last())
+                            bmi_series.add(dp.getValue(field).asFloat())
+                            bmi_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                            Log.i(TAG, "bmi"  + dp.getValue(field).asFloat().toString() + ", " + bmi_Label.last())
                         }
                         "muscle" -> {
-                            data.muscle_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            data.muscle_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                            Log.i(TAG, "muscle"  + dp.getValue(field).asFloat().toString() + ", " + data.muscle_Label.last())
+                            muscle_series.add(dp.getValue(field).asFloat())
+                            muscle_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                            Log.i(TAG, "muscle"  + dp.getValue(field).asFloat().toString() + ", " + muscle_Label.last())
                         }
                         "fat" -> {
-                            data.fat_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            data.fat_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                            Log.i(TAG, "fat"  + dp.getValue(field).asFloat().toString() + ", " + data.fat_Label.last())
+                            fat_series.add(dp.getValue(field).asFloat())
+                            fat_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                            Log.i(TAG, "fat"  + dp.getValue(field).asFloat().toString() + ", " + fat_Label.last())
                         }
                         Field.FIELD_WEIGHT.name ->{
-                            data.weight_series.add(BarEntry(count.toFloat(), dp.getValue(field).asFloat()))
-                            data.weight_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
-                            Log.i(TAG, "weight"  + dp.getValue(field).asFloat().toString() + ", " + data.weight_Label.last())
+                            weight_series.add(dp.getValue(field).asFloat())
+                            weight_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                            Log.i(TAG, "weight"  + dp.getValue(field).asFloat().toString() + ", " + weight_Label.last())
                         }
                         Field.FIELD_CALORIES.name ->{
-                            data.kcal_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asFloat()))
-                            data.kcal_Label.add(label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
-                            Log.i(TAG, " kcal"  + dp.getValue(field).asFloat().toString() + ", " + data.kcal_Label.last())
+                            kcal_series.add(dp.getValue(field).asFloat())
+                            kcal_Label.add(label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                            Log.i(TAG, " kcal"  + dp.getValue(field).asFloat().toString() + ", " + kcal_Label.last())
                         }
                         Field.FIELD_STEPS.name ->{
-                            data.walk_series.add(BarEntry(ib.toFloat(), dp.getValue(field).asInt().toFloat()))
-                            data.walk_Label.add(label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
-                            Log.i(TAG, "walk"  + dp.getValue(field).asInt().toString() + ", " + data.walk_Label.last())
+                            walk_series.add(dp.getValue(field).asInt())
+                            walk_Label.add(label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                            Log.i(TAG, "walk"  + dp.getValue(field).asInt().toString() + ", " + walk_Label.last())
                         }
                     }
                     count += 1
@@ -370,13 +426,19 @@ class IntroActivity : AppCompatActivity(), FitConnect {
             cPb!!.show()
         }
 
-        override fun onPostExecute(result: DataClass?) {
+        override fun onPostExecute(result: Void?) {
             super.onPostExecute(result)
             Log.i(TAG, "stopProgress")
             cPb!!.dismiss()
             val intent = Intent(contextContext, MainActivity::class.java)
-            intent.putExtra("EXTRA_SESSION_ID", data)
+            intent.putExtra("EXTRA_SESSION_ID", DataClass(bmi_series, muscle_series, walk_series, fat_series, weight_series, kcal_series,
+                    bmi_Label,muscle_Label,walk_Label, weight_Label, fat_Label, kcal_Label, personUrl))
             startActivity(contextContext, intent, null)
         }
     }
+}
+
+@Parcelize
+class DataClass(var bmi_series:MutableList<Float>,var muscle_series:MutableList<Float>,var walk_series:MutableList<Int>,var fat_series:MutableList<Float>,var weight_series:MutableList<Float>,var kcal_series:MutableList<Float>
+                ,var bmi_Label:MutableList<String>,var muscle_Label:MutableList<String>,var walk_Label:MutableList<String>,var weight_Label:MutableList<String>,var fat_Label:MutableList<String>,var kcal_Label:MutableList<String>,var personUrl: Uri?) : Parcelable {
 }
