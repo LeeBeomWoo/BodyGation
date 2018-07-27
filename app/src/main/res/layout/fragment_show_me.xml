@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cn.gavinliu.android.lib.scale.ScaleRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".navigationitem.ShowMeFragment">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/date_list"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        tools:listitem="@layout/textview"/>
+
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/date_list"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/scroll_child"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/value_weight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/backline"
+                android:text="@string/weight"
+                android:textAlignment="center"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/value_muscle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/backline"
+                android:text="@string/musclemass"
+                android:textAlignment="center"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/value_fat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/backline"
+                android:text="@string/bodyfat"
+                android:textAlignment="center"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/value_bmr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/backline"
+                android:text="@string/caloreb"
+                android:textAlignment="center"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/value_bmi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/backline"
+                android:text="@string/bmi"
+                android:textAlignment="center"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/value_walk"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/backline"
+                android:text="@string/walk"
+                android:textAlignment="center"
+                android:textSize="26sp" />
+
+        </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
+    </cn.gavinliu.android.lib.scale.ScaleRelativeLayout>
