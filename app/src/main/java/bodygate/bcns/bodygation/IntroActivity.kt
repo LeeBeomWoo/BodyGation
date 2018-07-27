@@ -191,14 +191,11 @@ class IntroActivity : AppCompatActivity() {
 
 
         fun ReadData(acc:GoogleSignInAccount) {
-            readRequest_weight(acc, contextContext)
-            readRequest_arr(acc, contextContext)
-            /*
             readRequest_weight(acc, contextContext).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataReadResponse, Task<DataReadResponse>> {
                 override fun then(p0: Task<DataReadResponse>): Task<DataReadResponse> {
                     return readRequest_arr(acc, contextContext)
                 }
-            })*/
+            })
         }
         fun customReadData(acc:GoogleSignInAccount) {
             customDataType(acc, contextContext).continueWithTask(object: com.google.android.gms.tasks.Continuation<DataType, Task<DataReadResponse>> {

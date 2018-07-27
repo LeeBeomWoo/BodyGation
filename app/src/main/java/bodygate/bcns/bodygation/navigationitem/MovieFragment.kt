@@ -1,32 +1,16 @@
 package bodygate.bcns.bodygation.navigationitem
 
-import android.app.ProgressDialog
 import android.content.Context
-import android.net.Uri
-import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import bodygate.bcns.bodygation.MyRecyclerViewAdapter
 import bodygate.bcns.bodygation.R
-import bodygate.bcns.bodygation.R.id.pop_list
-import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import bodygate.bcns.bodygation.dummy.DummyContent
-import bodygate.bcns.bodygation.youtube.YoutubeResponse
 import kotlinx.android.synthetic.main.fragment_movie.*
-import kotlinx.android.synthetic.main.fragment_movie.view.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
-import org.jetbrains.anko.progressDialog
-import kotlin.coroutines.experimental.CoroutineContext
 
 
 /**
@@ -44,10 +28,6 @@ class MovieFragment : Fragment() {
     private var mParam2: String? = null
     private var mListener: OnMovieInteraction? = null
     val TAG = "MovieFragment"
-    // dispatches execution onto the Android main UI thread
-    private val uiContext: CoroutineContext = UI
-    // represents a common pool of shared threads as the coroutine dispatcher
-    private val bgContext: CoroutineContext = CommonPool
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,12 +58,6 @@ class MovieFragment : Fragment() {
         my_linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
         my_list.setLayoutManager(my_linearLayoutManager)
     }
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(item: DummyContent.DummyItem) {
-        if (mListener != null) {
-            mListener!!.OnMovieInteraction(item)
-        }
-    }
     fun get_Data(i:Int)= runBlocking{
              mListener!!.getDatas("snippet, id", "가슴 어깨 허리 복근 등 허벅지 종아리 목 엉덩이 팔", getString(R.string.API_key), 5, true, i)
     }
@@ -111,8 +85,6 @@ class MovieFragment : Fragment() {
      * See the Android Training lesson [Communicating with Other Fragments](http://developer.android.com/training/basics/fragments/communicating.html) for more information.
      */
     interface OnMovieInteraction {
-        // TODO: Update argument type and name
-        fun OnMovieInteraction(item: DummyContent.DummyItem)
         suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
         val context:Context
     }

@@ -334,9 +334,6 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
                 .commit()
     }
 
-    override fun OnMovieInteraction(item: DummyContent.DummyItem) {
-    }
-
     override fun getpage(): String {
         return nextpage()
     }

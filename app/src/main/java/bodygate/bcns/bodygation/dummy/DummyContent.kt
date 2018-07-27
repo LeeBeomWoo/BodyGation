@@ -1,7 +1,10 @@
 package bodygate.bcns.bodygation.dummy
 
+import android.annotation.SuppressLint
 import com.google.android.youtube.player.YouTubePlayer
+import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * Helper class for providing sample content for user interfaces created by
@@ -22,35 +25,44 @@ object DummyContent {
      */
     val ITEM_MAP: MutableMap<String, DummyItem> = HashMap()
 
-    private val COUNT = 25
-
-    init {
-        // Add some sample items.
-        for (i in 1..COUNT) {
-            addItem(createDummyItem(i))
-        }
-    }
-
-    private fun addItem(item: DummyItem) {
+    fun addItem(item: DummyItem) {
         ITEMS.add(item)
-        ITEM_MAP[item.id] = item
+        ITEM_MAP[item.date] = item
     }
 
-    private fun createDummyItem(position: Int): DummyItem {
-        return DummyItem(position.toString(), "Item $position", makeDetails(position))
-    }
+    @SuppressLint("SimpleDateFormat")
+    fun createDummyItem(position: Long): DummyItem {
+        val label = SimpleDateFormat("MM/dd")
+        val cal = Calendar.getInstance()
+        cal.setTime(Date(position))
+        val dayNum = cal.get(Calendar.DAY_OF_WEEK)
+        var day = ""
+        when(dayNum){
+            1-> {
+                day = "일"}
+            2-> {
+                day = "월"}
+            3  -> {
+                day = "화"}
+            4 -> {
+                day = "수"}
+            5 -> {
+                day = "목"}
+            6 -> {
+                day = "금"}
+            7 -> {
+                day = "토"}
 
-    private fun makeDetails(position: Int): String {
-        val builder = "More details information here."
-        return builder
+        }
+        return DummyItem(label.format(Date(position)), day + "요일")
     }
 
     /**
      * A dummy item representing a piece of content.
      */
-    class DummyItem(val id: String, val title: String, val details: String) {
+    class DummyItem(val date: String, val dow: String) {
         override fun toString(): String {
-            return title
+            return date + "\n" + dow
         }
     }
 }
