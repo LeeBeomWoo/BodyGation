@@ -267,7 +267,7 @@ class IntroActivity : AppCompatActivity() {
             val cal = Calendar.getInstance()
             val now = Date()
             val endTime = now.time
-            cal.set(Calendar.DAY_OF_YEAR, -400)
+            cal.set(Calendar.DAY_OF_YEAR, -200)
             val startTime = cal.timeInMillis
             val request = DataReadRequest.Builder()
                     .read(DataType.TYPE_WEIGHT)
@@ -298,7 +298,7 @@ class IntroActivity : AppCompatActivity() {
             val cal = Calendar.getInstance()
             val now = Date()
             val endTime = now.time
-            cal.set(Calendar.DAY_OF_YEAR, -400)
+            cal.set(Calendar.DAY_OF_YEAR, -200)
             val startTime = cal.timeInMillis
             val request = DataReadRequest.Builder()
                     .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
@@ -331,7 +331,7 @@ class IntroActivity : AppCompatActivity() {
             val cal = Calendar.getInstance()
             val now = Date()
             val endTime = now.time
-            cal.set(Calendar.DAY_OF_YEAR, -400)
+            cal.set(Calendar.DAY_OF_YEAR, -200)
             val startTime = cal.timeInMillis
             val request = DataReadRequest.Builder()
                     .read(type)

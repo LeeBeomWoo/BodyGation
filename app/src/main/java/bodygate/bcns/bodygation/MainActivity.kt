@@ -428,7 +428,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
         followFragment = supportFragmentManager.findFragmentByTag("follow") as FollowFragment?
         youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult?
-        forMeFragment = supportFragmentManager.findFragmentByTag("forme") as ForMeFragment?
+        forMeFragment = supportFragmentManager.findFragmentByTag("forme") as ShowMeFragment?
         goalFragment = supportFragmentManager.findFragmentByTag("goal") as GoalFragment?
         mainTabFragment = supportFragmentManager.findFragmentByTag("main") as MainTabFragment?
         tabadapter = MainPageAdapter(supportFragmentManager)

@@ -31,7 +31,7 @@ class MainTabFragment: Fragment(){
             mListener!!.tabadapter = MainPageAdapter(requireFragmentManager())
         }
         if (requireFragmentManager().findFragmentByTag("forme") == null) {
-            mListener!!.forMeFragment = ForMeFragment.newInstance(mParam1)
+            mListener!!.forMeFragment = ShowMeFragment.newInstance(mParam1!!)
         }
         if (requireFragmentManager().findFragmentByTag("follow") == null) {
             mListener!!.followFragment = FollowFragment.newInstance()
