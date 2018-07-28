@@ -29,55 +29,85 @@
                 android:id="@+id/value_weight"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/backline"
                 android:text="@string/weight"
                 android:textAlignment="center"
-                android:textSize="26sp" />
+                android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/value_muscle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/backline"
                 android:text="@string/musclemass"
                 android:textAlignment="center"
-                android:textSize="26sp" />
+                android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/value_fat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/backline"
                 android:text="@string/bodyfat"
                 android:textAlignment="center"
-                android:textSize="26sp" />
+                android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/value_bmr"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/backline"
                 android:text="@string/caloreb"
                 android:textAlignment="center"
-                android:textSize="26sp" />
+                android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/value_bmi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/backline"
                 android:text="@string/bmi"
                 android:textAlignment="center"
-                android:textSize="26sp" />
+                android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/value_walk"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/backline"
                 android:text="@string/walk"
                 android:textAlignment="center"
-                android:textSize="26sp" />
+                android:textSize="18sp" />
 
         </LinearLayout>
     </android.support.v4.widget.NestedScrollView>

@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import bodygate.bcns.bodygation.DataClass
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import kotlinx.android.synthetic.main.select_view.*
@@ -23,6 +24,7 @@ import kotlinx.coroutines.experimental.runBlocking
  * Use the [FollowFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
+private const val ARG_PARAM1 = "img"
 class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygation.support.CheckableImageButton.OnCheckedChangeListener {
     override fun onCheckedChanged(button: bodygate.bcns.bodygation.support.CheckableImageButton?, check: Boolean) {
         when (button!!.id) {
@@ -210,6 +212,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     }
 
     val TAG = "FollowFragment"
+    lateinit var mParam1: DataClass
     @SuppressLint("RestrictedApi")
     override fun onClick(p0: View?) {
         when (p0!!.id){
@@ -229,6 +232,9 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        arguments?.let {
+            mParam1 = it.getParcelable(bodygate.bcns.bodygation.navigationitem.ARG_PARAM1)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -362,8 +368,6 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     companion object {
         // TODO: Rename parameter arguments, choose names that match
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-        private val ARG_PARAM1 = "param1"
-        private val ARG_PARAM2 = "param2"
 
         /**
          * Use this factory method to create a new instance of
@@ -374,11 +378,12 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
          * @return A new instance of fragment FollowFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(): FollowFragment {
-            val fragment = FollowFragment()
-            val args = Bundle()
-            fragment.arguments = args
-            return fragment
-        }
+
+        fun newInstance(param1: DataClass) =
+                FollowFragment().apply {
+                    arguments = Bundle().apply {
+                        putParcelable(ARG_PARAM1, param1)
+                    }
+                }
     }
 }// Required empty public constructor

@@ -17,7 +17,7 @@ import com.google.android.youtube.player.YouTubeThumbnailLoader
 import com.google.android.youtube.player.YouTubeThumbnailView
 import com.google.api.services.youtube.model.SearchResult
 
-class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val context:Context) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
+class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val context:Context, val itemClick:(String) -> Unit) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
 
     private val UNINITIALIZED = 1
     private val INITIALIZING = 2
@@ -26,6 +26,7 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
     private val transparentColor = Color.parseColor("#00000000")
     var dataitem = SearchResult()
     var datalist:MutableList<SearchResult> = ArrayList()
+    lateinit var dataclass:DataClass
     val TAG = "YoutubeListViewAdapter_"
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         Log.i(TAG, "onCreateViewHolder")
@@ -52,28 +53,11 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
             val loader = holder.ytThubnailView.getTag(R.id.thumbnailloader) as YouTubeThumbnailLoader
             loader.setVideo(mValues[position].id!!.videoId)
         }
-        holder.ivYtLogo.setOnClickListener(object : View.OnClickListener{
-            override fun onClick(v: View?) {
-                moveActivity(mValues[position].id!!.videoId!!)
-            }
-
-        })
-        holder.ytThubnailView.setOnClickListener(object : View.OnClickListener{
-            override fun onClick(v: View?) {
-                moveActivity(mValues[position].id!!.videoId!!)
-            }
-
-        })
+        holder.ivYtLogo.setOnClickListener{itemClick(mValues[position].id!!.videoId!!)}
+        holder.ytThubnailView.setOnClickListener{itemClick(mValues[position].id!!.videoId!!)}
     }
     override fun getItemCount(): Int {
             return mValues.size
-    }
-    fun moveActivity(p:String){
-        val intent = Intent(context, ItemActivity::class.java)
-// To pass any data to next activity
-        intent.putExtra("url", p)
-// start your next activity
-        startActivity(context, intent, null)
     }
     inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
         val ytThubnailView: YouTubeThumbnailView

@@ -68,6 +68,7 @@ class ForMeFragment : Fragment() {
                     .error(R.mipmap.toolbarlogo_round).into(profile_Image)
         graphdata()
         scrollView.isSmoothScrollingEnabled = true
+        /*
         scrollView.setOnScrollChangeListener(object : NestedScrollView.OnScrollChangeListener{
             override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
                 Log.i(TAG, "scroll_child-scrollY: " + (scroll_child.height/6).toString())
@@ -259,7 +260,7 @@ class ForMeFragment : Fragment() {
                 }
 
             }
-        })
+        })*/
     }
     fun graphdata(){
         Log.i(TAG, "graphdata")
@@ -329,6 +330,7 @@ class ForMeFragment : Fragment() {
     fun dataSet(section : Int):BarData {
         val data = BarData()
         val list:MutableList<BarEntry> = ArrayList()
+        /*
         when (section) {
             0 -> {//체중
                 if (mParam1.weight_series.size > 0) {
@@ -433,6 +435,7 @@ class ForMeFragment : Fragment() {
                 }
             }
         }
+        */
         return data
     }
     override fun onAttach(context: Context) {

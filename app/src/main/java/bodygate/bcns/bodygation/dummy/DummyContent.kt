@@ -31,10 +31,10 @@ object DummyContent {
     }
 
     @SuppressLint("SimpleDateFormat")
-    fun createDummyItem(position: Long): DummyItem {
+    fun createDummyItem(position: Int): DummyItem {
         val label = SimpleDateFormat("MM/dd")
         val cal = Calendar.getInstance()
-        cal.setTime(Date(position))
+        cal.add(Calendar.DAY_OF_WEEK, position)
         val dayNum = cal.get(Calendar.DAY_OF_WEEK)
         var day = ""
         when(dayNum){
@@ -54,7 +54,7 @@ object DummyContent {
                 day = "토"}
 
         }
-        return DummyItem(label.format(Date(position)), day + "요일")
+        return DummyItem(label.format(cal.timeInMillis), day + "요일")
     }
 
     /**
@@ -63,6 +63,9 @@ object DummyContent {
     class DummyItem(val date: String, val dow: String) {
         override fun toString(): String {
             return date + "\n" + dow
+        }
+        fun todate():String{
+            return date
         }
     }
 }

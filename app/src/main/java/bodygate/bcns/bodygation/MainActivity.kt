@@ -330,7 +330,7 @@ class MainActivity() : AppCompatActivity(), GoalFragment.OnGoalInteractionListen
         Log.i(TAG, "OnFollowInteraction")
         supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.root_layout, YouTubeResult.newInstance(), "youtube")
+                .replace(R.id.root_layout, YouTubeResult.newInstance(dataclass), "youtube")
                 .commit()
     }
 

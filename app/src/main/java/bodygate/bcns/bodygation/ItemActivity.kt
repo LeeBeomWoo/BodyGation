@@ -47,6 +47,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override var videoPlaying:Boolean = false
     override var video_camera:Boolean = false //false = camera, true = video
     override var videoPath:String = ""
+    lateinit var dataclass:DataClass
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +60,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_item)
         Log.i(TAG, "onCreate")
+        dataclass = (intent.getParcelableExtra("EXTRA_SESSION_ID"))
         if (savedInstanceState != null) {
             url = savedInstanceState.getString("url")
             youtubeprogress = savedInstanceState.getInt("progress")
@@ -117,6 +119,7 @@ class ItemActivity : AppCompatActivity(), OnFragmentInteractionListener {
     override fun onBackPressed() {
         // Otherwise defer to system default behavior.
         val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("EXTRA_SESSION_ID", dataclass)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivity(intent)
     }

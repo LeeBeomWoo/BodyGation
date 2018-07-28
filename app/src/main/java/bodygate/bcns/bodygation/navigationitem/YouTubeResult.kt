@@ -1,14 +1,18 @@
 package bodygate.bcns.bodygation.navigationitem
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import bodygate.bcns.bodygation.DataClass
+import bodygate.bcns.bodygation.ItemActivity
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import com.google.api.services.youtube.model.SearchResult
@@ -20,18 +24,23 @@ import kotlinx.coroutines.experimental.runBlocking
  * Created by LeeBeomWoo on 2018-03-23.
  */
 
+private const val ARG_PARAM1 = "img"
 class YouTubeResult : Fragment() {
     // TODO: Rename and change types of parameters
     val TAG = "YouTubeResult"
     private var mParam1: String? = null
     var adapter:YoutubeResultListViewAdapter? = null
     private var mListener: OnYoutubeResultInteraction? = null
+    lateinit var dataclass: DataClass
     /** Global instance of the max number of videos we want returned (50 = upper limit per page).  */
 
     /** Global instance of Youtube object to make all API requests.  */
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i(TAG, "onCreate")
         super.onCreate(savedInstanceState)
+        arguments?.let {
+            dataclass = it.getParcelable(bodygate.bcns.bodygation.navigationitem.ARG_PARAM1)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -40,6 +49,14 @@ class YouTubeResult : Fragment() {
         return inflater.inflate(R.layout.fragment_follow, container, false)
     }
 
+    fun moveActivity(p:String){
+        val intent = Intent(context, ItemActivity::class.java)
+// To pass any data to next activity
+        intent.putExtra("url", p)
+        intent.putExtra("EXTRA_SESSION_ID", dataclass)
+// start your next activity
+        startActivity(intent, null)
+    }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Log.i(TAG, "onActivityCreated")
@@ -47,7 +64,8 @@ class YouTubeResult : Fragment() {
         val pop_linearLayoutManager = LinearLayoutManager(mListener!!.context)
         pop_linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL)
         result_list.layoutManager = pop_linearLayoutManager
-        adapter = YoutubeResultListViewAdapter(mListener!!.data, mListener!!.context)
+        adapter = YoutubeResultListViewAdapter(mListener!!.data, mListener!!.context){ s: String ->
+            moveActivity(s)}
         result_list.setAdapter(adapter)
         result_list.addOnScrollListener(object : RecyclerView.OnScrollListener(){
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -126,12 +144,12 @@ class YouTubeResult : Fragment() {
          * @param param2 Parameter 2.
          * @return A new instance of fragment HomeFragment.
          */
-        // TODO: Rename and change types and number of parameters
-        fun newInstance(): YouTubeResult {
-            val fragment = YouTubeResult()
-            val args = Bundle()
-            fragment.arguments = args
-            return fragment
-        }
+
+        fun newInstance(param1: DataClass) =
+                YouTubeResult().apply {
+                    arguments = Bundle().apply {
+                        putParcelable(bodygate.bcns.bodygation.navigationitem.ARG_PARAM1, param1)
+                    }
+                }
     }
 }// Required empty public constructor

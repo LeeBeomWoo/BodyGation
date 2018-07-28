@@ -29,7 +29,7 @@ class MyRecyclerViewAdapter(private val mValues: List<DummyItem>, val itemClick:
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.mItem = mValues[position]
         holder.mIdView.text = mValues[position].toString()
-        holder.mView.setOnClickListener {itemClick(mValues[position].toString())}
+        holder.mView.setOnClickListener {itemClick(mValues[position].todate())}
     }
 
     override fun getItemCount(): Int {

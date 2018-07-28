@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +36,7 @@ private const val ARG_PARAM2 = "param2"
  */
 class ShowMeFragment : Fragment(){
 
+    val TAG = "ShowMeFragment,"
     private var param2: String? = null
     var section = 0
     var weight_position = 0
@@ -67,43 +69,47 @@ class ShowMeFragment : Fragment(){
 
     @SuppressLint("SetTextI18n")
     fun searchData(s: String){
-        if(mParam1.bmi_Label.contains(s)){
-            value_bmi.text =  (mParam1.bmi_series[mParam1.bmi_Label.binarySearch(s, 0, mParam1.bmi_series.size)].toString() + "Kg/" + "m\u00B2")
+        if(mParam1.bmi_series.containsKey(s)){
+            Log.i(TAG, mParam1.bmi_series.size.toString() + ", " + mParam1.bmi_Label.binarySearch(s, 0, mParam1.bmi_series.size).toString())
+            value_bmi.text =  (mParam1.bmi_series.get(s).toString() + "Kg/" + "m\u00B2")
         }else{
             value_bmi.text = "BMI 측정 기록을 업로드 해주신 날이 아닌네요"
         }
-        if(mParam1.fat_Label.contains(s)){
-            value_fat.text =  (mParam1.fat_series[mParam1.fat_Label.binarySearch(s, 0, mParam1.fat_series.size)].toString()+ "%")
+        if(mParam1.fat_series.containsKey(s)){
+            Log.i(TAG, mParam1.fat_series.size.toString() + ", " + mParam1.fat_Label.binarySearch(s, 0, mParam1.fat_series.size).toString())
+            value_fat.text =  (mParam1.fat_series.get(s).toString() + "%")
         }else{
             value_fat.text = "체지방률 측정 기록을 업로드 해주신 날이 아닌네요"
         }
-        if(mParam1.weight_Label.contains(s)){
-            value_weight.text = ( mParam1.weight_series[mParam1.weight_Label.binarySearch(s, 0, mParam1.weight_series.size)].toString()+ "Kg")
+        if(mParam1.weight_series.containsKey(s)){
+            Log.i(TAG, mParam1.weight_series.size.toString() + ", " + mParam1.weight_Label.binarySearch(s, 0, mParam1.weight_series.size).toString())
+            value_weight.text = ( mParam1.weight_series.get(s).toString()+ "Kg")
         }else{
             value_weight.text = "체중 측정 기록을 업로드 해주신 날이 아닌네요"
         }
-        if(mParam1.muscle_Label.contains(s)){
-            value_muscle.text = ( mParam1.muscle_series[mParam1.muscle_Label.binarySearch(s, 0, mParam1.muscle_series.size)].toString() + "Kg")
+        if(mParam1.muscle_series.containsKey(s)){
+            Log.i(TAG, mParam1.muscle_series.size.toString() + ", " + mParam1.muscle_Label.binarySearch(s, 0, mParam1.muscle_series.size).toString())
+            value_muscle.text = ( mParam1.muscle_series.get(s).toString() + "Kg")
         }else{
             value_muscle.text = "근육량 측정 기록을 업로드 해주신 날이 아닌네요"
         }
-        if(mParam1.kcal_Label.contains(s)){
-            value_bmr.text = ( mParam1.kcal_series[mParam1.kcal_Label.binarySearch(s, 0, mParam1.kcal_series.size)].toString()+ "kcal")
+        if(mParam1.kcal_series.containsKey(s)){
+            Log.i(TAG, mParam1.kcal_series.size.toString() + ", " + mParam1.kcal_Label.binarySearch(s, 0, mParam1.kcal_series.size).toString())
+            value_bmr.text = ( mParam1.kcal_series.get(s).toString()+ "kcal")
         }else{
             value_bmr.text = "오늘은 운동을 하지 않으셨나봐요"
         }
-        if(mParam1.walk_Label.contains(s)){
-            value_walk.text = ( mParam1.walk_series[mParam1.walk_Label.binarySearch(s, 0, mParam1.walk_series.size)].toString()+ "걸음")
+        if(mParam1.walk_series.containsKey(s)){
+            Log.i(TAG, mParam1.walk_series.size.toString() + ", " + mParam1.walk_Label.binarySearch(s, 0, mParam1.walk_series.size).toString())
+            value_walk.text = ( mParam1.walk_series.get(s).toString()+ "걸음")
         }else{
             value_walk.text = "오늘은 걷는 기록이 없네요"
         }
     }
 
     fun setdummy(){
-        val cal = Calendar.getInstance()
-        for(i:Int in 0..199){
-            cal.set(Calendar.DAY_OF_YEAR, -i)
-            listDM.add(DummyContent.createDummyItem(cal.timeInMillis))
+        for(a:Int in 0..199){
+            listDM.add(DummyContent.createDummyItem(-a))
         }
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

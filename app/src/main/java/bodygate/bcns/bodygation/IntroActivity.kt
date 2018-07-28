@@ -157,12 +157,12 @@ class IntroActivity : AppCompatActivity() {
         @SuppressLint("StaticFieldLeak")
         var contextContext:Context
         val TAG = "someTask"
-        var bmi_series:MutableList<Float> = ArrayList()
-        var muscle_series:MutableList<Float> = ArrayList()
-        var walk_series:MutableList<Int> = ArrayList()
-        var fat_series:MutableList<Float> = ArrayList()
-        var weight_series:MutableList<Float> = ArrayList()
-        var kcal_series:MutableList<Float> = ArrayList()
+        var bmi_series:MutableMap<String, Float> = hashMapOf()
+        var muscle_series:MutableMap<String, Float> = hashMapOf()
+        var walk_series:MutableMap<String, Int> = hashMapOf()
+        var fat_series:MutableMap<String, Float> = hashMapOf()
+        var weight_series:MutableMap<String, Float> = hashMapOf()
+        var kcal_series:MutableMap<String, Float> = hashMapOf()
 
         var bmi_Label:MutableList<String> = ArrayList()
         var muscle_Label:MutableList<String> = ArrayList()
@@ -388,33 +388,33 @@ class IntroActivity : AppCompatActivity() {
                     Log.i(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
                     when(field.name){
                         "bmi" -> {
-                            bmi_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             bmi_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                            bmi_series.put(bmi_Label.last(), "%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             Log.i(TAG, "bmi"  + dp.getValue(field).asFloat().toString() + ", " + bmi_Label.last())
                         }
                         "muscle" -> {
-                            muscle_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             muscle_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                            muscle_series.put(muscle_Label.last(), "%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             Log.i(TAG, "muscle"  + dp.getValue(field).asFloat().toString() + ", " + muscle_Label.last())
                         }
                         "fat" -> {
-                            fat_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             fat_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                            fat_series.put(fat_Label.last(), "%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             Log.i(TAG, "fat"  + dp.getValue(field).asFloat().toString() + ", " + fat_Label.last())
                         }
                         Field.FIELD_WEIGHT.name ->{
-                            weight_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             weight_Label.add(label.format(dp.getTimestamp(TimeUnit.MILLISECONDS)))
+                            weight_series.put(weight_Label.last(), "%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             Log.i(TAG, "weight"  + dp.getValue(field).asFloat().toString() + ", " + weight_Label.last())
                         }
                         Field.FIELD_CALORIES.name ->{
-                            kcal_series.add("%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             kcal_Label.add(label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                            kcal_series.put(kcal_Label.last(), "%.2f".format(dp.getValue(field).asFloat()).toFloat())
                             Log.i(TAG, " kcal"  + dp.getValue(field).asFloat().toString() + ", " + kcal_Label.last())
                         }
                         Field.FIELD_STEPS.name ->{
-                            walk_series.add(dp.getValue(field).asInt())
                             walk_Label.add(label.format(dp.getEndTime(TimeUnit.MILLISECONDS)))
+                            walk_series.put(walk_Label.last(), dp.getValue(field).asInt())
                             Log.i(TAG, "walk"  + dp.getValue(field).asInt().toString() + ", " + walk_Label.last())
                         }
                     }
@@ -445,6 +445,6 @@ class IntroActivity : AppCompatActivity() {
 }
 
 @Parcelize
-class DataClass(var bmi_series:MutableList<Float>,var muscle_series:MutableList<Float>,var walk_series:MutableList<Int>,var fat_series:MutableList<Float>,var weight_series:MutableList<Float>,var kcal_series:MutableList<Float>
+class DataClass(var bmi_series:MutableMap<String, Float>,var muscle_series:MutableMap<String, Float>,var walk_series:MutableMap<String, Int>,var fat_series:MutableMap<String, Float>,var weight_series:MutableMap<String, Float>,var kcal_series:MutableMap<String, Float>
                 ,var bmi_Label:MutableList<String>,var muscle_Label:MutableList<String>,var walk_Label:MutableList<String>,var weight_Label:MutableList<String>,var fat_Label:MutableList<String>,var kcal_Label:MutableList<String>,var personUrl: Uri?) : Parcelable {
 }
