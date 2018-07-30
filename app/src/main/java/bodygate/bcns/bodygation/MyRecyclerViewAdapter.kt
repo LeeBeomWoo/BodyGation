@@ -1,17 +1,12 @@
 package bodygate.bcns.bodygation
 
-import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
-import bodygate.bcns.bodygation.dummy.DummyContent
 
 import bodygate.bcns.bodygation.dummy.DummyContent.DummyItem
-import bodygate.bcns.bodygation.navigationitem.MovieFragment
-import bodygate.bcns.bodygation.navigationitem.ShowMeFragment
 
 /**
  * [RecyclerView.Adapter] that can display a [DummyItem] and makes a call to the

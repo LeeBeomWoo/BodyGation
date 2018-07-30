@@ -1,14 +1,10 @@
 package bodygate.bcns.bodygation.youtube
 
-import io.reactivex.Observable
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.Retrofit
-import com.google.api.services.youtube.model.ChannelListResponse
 import retrofit2.Call
-import retrofit2.Callback
-import okhttp3.ResponseBody
-import retrofit2.http.*
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Query
 
 
 interface YoutubeApi {

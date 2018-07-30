@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
@@ -9,24 +9,9 @@
     android:fitsSystemWindows="true"
     tools:context="bodygate.bcns.bodygation.MainActivity">
 
-    <android.support.constraint.ConstraintLayout
+
+    <cn.gavinliu.android.lib.scale.ScaleFrameLayout
+        android:id="@+id/root_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <include
-            android:id="@+id/include"
-            layout="@layout/toolbar_custom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <FrameLayout
-            android:id="@+id/root_layout"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_anchorGravity="top"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/include"
-            tools:layout_behavior="android.support.design.widget.AppBarLayout$ScrollingViewBehavior" />
-    </android.support.constraint.ConstraintLayout>
-
-</android.support.design.widget.CoordinatorLayout>
+        android:layout_height="match_parent" />
+</LinearLayout>

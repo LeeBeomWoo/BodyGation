@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import bodygate.bcns.bodygation.DataClass
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import kotlinx.android.synthetic.main.select_view.*
@@ -212,7 +211,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     }
 
     val TAG = "FollowFragment"
-    lateinit var mParam1: DataClass
+    lateinit var mParam1: String
     @SuppressLint("RestrictedApi")
     override fun onClick(p0: View?) {
         when (p0!!.id){
@@ -233,7 +232,6 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            mParam1 = it.getParcelable(bodygate.bcns.bodygation.navigationitem.ARG_PARAM1)
         }
     }
 
@@ -379,11 +377,9 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
          */
         // TODO: Rename and change types and number of parameters
 
-        fun newInstance(param1: DataClass) =
+        fun newInstance() =
                 FollowFragment().apply {
-                    arguments = Bundle().apply {
-                        putParcelable(ARG_PARAM1, param1)
-                    }
+                    arguments = Bundle().apply {                                      }
                 }
     }
 }// Required empty public constructor

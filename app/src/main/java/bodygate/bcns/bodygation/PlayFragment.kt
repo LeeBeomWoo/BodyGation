@@ -244,7 +244,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         setRetainInstance(true)
         if(savedInstanceState != null){
             Log.i(TAG, "onCreate savedInstanceState")
-            param1 = savedInstanceState.getString("url")
+            param1 = savedInstanceState.getString(ARG_PARAM1)
         }else {
             arguments?.let {
                 param1 = it.getString(ARG_PARAM1)

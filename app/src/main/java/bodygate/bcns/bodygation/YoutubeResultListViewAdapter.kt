@@ -26,7 +26,6 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
     private val transparentColor = Color.parseColor("#00000000")
     var dataitem = SearchResult()
     var datalist:MutableList<SearchResult> = ArrayList()
-    lateinit var dataclass:DataClass
     val TAG = "YoutubeListViewAdapter_"
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         Log.i(TAG, "onCreateViewHolder")

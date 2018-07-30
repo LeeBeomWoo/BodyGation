@@ -62,13 +62,6 @@
         android:supportsRtl="true"
         android:theme="@style/Bodygator"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".IntroActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <activity
             android:name=".MainActivity"
             android:icon="@mipmap/ic_logo_round"
@@ -77,6 +70,11 @@
             <meta-data
                 android:name="com.google.android.gms.version"
                 android:value="@integer/google_play_services_version" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="vnd.google.fitness.VIEW" />
             </intent-filter>
@@ -87,7 +85,6 @@
                 <data android:mimeType="vnd.google.fitness.data_type/com.google.step_count.delta" />
             </intent-filter>
         </activity>
-        <activity android:name=".ItemActivity" />
     </application>
 
 </manifest>
