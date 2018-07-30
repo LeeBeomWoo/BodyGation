@@ -50,10 +50,10 @@ class YouTubeResult : Fragment() {
         super.onActivityCreated(savedInstanceState)
         Log.i(TAG, "onActivityCreated")
         // Set the adapter
-        val pop_linearLayoutManager = LinearLayoutManager(mListener!!.context)
+        val pop_linearLayoutManager = LinearLayoutManager(context)
         pop_linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL)
         result_list.layoutManager = pop_linearLayoutManager
-        adapter = YoutubeResultListViewAdapter(mListener!!.data, mListener!!.context){ s: String ->
+        adapter = YoutubeResultListViewAdapter(mListener!!.data, context!!){ s: String ->
             showVideo(s)}
         result_list.setAdapter(adapter)
         result_list.addOnScrollListener(object : RecyclerView.OnScrollListener(){
@@ -67,14 +67,13 @@ class YouTubeResult : Fragment() {
                 if (pastVisibleItems + visibleItemCount >= totalItemCount) {
                     //End of list
                     if(mListener!!.totalpage > 0){
-                    runBlocking{mListener!!.getNetxtPage(mListener!!.sendquery.toString(), getString(R.string.API_key), 5,true,0)}
+                    runBlocking{mListener!!.getNetxtPage(mListener!!.sendquery.toString(), getString(R.string.API_key), 5,true)}
                     adapter!!.setLkItems(mListener!!.data)
                     result_list.adapter!!.notifyItemInserted(totalItemCount)
                     }
                 }
             }
         })
-        mListener!!.visableFragment = TAG
         Log.i(TAG, result_list.adapter!!.itemCount.toString())
         Log.i(TAG, "onActivityCreated_final")
     }
@@ -115,19 +114,18 @@ class YouTubeResult : Fragment() {
      */
     interface OnYoutubeResultInteraction {
         fun OnYoutubeResultInteraction()
-        suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
+        suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean)
         fun getpage():String
         var data: MutableList<SearchResult>
         val context:Context
         var visableFragment:String
         var totalpage:Int
         var sendquery:ArrayList<String>?
-        suspend fun getNetxtPage(q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
+        suspend fun getNetxtPage(q: String, api_Key: String, max_result: Int, more:Boolean)
     }
 
     companion object {
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-        private val ARG_PARAM1 = "img"
 
         /**
          * Use this factory method to create a new instance of

@@ -142,8 +142,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     private var mediaRecorder: MediaRecorder? = null
 
     private val FRAGMENT_DIALOG = "dialog"
-    var youTubePlayerSupportFragment:YouTubePlayerSupportFragment? = null
-    var youtubePlayer:YouTubePlayer? = null
 
     private val DEFAULT_ORIENTATIONS = SparseIntArray().apply {
         append(Surface.ROTATION_0, 90)
@@ -166,7 +164,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
 
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
             Log.i("camera", "onSurfaceTextureSizeChanged")
-            // configureTransform(width, height)
+            configureTransform(width, height)
         }
 
         override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture) = true
@@ -180,8 +178,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     lateinit var textureView: AutoFitTextureView
     lateinit var video_View: VideoView
 
-    fun initPlayer(){
-    }
 
     private val stateCallback = object : CameraDevice.StateCallback() {
 
@@ -281,8 +277,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         super.onPause()
         Log.d(TAG, "onPause")
         closeCamera()
-        if(youtubePlayer !=null)
-            listener!!.youtubeprogress = youtubePlayer!!.currentTimeMillis
         stopBackgroundThread()
     }
     @SuppressLint("SetJavaScriptEnabled")
@@ -570,7 +564,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         youtube_layout.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
         youtube_layout.setWebViewClient(WebViewClient())
         val settings = youtube_layout.getSettings()
-        settings.setJavaScriptEnabled(true)
         settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN)
         settings.setJavaScriptCanOpenWindowsAutomatically(true)
         settings.setPluginState(WebSettings.PluginState.ON)

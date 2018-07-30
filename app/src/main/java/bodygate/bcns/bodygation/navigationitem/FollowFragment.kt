@@ -327,7 +327,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
                 uri.add("운동")
                 uri.add("스트레칭")
             }
-            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 5, true, 0)}
+            mListener!!.getDatas("snippet", uri.toString(), getString(R.string.API_key), 5, true)}
             Log.i("test", "네번째")
             mListener!!.OnFollowInteraction(uri, 0)
             Log.i("test", "여섯번째")
@@ -360,7 +360,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
         // TODO: Update argument type and name
         fun OnFollowInteraction(q: ArrayList<String>?, s:Int)
         var visableFragment:String
-        suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int)
+        suspend fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean)
     }
 
     companion object {

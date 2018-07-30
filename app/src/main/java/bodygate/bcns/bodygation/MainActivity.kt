@@ -150,7 +150,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         Log.i("data", data.toString())
     }
 
-    suspend override fun getNetxtPage( q: String, api_Key: String, max_result: Int, more:Boolean, section:Int){
+    suspend override fun getNetxtPage( q: String, api_Key: String, max_result: Int, more:Boolean){
         val youTube = YouTube.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance(), object: HttpRequestInitializer {
             @Throws(IOException::class)
             override fun initialize(request:HttpRequest) {
@@ -159,21 +159,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
                 request.getHeaders().set("X-Android-Cert", SHA1)
             }
         }).setApplicationName(packageName).build()
-        var order = ""
-        when(section){
-            0->{//선택형
-                order = "relevance"
-            }
-            1 -> {//새로 올라온 영상
-                order = "date"
-            }
-            2 ->{//인기많은 영상
-                order = "rating"
-            }
-            3->{//내가 본 영상
-                order = "relevance"
-            }
-        }
+        val order = "relevance"
         totalpage -= 1
         Log.i("data_page", page)
         Log.i("data_page", totalpage.toString())
@@ -219,7 +205,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         }
         return null
     }
-    suspend override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean, section:Int) {
+    suspend override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean) {
         Log.i(TAG, "getDatas")
         val youTube = YouTube.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance(), object: HttpRequestInitializer {
             @Throws(IOException::class)
@@ -232,21 +218,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         val searchType = "video"
         val a = q.replace("[", "");
         val b = a.replace("]", "")
-        var order = ""
-        when(section){
-            0->{//선택형
-                order = "relevance"
-            }
-            1 -> {//새로 올라온 영상
-                order = "date"
-            }
-            2 ->{//인기많은 영상
-                order = "rating"
-            }
-            3->{//내가 본 영상
-                order = "relevance"
-            }
-        }
+        val order = "relevance"
         val query = youTube.search().list("id, snippet")
         query.setKey(api_Key)
         query.setType("video")
