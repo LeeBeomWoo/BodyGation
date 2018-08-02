@@ -101,13 +101,6 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         Log.i(TAG, "onConfigurationChanged_setCameraDisplayOrientation : " + result.toString())
     }
 
-    override var youtubeprogress:Int = 0
-    override var youtubePlaying:Boolean = false
-    override var videoprogress:Int = 0
-    override var videoPlaying:Boolean = false
-    override var video_camera:Boolean = false //false = camera, true = video
-    override var videoPath:String = ""
-
     override fun OnYoutubeResultInteraction() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -269,27 +262,24 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         setContentView(R.layout.activity_main)
         Log.i(TAG + "_", "onCreate")
         if (savedInstanceState != null) {
-            sectionInt = savedInstanceState.getInt("url")
-            if(sectionInt == 2){
-                url = savedInstanceState.getString("url")
-                youtubeprogress = savedInstanceState.getInt("progress")
-                video_camera = savedInstanceState.getBoolean("playyoutube")
-                if (video_camera) {
-                    videoPath = savedInstanceState.getString("videoPath")
-                    videoPlaying = savedInstanceState.getBoolean("videoPlaying")
-                }
+            sectionInt = savedInstanceState.getInt("sectionInt")
+            if(sectionInt == 1) {
+                listState = savedInstanceState.getParcelable(LIST_STATE_KEY)
             }
+            queryarr = savedInstanceState.getStringArrayList("queryarr")
+            sendquery = savedInstanceState.getString("sendquery")
+            Log.i(TAG + "_", "play"+ "\n sendquery :" + sendquery)
         }
-        followFragment = supportFragmentManager.findFragmentByTag("follow") as FollowFragment
-        youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult
-        playFragment = supportFragmentManager.findFragmentByTag("play") as PlayFragment
+        followFragment = supportFragmentManager.findFragmentByTag("follow") as FollowFragment?
+        youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult?
+        playFragment = supportFragmentManager.findFragmentByTag("play") as PlayFragment?
         when(sectionInt){
             0->{
                 if (followFragment == null) {
                     Log.i(TAG, "mainTabFragment")
                     supportFragmentManager
                             .beginTransaction()
-                            .replace(R.id.root_layout, FollowFragment.newInstance(), "follow")
+                            .add(R.id.root_layout, FollowFragment.newInstance(), "follow")
                             .commit()
                 }else{
                     supportFragmentManager
@@ -301,7 +291,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
                     Log.i(TAG, "mainTabFragment")
                     supportFragmentManager
                             .beginTransaction()
-                            .replace(R.id.root_layout, YouTubeResult.newInstance(queryarr!!), "youtube")
+                            .add(R.id.root_layout, YouTubeResult.newInstance(queryarr!!), "youtube")
                             .commit()
                 }else{
                     supportFragmentManager
@@ -313,7 +303,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
                     Log.i(TAG, "mainTabFragment")
                     supportFragmentManager
                             .beginTransaction()
-                            .replace(R.id.root_layout, PlayFragment.newInstance(sendquery!!), "play")
+                            .add(R.id.root_layout, PlayFragment.newInstance(sendquery!!), "play")
                             .commit()
                 }else{
                     supportFragmentManager
@@ -334,18 +324,14 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
-        outState!!.putInt("section", sectionInt)
-        if(youTubeResult != null) {
-            listState = result_list.layoutManager!!.onSaveInstanceState();
-            outState.putParcelable(LIST_STATE_KEY, listState);
+        outState!!.putInt("sectionInt", sectionInt)
+        //Save the fragment's instance
+        if(sectionInt == 1) {
+            listState = result_list.layoutManager!!.onSaveInstanceState()
+            outState.putParcelable(LIST_STATE_KEY, listState)
         }
-        if(playFragment != null){
-            outState.putString("url", url)
-            outState.putInt("progress", youtubeprogress)
-            outState.putBoolean("playyoutube", video_camera)
-            outState.putString("videoPath", videoPath)
-            outState.putBoolean("videoPlaying", videoPlaying)
-        }
+            outState.putStringArrayList("queryarr", queryarr)
+            outState.putString("sendquery", sendquery)
     }
 
     override fun onResume() {

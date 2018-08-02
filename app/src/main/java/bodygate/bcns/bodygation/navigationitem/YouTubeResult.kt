@@ -35,6 +35,7 @@ class YouTubeResult : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i(TAG, "onCreate")
         super.onCreate(savedInstanceState)
+        setRetainInstance(true)
         arguments?.let {
             mParam1 = it.getStringArrayList(ARG_PARAM1)
         }

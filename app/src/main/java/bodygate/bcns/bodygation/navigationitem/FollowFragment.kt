@@ -231,8 +231,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-        }
+        setRetainInstance(true)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

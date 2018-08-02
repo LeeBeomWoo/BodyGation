@@ -16,6 +16,7 @@ import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubeThumbnailLoader
 import com.google.android.youtube.player.YouTubeThumbnailView
 import com.google.api.services.youtube.model.SearchResult
+import com.squareup.picasso.Picasso
 
 class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val context:Context, val itemClick:(String) -> Unit) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
 
@@ -44,15 +45,8 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
         holder.tvTitle.text = mValues[position].snippet!!.title
         holder.tvDetaile.text = mValues[position].snippet!!.description
         holder.ivYtLogo.setVisibility(View.VISIBLE)
-        holder.ytThubnailView.setTag(R.id.videoid, mValues[position].id!!.videoId)
         holder.ivYtLogo.setBackgroundColor(blackColor)
-        val state = holder.ytThubnailView.getTag(R.id.initialize) as Int
-        if (state == UNINITIALIZED) {
-            holder.initialize()
-        } else if (state == INITIALIZED) {
-            val loader = holder.ytThubnailView.getTag(R.id.thumbnailloader) as YouTubeThumbnailLoader
-            loader.setVideo(mValues[position].id!!.videoId)
-        }
+        Picasso.get().load(mValues[position].snippet!!.thumbnails.default.url).into(holder.ytThubnailView)
         holder.ivYtLogo.setOnClickListener{itemClick(mValues[position].id!!.videoId!!)}
         holder.ytThubnailView.setOnClickListener{itemClick(mValues[position].id!!.videoId!!)}
     }
@@ -60,48 +54,18 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
             return mValues.size
     }
     inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
-        val ytThubnailView: YouTubeThumbnailView
+        val ytThubnailView: ImageView
         val ivYtLogo: ImageView
         val tvTitle: TextView
         val tvDetaile: TextView
         var mItem:SearchResult? = null
 
         init {
-            ytThubnailView = itemView.findViewById<View>(R.id.yt_thumbnail) as YouTubeThumbnailView
+            ytThubnailView = itemView.findViewById<View>(R.id.yt_thumbnail) as ImageView
             ivYtLogo = itemView.findViewById<View>(R.id.iv_yt_logo) as ImageView
             tvTitle = itemView.findViewById<View>(R.id.tv_title) as TextView
             tvDetaile= itemView.findViewById<View>(R.id.tv_detail) as TextView
 
-            initialize()
-        }
-        fun initialize(){
-            ivYtLogo.setBackgroundColor(blackColor);
-            ytThubnailView.setTag(R.id.initialize, INITIALIZING);
-            ytThubnailView.setTag(R.id.thumbnailloader, null);
-            ytThubnailView.setTag(R.id.videoid, "");
-
-            ytThubnailView.initialize(context.getString(R.string.API_key), object : YouTubeThumbnailView.OnInitializedListener{
-                override fun onInitializationSuccess(p0: YouTubeThumbnailView?, p1: YouTubeThumbnailLoader?) {
-                    ytThubnailView.setTag(R.id.initialize, INITIALIZED);
-                    ytThubnailView.setTag(R.id.thumbnailloader, p1);
-                    p1!!.setOnThumbnailLoadedListener(object : YouTubeThumbnailLoader.OnThumbnailLoadedListener {
-                        override fun onThumbnailLoaded(p0: YouTubeThumbnailView?, p1: String?) {
-                            val currentVideoId = ytThubnailView.getTag (R.id.videoid)
-                            if (currentVideoId.equals(p1)) {
-                                ivYtLogo.setBackgroundColor(transparentColor);
-                            } else {
-                                ivYtLogo.setBackgroundColor(blackColor);
-                            }
-                        }
-
-                        override fun onThumbnailError(p0: YouTubeThumbnailView?, p1: YouTubeThumbnailLoader.ErrorReason?) {
-                            ivYtLogo.setBackgroundColor(blackColor);
-                        }
-                    })
-                }
-                override fun onInitializationFailure(p0: YouTubeThumbnailView?, p1: YouTubeInitializationResult?) {
-                }
-            })
         }
     }
 }
