@@ -35,8 +35,9 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
     }
 
     fun setLkItems(bdItems1: List<SearchResult>) {
+        val i = mValues.size
         mValues.addAll(bdItems1)
-        this.notifyItemInserted(mValues.size - 1)
+        this.notifyItemInserted(i)
     }
     override fun onBindViewHolder(holder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
         holder.mItem = mValues[position]
@@ -97,10 +98,6 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
                             ivYtLogo.setBackgroundColor(blackColor);
                         }
                     })
-                    val videoId = ytThubnailView.getTag(R.id.videoid) as String
-                    if (!videoId.isEmpty()) {
-                        p1.setVideo(videoId)
-                    }
                 }
                 override fun onInitializationFailure(p0: YouTubeThumbnailView?, p1: YouTubeInitializationResult?) {
                 }

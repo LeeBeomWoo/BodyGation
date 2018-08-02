@@ -101,8 +101,6 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         Log.i(TAG, "onConfigurationChanged_setCameraDisplayOrientation : " + result.toString())
     }
 
-
-    var playFragment:PlayFragment? = null
     override var youtubeprogress:Int = 0
     override var youtubePlaying:Boolean = false
     override var videoprogress:Int = 0
@@ -119,19 +117,29 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
     val TAG: String = "MainActivity_"
     var personUrl:Uri? = null
     var page = ""
+    var sectionInt = 0
     override var totalpage = 100
     var email: String? = null
     override var visableFragment = ""
     private var doubleBackToExitPressedOnce: Boolean = false
     override val context:Context = this
-    override var sendquery:ArrayList<String>? = null
+    override var sendquery:String? = null
+    var queryarr:ArrayList<String>? = null
     override var data: MutableList<SearchResult> = arrayListOf()
     var url = ""
     var section:String? = null
     var category: Int = 0
     var followFragment:Fragment? = null
     var youTubeResult:YouTubeResult? = null
+    var playFragment: PlayFragment? = null
 
+    override fun showVideo(s: String) {
+        sectionInt = 2
+        supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.root_layout, PlayFragment.newInstance(s), "play")
+                .commit()
+    }
     fun addData(response: SearchListResponse) {
         Log.i(TAG, "addData")
         Log.i("test", "second")
@@ -205,7 +213,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         }
         return null
     }
-    suspend override fun getDatas(part: String, q: String, api_Key: String, max_result: Int, more:Boolean) {
+    suspend override fun getDatas(part: String, q: ArrayList<String>, api_Key: String, max_result: Int, more:Boolean) {
         Log.i(TAG, "getDatas")
         val youTube = YouTube.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance(), object: HttpRequestInitializer {
             @Throws(IOException::class)
@@ -215,8 +223,9 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
                 request.getHeaders().set("X-Android-Cert", SHA1)
             }
         }).setApplicationName(packageName).build()
+        queryarr = q
         val searchType = "video"
-        val a = q.replace("[", "");
+        val a = q.toString().replace("[", "");
         val b = a.replace("]", "")
         val order = "relevance"
         val query = youTube.search().list("id, snippet")
@@ -224,8 +233,8 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         query.setType("video")
         query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url), nextPageToken, pageInfo")
         val bReader = BufferedReader(InputStreamReader(b.byteInputStream()))
-        val inputQuery = bReader.readLine()
-        query.setQ(inputQuery)
+        sendquery = bReader.readLine()
+        query.setQ(sendquery)
         query.setMaxResults(max_result.toLong())
         query.setOrder(order)
         query.setType(searchType)
@@ -235,6 +244,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
     }
     override fun OnFollowInteraction(q: ArrayList<String>?, s:Int) {
         Log.i(TAG, "OnFollowInteraction")
+        sectionInt = 1
         supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.root_layout, YouTubeResult.newInstance(q!!), "youtube")
@@ -258,18 +268,58 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
                 ScaleConfig.DIMENS_UNIT_DP);
         setContentView(R.layout.activity_main)
         Log.i(TAG + "_", "onCreate")
-
-        followFragment = supportFragmentManager.findFragmentByTag("follow") as FollowFragment?
-        youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult?
-        if (followFragment == null) {
-            Log.i(TAG, "mainTabFragment")
-            supportFragmentManager
-                    .beginTransaction()
-                    .replace(R.id.root_layout, FollowFragment.newInstance(), "follow")
-                    .commit()
-        }else{
-            supportFragmentManager
-                    .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
+        if (savedInstanceState != null) {
+            sectionInt = savedInstanceState.getInt("url")
+            if(sectionInt == 2){
+                url = savedInstanceState.getString("url")
+                youtubeprogress = savedInstanceState.getInt("progress")
+                video_camera = savedInstanceState.getBoolean("playyoutube")
+                if (video_camera) {
+                    videoPath = savedInstanceState.getString("videoPath")
+                    videoPlaying = savedInstanceState.getBoolean("videoPlaying")
+                }
+            }
+        }
+        followFragment = supportFragmentManager.findFragmentByTag("follow") as FollowFragment
+        youTubeResult = supportFragmentManager.findFragmentByTag("youtube") as YouTubeResult
+        playFragment = supportFragmentManager.findFragmentByTag("play") as PlayFragment
+        when(sectionInt){
+            0->{
+                if (followFragment == null) {
+                    Log.i(TAG, "mainTabFragment")
+                    supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.root_layout, FollowFragment.newInstance(), "follow")
+                            .commit()
+                }else{
+                    supportFragmentManager
+                            .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
+                }
+            }
+            1->{
+                if (youTubeResult == null) {
+                    Log.i(TAG, "mainTabFragment")
+                    supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.root_layout, YouTubeResult.newInstance(queryarr!!), "youtube")
+                            .commit()
+                }else{
+                    supportFragmentManager
+                            .beginTransaction().replace(R.id.root_layout, youTubeResult!!).commit()
+                }
+            }
+            2->{
+                if (playFragment == null) {
+                    Log.i(TAG, "mainTabFragment")
+                    supportFragmentManager
+                            .beginTransaction()
+                            .replace(R.id.root_layout, PlayFragment.newInstance(sendquery!!), "play")
+                            .commit()
+                }else{
+                    supportFragmentManager
+                            .beginTransaction().replace(R.id.root_layout, playFragment!!).commit()
+                }
+            }
         }
     }
 
@@ -284,9 +334,17 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
+        outState!!.putInt("section", sectionInt)
         if(youTubeResult != null) {
             listState = result_list.layoutManager!!.onSaveInstanceState();
-            outState!!.putParcelable(LIST_STATE_KEY, listState);
+            outState.putParcelable(LIST_STATE_KEY, listState);
+        }
+        if(playFragment != null){
+            outState.putString("url", url)
+            outState.putInt("progress", youtubeprogress)
+            outState.putBoolean("playyoutube", video_camera)
+            outState.putString("videoPath", videoPath)
+            outState.putBoolean("videoPlaying", videoPlaying)
         }
     }
 

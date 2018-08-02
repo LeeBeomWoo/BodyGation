@@ -554,6 +554,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             }
         }
     }
+    @SuppressLint("SetJavaScriptEnabled")
     private fun viewSet(){
         record_Btn.setOnClickListener(this)
         load_Btn.setOnClickListener(this)
@@ -565,6 +566,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         youtube_layout.setWebViewClient(WebViewClient())
         val settings = youtube_layout.getSettings()
         settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN)
+        settings.javaScriptEnabled = true
         settings.setJavaScriptCanOpenWindowsAutomatically(true)
         settings.setPluginState(WebSettings.PluginState.ON)
         settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK)
