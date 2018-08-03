@@ -165,7 +165,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture) = true
 
         override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture){
-                configureTransform(textureView.width, textureView.height)
+            Log.i("camera", "onSurfaceTextureUpdated")
         }
 
     }
@@ -266,6 +266,42 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             openCamera(textureView.width, textureView.height)
         } else {
             textureView.surfaceTextureListener = surfaceTextureListener
+        }
+        when(requireActivity().windowManager.defaultDisplay.rotation){
+
+            0 -> {
+                //. SCREEN_ORIENTATION_PORTRAIT
+                if(video_camera){
+                    video_View.setAlpha((1).toFloat())
+                }else{
+                    textureView.setAlpha((1).toFloat())
+                }
+                webview.setZ(2.toFloat())
+                alpha_control.progress = 99
+            }
+            2 -> {
+                //. SCREEN_ORIENTATION_REVERSE_PORTRAIT
+                if(video_camera){
+                    video_View.setAlpha((1).toFloat())
+                }else{
+                    textureView.setAlpha((1).toFloat())
+                }
+                webview.setZ(2.toFloat())
+                alpha_control.progress = 99
+            }
+            //----------------------------------------
+            1 -> {
+                //. SCREEN_ORIENTATION_LANDSCAPE
+                alpha_control.setProgress(50)
+                alpha_control.setZ(0.toFloat())
+                webview.setZ(2.toFloat())
+            }
+            //----------------------------------------
+            3 -> {
+                alpha_control.setProgress(50)
+                alpha_control.setZ(0.toFloat())
+                webview.setZ(2.toFloat())
+            }
         }
     }
 
@@ -429,10 +465,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             video_View.visibility = View.GONE
             textureView.setZ(0.toFloat())
         }
-        alpha_control.setProgress(50)
-        alpha_control.setZ(0.toFloat())
-        webview.setZ(2.toFloat())
-        webview.setAlpha((0.5).toFloat())
     }
     private fun PortrainSet(){
         LandWebView = ScaleRelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -478,12 +510,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         alpha_control.setVisibility(View.GONE)
         textureView.setLayoutParams(LandCamera)
         video_View.setLayoutParams(LandCamera)
-        if(video_camera){
-            video_View.setAlpha((1).toFloat())
-        }else{
-            textureView.setAlpha((1).toFloat())
-        }
-        webview.setAlpha((1).toFloat())
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -493,7 +519,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         webview = view.findViewById(R.id.youtube_layout)
         cameraId = CAMERA_FRONT
         startBackgroundThread()
-        viewSet()
         val curOrientation =  requireActivity().windowManager.defaultDisplay.rotation
 
         when (curOrientation) {
@@ -525,17 +550,15 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             }
         //----------------------------------------
         } /*endSwitch*/
-
+        viewSet()
         rotationListener = rotationListenerHelper()
         rotationListener!!.listen(this.requireContext(), object :rotationCallbackFn{
             override fun onRotationChanged(lastRotation: Int, newRotation: Int) {
                 Log.d(TAG, "onRotationChanged: last " + (lastRotation) +"  new " + (newRotation));
-
                 /**
                  * no need to recreate activity if screen rotate from portrait to landscape
                  * android do the job in order to reload resources
                  */
-
                 if (
                         (lastRotation == 0 && newRotation == 2) ||
                         (lastRotation == 2 && newRotation == 0) ||
@@ -545,7 +568,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                     requireActivity().recreate()
             }
         })
-        alpha_control.max = 90
+        alpha_control.max = 99
         alpha_control.setOnSeekBarChangeListener(this)
         if(video_camera){
             if(videoPath == ""){
@@ -566,7 +589,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         play_record_Btn.setOnClickListener(this)
         viewChange_Btn.setOnClickListener(this)
         webview.setWebChromeClient(WebChromeClient())
-        webview.getSettings().setPluginState(WebSettings.PluginState.ON_DEMAND)
         webview.setWebViewClient(WebViewClient())
         val settings = youtube_layout.getSettings()
         settings.setJavaScriptEnabled(true)
@@ -574,7 +596,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         settings.setJavaScriptCanOpenWindowsAutomatically(true)
         settings.setPluginState(WebSettings.PluginState.ON)
         settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK)
-        webview.getSettings().setSupportMultipleWindows(true)
+        settings.setSupportMultipleWindows(true)
         settings.setLoadWithOverviewMode(true)
         settings.setUseWideViewPort(true)
         URL = FURL + CHANGE + param1 + BURL
