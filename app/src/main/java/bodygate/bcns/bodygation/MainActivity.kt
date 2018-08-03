@@ -377,8 +377,16 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
             1->{
                 sectionInt = 0
                 doubleBackToExitPressedOnce = false
-                supportFragmentManager
-                        .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
+                if (followFragment == null) {
+                    Log.i(TAG, "mainTabFragment")
+                    supportFragmentManager
+                            .beginTransaction()
+                            .add(R.id.root_layout, FollowFragment.newInstance(), "follow")
+                            .commit()
+                }else{
+                    supportFragmentManager
+                            .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
+                }
             }
             2->{
                 sectionInt = 1
