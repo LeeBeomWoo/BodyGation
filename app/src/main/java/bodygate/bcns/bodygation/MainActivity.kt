@@ -345,5 +345,57 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
 
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        when(sectionInt){
+            0-> {
+                if (doubleBackToExitPressedOnce) {
+                    moveTaskToBack(true)
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                    System.exit(1)
+                    return
+                } else {
+                    val builder = AlertDialog.Builder(this)
+                    if (title != null) builder.setTitle(title)
+                    builder.setMessage("프로그램을 종료하시겠습니까?")
+                    builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
+                        override fun onClick(dialog: DialogInterface?, which: Int) {
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
+                    })
+                    builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
+                        override fun onClick(dialog: DialogInterface?, which: Int) {
+                            doubleBackToExitPressedOnce = false
+                            dialog!!.dismiss()
+                        }
+                    }
+                    )
+                    builder.show()
+                    doubleBackToExitPressedOnce = true
+                }
+            }
+            1->{
+                sectionInt = 0
+                doubleBackToExitPressedOnce = false
+                supportFragmentManager
+                        .beginTransaction().replace(R.id.root_layout, followFragment!!).commit()
+            }
+            2->{
+                sectionInt = 1
+                doubleBackToExitPressedOnce = false
+                if (youTubeResult == null) {
+                    Log.i(TAG, "mainTabFragment")
+                    supportFragmentManager
+                            .beginTransaction()
+                            .add(R.id.root_layout, YouTubeResult.newInstance(queryarr!!), "youtube")
+                            .commit()
+                }else{
+                    supportFragmentManager
+                            .beginTransaction().replace(R.id.root_layout, youTubeResult!!).commit()
+                }
+            }
+        }
+    }
+
 }
 

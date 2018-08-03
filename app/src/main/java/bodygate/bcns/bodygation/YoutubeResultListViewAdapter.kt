@@ -46,7 +46,7 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
         holder.tvDetaile.text = mValues[position].snippet!!.description
         holder.ivYtLogo.setVisibility(View.VISIBLE)
         holder.ivYtLogo.setBackgroundColor(blackColor)
-        Picasso.get().load(mValues[position].snippet!!.thumbnails.default.url).into(holder.ytThubnailView)
+        Picasso.get().load(mValues[position].snippet!!.thumbnails.default.url.toString()).centerInside().fit().into(holder.ytThubnailView)
         holder.ivYtLogo.setOnClickListener{itemClick(mValues[position].id!!.videoId!!)}
         holder.ytThubnailView.setOnClickListener{itemClick(mValues[position].id!!.videoId!!)}
     }
