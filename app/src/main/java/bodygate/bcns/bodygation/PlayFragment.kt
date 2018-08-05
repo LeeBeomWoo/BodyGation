@@ -303,6 +303,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
                 webview.setZ(2.toFloat())
             }
         }
+        youtube_layout.onResume()
     }
 
     override fun onPause() {
@@ -313,6 +314,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         if(videoPlaying){
            videoprogress = video_View.currentPosition
         }
+        youtube_layout.onPause()
     }
     @SuppressLint("SetJavaScriptEnabled")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
