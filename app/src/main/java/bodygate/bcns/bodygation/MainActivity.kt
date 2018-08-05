@@ -128,10 +128,17 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
 
     override fun showVideo(s: String) {
         sectionInt = 2
-        supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.root_layout, PlayFragment.newInstance(s), "play")
-                .commit()
+        if(playFragment == null) {
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.root_layout, PlayFragment.newInstance(s), "play")
+                    .commit()
+        }else{
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.root_layout, playFragment as PlayFragment, "play")
+                    .commit()
+        }
     }
     fun addData(response: SearchListResponse) {
         Log.i(TAG, "addData")
@@ -238,10 +245,17 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
     override fun OnFollowInteraction(q: ArrayList<String>?, s:Int) {
         Log.i(TAG, "OnFollowInteraction")
         sectionInt = 1
-        supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.root_layout, YouTubeResult.newInstance(q!!), "youtube")
-                .commit()
+        if(youTubeResult == null) {
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.root_layout, YouTubeResult.newInstance(q!!), "youtube")
+                    .commit()
+        }else{
+            supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.root_layout, youTubeResult as YouTubeResult, "youtube")
+                    .commit()
+        }
     }
 
     override fun getpage(): String {
