@@ -178,7 +178,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
             if(page != "") {
                 query.setPageToken(page)
             }
-            query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url), nextPageToken, pageInfo")
+            query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/high/url,snippet/thumbnails/high/width,snippet/thumbnails/high/height), nextPageToken, pageInfo")
             query.setQ(q)
             query.setOrder(order)
             query.setMaxResults(max_result.toLong())
@@ -231,7 +231,7 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
         val query = youTube.search().list("id, snippet")
         query.setKey(api_Key)
         query.setType("video")
-        query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/default/url), nextPageToken, pageInfo")
+        query.setFields("items(id/videoId,snippet/title,snippet/description,snippet/thumbnails/high/url,snippet/thumbnails/high/width,snippet/thumbnails/high/height), nextPageToken, pageInfo")
         val bReader = BufferedReader(InputStreamReader(b.byteInputStream()))
         sendquery = bReader.readLine()
         query.setQ(sendquery)
@@ -360,15 +360,17 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
         when(sectionInt){
             0-> {
+                Log.i(TAG, "onBackPressed" + "doubleBackToExitPressedOnce")
                 if (doubleBackToExitPressedOnce) {
+                    Log.i(TAG, "onBackPressed" + "true")
                     moveTaskToBack(true)
                     android.os.Process.killProcess(android.os.Process.myPid())
                     System.exit(1)
                     return
                 } else {
+                    Log.i(TAG, "onBackPressed" + "false")
                     val builder = AlertDialog.Builder(this)
                     if (title != null) builder.setTitle(title)
                     builder.setMessage("프로그램을 종료하시겠습니까?")
@@ -389,10 +391,10 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
                 }
             }
             1->{
+                Log.i(TAG, "onBackPressed" + " followFragment")
                 sectionInt = 0
                 doubleBackToExitPressedOnce = false
                 if (followFragment == null) {
-                    Log.i(TAG, "mainTabFragment")
                     supportFragmentManager
                             .beginTransaction()
                             .add(R.id.root_layout, FollowFragment.newInstance(), "follow")
@@ -403,10 +405,10 @@ class MainActivity() : AppCompatActivity(), FollowFragment.OnFollowInteraction, 
                 }
             }
             2->{
+                Log.i(TAG, "onBackPressed" + " youTubeResult")
                 sectionInt = 1
                 doubleBackToExitPressedOnce = false
                 if (youTubeResult == null) {
-                    Log.i(TAG, "mainTabFragment")
                     supportFragmentManager
                             .beginTransaction()
                             .add(R.id.root_layout, YouTubeResult.newInstance(queryarr!!), "youtube")

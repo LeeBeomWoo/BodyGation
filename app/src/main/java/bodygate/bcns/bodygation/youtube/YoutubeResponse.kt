@@ -46,10 +46,10 @@ class YoutubeResponse {
             val tags: List<String> = ArrayList()
 
             class Thumbnails {
-                @SerializedName("default")
-                val medium: Medium? = null
+                @SerializedName("high")
+                val high: High? = null
 
-                class Medium {
+                class High {
                     val url: String? = null
                     val width: Int = 0
                     val height: Int = 0

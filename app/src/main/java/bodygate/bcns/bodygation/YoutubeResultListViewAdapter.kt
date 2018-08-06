@@ -11,6 +11,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubeThumbnailLoader
@@ -20,13 +22,6 @@ import com.squareup.picasso.Picasso
 
 class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val context:Context, val itemClick:(String) -> Unit) : RecyclerView.Adapter<YoutubeResultListViewAdapter.ViewHolder>() {
 
-    private val UNINITIALIZED = 1
-    private val INITIALIZING = 2
-    private val INITIALIZED = 3
-    private val blackColor = Color.parseColor("#FF000000")
-    private val transparentColor = Color.parseColor("#00000000")
-    var dataitem = SearchResult()
-    var datalist:MutableList<SearchResult> = ArrayList()
     val TAG = "YoutubeListViewAdapter_"
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         Log.i(TAG, "onCreateViewHolder")
@@ -46,7 +41,13 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
         holder.tvDetaile.text = mValues[position].snippet!!.description
         holder.ivYtLogo.setVisibility(View.VISIBLE)
         //holder.ivYtLogo.setBackgroundColor(blackColor)
-        Picasso.get().load(mValues[position].snippet!!.thumbnails.default.url.toString()).centerInside().fit().into(holder.ytThubnailView)
+        if(mValues[position].snippet!!.thumbnails.high != null) {
+            Picasso.get().load(mValues[position].snippet!!.thumbnails.high.url.toString()).centerInside().fit().into(holder.ytThubnailView)
+        }else if(mValues[position].snippet!!.thumbnails.medium != null) {
+            Picasso.get().load(mValues[position].snippet!!.thumbnails.medium.url.toString()).centerInside().fit().into(holder.ytThubnailView)
+        }else{
+            Picasso.get().load(mValues[position].snippet!!.thumbnails.default.url.toString()).centerInside().fit().into(holder.ytThubnailView)
+        }
         holder.ivYtLogo.setOnClickListener{itemClick(mValues[position].id!!.videoId!!)}
         holder.ytThubnailView.setOnClickListener{itemClick(mValues[position].id!!.videoId!!)}
     }
@@ -59,13 +60,15 @@ class YoutubeResultListViewAdapter(val mValues: MutableList<SearchResult>, val c
         val tvTitle: TextView
         val tvDetaile: TextView
         var mItem:SearchResult? = null
-
+        val layout: RelativeLayout
+        val main:LinearLayout
         init {
             ytThubnailView = itemView.findViewById<View>(R.id.yt_thumbnail) as ImageView
             ivYtLogo = itemView.findViewById<View>(R.id.iv_yt_logo) as ImageView
             tvTitle = itemView.findViewById<View>(R.id.tv_title) as TextView
             tvDetaile= itemView.findViewById<View>(R.id.tv_detail) as TextView
-
+            layout = itemView.findViewById<View>(R.id.horder_layout) as RelativeLayout
+            main = itemView.findViewById<View>(R.id.holder) as LinearLayout
         }
     }
 }
