@@ -1,7 +1,6 @@
 package bodygate.bcns.bodygation.navigationitem
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -10,12 +9,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import bodygate.bcns.bodygation.PlayFragment
 import bodygate.bcns.bodygation.R
 import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
 import com.google.api.services.youtube.model.SearchResult
+import kotlinx.coroutines.runBlocking
 import kotlinx.android.synthetic.main.fragment_follow.*
-import kotlinx.coroutines.experimental.runBlocking
 
 
 /**
@@ -29,6 +27,7 @@ class YouTubeResult : Fragment() {
     private var mParam1: ArrayList<String>? = null
     var adapter:YoutubeResultListViewAdapter? = null
     private var mListener: OnYoutubeResultInteraction? = null
+    private lateinit var result_list: RecyclerView
     /** Global instance of the max number of videos we want returned (50 = upper limit per page).  */
 
     /** Global instance of Youtube object to make all API requests.  */
@@ -44,7 +43,9 @@ class YouTubeResult : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         Log.i(TAG, "onCreateView")
-        return inflater.inflate(R.layout.fragment_follow, container, false)
+        val rootvie = inflater.inflate(R.layout.fragment_follow, container, false)
+        result_list = rootvie.findViewById(R.id.result_list)
+        return rootvie
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

@@ -2,17 +2,19 @@ package bodygate.bcns.bodygation.navigationitem
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.Image
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import bodygate.bcns.bodygation.R
-import bodygate.bcns.bodygation.YoutubeResultListViewAdapter
+import bodygate.bcns.bodygation.R.*
+import bodygate.bcns.bodygation.support.CheckableImageButton
 import kotlinx.android.synthetic.main.select_view.*
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 
 
 /**
@@ -25,187 +27,201 @@ import kotlinx.coroutines.experimental.runBlocking
  */
 private const val ARG_PARAM1 = "img"
 class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygation.support.CheckableImageButton.OnCheckedChangeListener {
+    private lateinit var stretching_img: CheckableImageButton
+    private lateinit var muscle_img: CheckableImageButton
+    private lateinit var home_img: CheckableImageButton
+    private lateinit var car_img: CheckableImageButton
+    private lateinit var work_img: CheckableImageButton
+    private lateinit var hip_img: CheckableImageButton
+    private lateinit var chest_img: CheckableImageButton
+    private lateinit var upback_body_img: CheckableImageButton
+    private lateinit var shoulder_img: CheckableImageButton
+    private lateinit var upfront_abs_img: CheckableImageButton
+    private lateinit var upleg_img: CheckableImageButton
+    private lateinit var lowerleg_img: CheckableImageButton
+    private lateinit var upperarm_img: CheckableImageButton
+    private lateinit var search_Btn: Button
     override fun onCheckedChanged(button: bodygate.bcns.bodygation.support.CheckableImageButton?, check: Boolean) {
         when (button!!.id) {
             R.id.stretching_img -> consume {
                 Log.i(TAG, "stretching_img")
-                stretching_img.setChecked(check)
+                stretching_img.isChecked = check
                 if(muscle_img.isChecked)
-                muscle_img.setChecked(!check)
+                    muscle_img.isChecked = !check
             }
             R.id.muscle_img -> consume {
                 Log.i(TAG, "muscle_img")
-                muscle_img.setChecked(check)
+                muscle_img.isChecked = check
                 if(stretching_img.isChecked)
-                stretching_img.setChecked(!check)
+                    stretching_img.isChecked = !check
             }
             R.id.home_img -> consume {
                 Log.i(TAG, "home_img")
-                home_img.setChecked(check)
+                home_img.isChecked = check
                 if(car_img.isChecked)
-                car_img.setChecked(!check)
+                    car_img.isChecked = !check
                 if(work_img.isChecked)
-                work_img.setChecked(!check)
+                    work_img.isChecked = !check
             }
             R.id.car_img -> consume {
                 Log.i(TAG, "car_img")
-                car_img.setChecked(check)
+                car_img.isChecked = check
                 if(home_img.isChecked)
-                home_img.setChecked(!check)
+                    home_img.isChecked = !check
                 if(work_img.isChecked)
-                work_img.setChecked(!check)
+                    work_img.isChecked = !check
             }
             R.id.work_img -> consume {
                 Log.i(TAG, "work_img")
-                work_img.setChecked(check)
+                work_img.isChecked = check
                 if(home_img.isChecked)
-                home_img.setChecked(!check)
+                    home_img.isChecked = !check
                 if(car_img.isChecked)
-                car_img.setChecked(!check)
+                    car_img.isChecked = !check
             }
             R.id.hip_img -> consume {
                 Log.i(TAG, "work_img")
-                hip_img.setChecked(check)
+                hip_img.isChecked = check
                 if(chest_img.isChecked)
-                chest_img.setChecked(!check)
+                    chest_img.isChecked = !check
                 if(shoulder_img.isChecked)
-                shoulder_img.setChecked(!check)
+                    shoulder_img.isChecked = !check
                 if(upback_body_img.isChecked)
-                upback_body_img.setChecked(!check)
+                    upback_body_img.isChecked = !check
                 if(upfront_abs_img.isChecked)
-                upfront_abs_img.setChecked(!check)
+                    upfront_abs_img.isChecked = !check
                 if(upleg_img.isChecked)
-                upleg_img.setChecked(!check)
+                    upleg_img.isChecked = !check
                 if(upperarm_img.isChecked)
-                upperarm_img.setChecked(!check)
+                    upperarm_img.isChecked = !check
                 if(lowerleg_img.isChecked)
-                lowerleg_img.setChecked(!check)
+                    lowerleg_img.isChecked = !check
             }
             R.id.chest_img -> consume {
                 Log.i(TAG, "chest_img")
                 if(hip_img.isChecked)
-                hip_img.setChecked(!check)
-                chest_img.setChecked(check)
+                    hip_img.isChecked = !check
+                chest_img.isChecked = check
                 if(shoulder_img.isChecked)
-                shoulder_img.setChecked(!check)
+                    shoulder_img.isChecked = !check
                 if(upback_body_img.isChecked)
-                upback_body_img.setChecked(!check)
+                    upback_body_img.isChecked = !check
                 if(upfront_abs_img.isChecked)
-                upfront_abs_img.setChecked(!check)
+                    upfront_abs_img.isChecked = !check
                 if(upleg_img.isChecked)
-                upleg_img.setChecked(!check)
+                    upleg_img.isChecked = !check
                 if(upperarm_img.isChecked)
-                upperarm_img.setChecked(!check)
+                    upperarm_img.isChecked = !check
                 if(lowerleg_img.isChecked)
-                lowerleg_img.setChecked(!check)
+                    lowerleg_img.isChecked = !check
             }
             R.id.shoulder_img -> consume {
                 Log.i(TAG, "shoulder_img")
                 if(hip_img.isChecked)
-                hip_img.setChecked(!check)
+                    hip_img.isChecked = !check
                 if(chest_img.isChecked)
-                chest_img.setChecked(!check)
-                shoulder_img.setChecked(check)
+                    chest_img.isChecked = !check
+                shoulder_img.isChecked = check
                 if(upback_body_img.isChecked)
-                upback_body_img.setChecked(!check)
+                    upback_body_img.isChecked = !check
                 if(upfront_abs_img.isChecked)
-                upfront_abs_img.setChecked(!check)
+                    upfront_abs_img.isChecked = !check
                 if(upleg_img.isChecked)
-                upleg_img.setChecked(!check)
+                    upleg_img.isChecked = !check
                 if(upperarm_img.isChecked)
-                upperarm_img.setChecked(!check)
+                    upperarm_img.isChecked = !check
                 if(lowerleg_img.isChecked)
-                lowerleg_img.setChecked(!check)
+                    lowerleg_img.isChecked = !check
             }
             R.id.upback_body_img -> consume {
                 Log.i(TAG, "upback_body_img")
                 if(hip_img.isChecked)
-                hip_img.setChecked(!check)
+                    hip_img.isChecked = !check
                 if(chest_img.isChecked)
-                chest_img.setChecked(!check)
+                    chest_img.isChecked = !check
                 if(shoulder_img.isChecked)
-                shoulder_img.setChecked(!check)
-                upback_body_img.setChecked(check)
+                    shoulder_img.isChecked = !check
+                upback_body_img.isChecked = check
                 if(upfront_abs_img.isChecked)
-                upfront_abs_img.setChecked(!check)
+                    upfront_abs_img.isChecked = !check
                 if(upleg_img.isChecked)
-                upleg_img.setChecked(!check)
+                    upleg_img.isChecked = !check
                 if(upperarm_img.isChecked)
-                upperarm_img.setChecked(!check)
+                    upperarm_img.isChecked = !check
                 if(lowerleg_img.isChecked)
-                lowerleg_img.setChecked(!check)
+                    lowerleg_img.isChecked = !check
             }
             R.id.upfront_abs_img -> consume {
                 Log.i(TAG, "upfront_abs_img")
                 if(hip_img.isChecked)
-                    hip_img.setChecked(!check)
+                    hip_img.isChecked = !check
                 if(chest_img.isChecked)
-                    chest_img.setChecked(!check)
+                    chest_img.isChecked = !check
                 if(shoulder_img.isChecked)
-                    shoulder_img.setChecked(!check)
+                    shoulder_img.isChecked = !check
                 if(upback_body_img.isChecked)
-                upback_body_img.setChecked(!check)
-                upfront_abs_img.setChecked(check)
+                    upback_body_img.isChecked = !check
+                upfront_abs_img.isChecked = check
                 if(upleg_img.isChecked)
-                    upleg_img.setChecked(!check)
+                    upleg_img.isChecked = !check
                 if(upperarm_img.isChecked)
-                    upperarm_img.setChecked(!check)
+                    upperarm_img.isChecked = !check
                 if(lowerleg_img.isChecked)
-                    lowerleg_img.setChecked(!check)
+                    lowerleg_img.isChecked = !check
             }
             R.id.upleg_img -> consume {
                 Log.i(TAG, "upleg_img")
                 if(hip_img.isChecked)
-                    hip_img.setChecked(!check)
+                    hip_img.isChecked = !check
                 if(chest_img.isChecked)
-                    chest_img.setChecked(!check)
+                    chest_img.isChecked = !check
                 if(shoulder_img.isChecked)
-                    shoulder_img.setChecked(!check)
+                    shoulder_img.isChecked = !check
                 if(upback_body_img.isChecked)
-                    upback_body_img.setChecked(!check)
+                    upback_body_img.isChecked = !check
                 if(upfront_abs_img.isChecked)
-                upfront_abs_img.setChecked(!check)
-                upleg_img.setChecked(check)
+                    upfront_abs_img.isChecked = !check
+                upleg_img.isChecked = check
                 if(upperarm_img.isChecked)
-                    upperarm_img.setChecked(!check)
+                    upperarm_img.isChecked = !check
                 if(lowerleg_img.isChecked)
-                    lowerleg_img.setChecked(!check)
+                    lowerleg_img.isChecked = !check
             }
             R.id.upperarm_img -> consume {
                 Log.i(TAG, "upperarm_img")
                 if(hip_img.isChecked)
-                    hip_img.setChecked(!check)
+                    hip_img.isChecked = !check
                 if(chest_img.isChecked)
-                    chest_img.setChecked(!check)
+                    chest_img.isChecked = !check
                 if(shoulder_img.isChecked)
-                    shoulder_img.setChecked(!check)
+                    shoulder_img.isChecked = !check
                 if(upback_body_img.isChecked)
-                    upback_body_img.setChecked(!check)
+                    upback_body_img.isChecked = !check
                 if(upfront_abs_img.isChecked)
-                    upfront_abs_img.setChecked(!check)
+                    upfront_abs_img.isChecked = !check
                 if(upleg_img.isChecked)
-                    upleg_img.setChecked(!check)
-                upperarm_img.setChecked(check)
+                    upleg_img.isChecked = !check
+                upperarm_img.isChecked = check
                 if(lowerleg_img.isChecked)
-                    lowerleg_img.setChecked(!check)
+                    lowerleg_img.isChecked = !check
             }
             R.id.lowerleg_img -> consume {
                 Log.i(TAG, "lowerleg_img")
                 if(hip_img.isChecked)
-                    hip_img.setChecked(!check)
+                    hip_img.isChecked = !check
                 if(chest_img.isChecked)
-                    chest_img.setChecked(!check)
+                    chest_img.isChecked = !check
                 if(shoulder_img.isChecked)
-                    shoulder_img.setChecked(!check)
+                    shoulder_img.isChecked = !check
                 if(upback_body_img.isChecked)
-                    upback_body_img.setChecked(!check)
+                    upback_body_img.isChecked = !check
                 if(upfront_abs_img.isChecked)
-                    upfront_abs_img.setChecked(!check)
+                    upfront_abs_img.isChecked = !check
                 if(upleg_img.isChecked)
-                    upleg_img.setChecked(!check)
+                    upleg_img.isChecked = !check
                 if(upperarm_img.isChecked)
-                    upperarm_img.setChecked(!check)
-                lowerleg_img.setChecked(check)
+                    upperarm_img.isChecked = !check
+                lowerleg_img.isChecked = check
             }
         }
     }
@@ -231,12 +247,27 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setRetainInstance(true)
+        retainInstance = true
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.select_view, container, false)
+        val rootview = inflater.inflate(layout.select_view, container, false)
+        search_Btn = rootview.findViewById(R.id.search_Btn)
+        home_img = rootview.findViewById(R.id.home_img)
+        car_img = rootview.findViewById(R.id.car_img)
+        work_img = rootview.findViewById(R.id.work_img)
+        hip_img = rootview.findViewById(R.id.hip_img)
+        upback_body_img = rootview.findViewById(R.id.upback_body_img)
+        upfront_abs_img = rootview.findViewById(R.id.upfront_abs_img)
+        upleg_img = rootview.findViewById(R.id.upleg_img)
+        upperarm_img = rootview.findViewById(R.id.upperarm_img)
+        lowerleg_img = rootview.findViewById(R.id.lowerleg_img)
+        shoulder_img = rootview.findViewById(R.id.shoulder_img)
+        chest_img = rootview.findViewById(R.id.chest_img)
+        muscle_img = rootview.findViewById(R.id.muscle_img)
+        stretching_img = rootview.findViewById(R.id.stretching_img)
+        return rootview
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -326,7 +357,7 @@ class FollowFragment : Fragment(), View.OnClickListener, bodygate.bcns.bodygatio
                 uri.add("운동")
                 uri.add("스트레칭")
             }
-            mListener!!.getDatas("snippet", uri, getString(R.string.API_key), 5, true)}
+            mListener!!.getDatas("snippet", uri, getString(string.API_key), 5, true)}
             Log.i("test", "네번째")
             mListener!!.OnFollowInteraction(uri, 0)
             Log.i("test", "여섯번째")

@@ -3,8 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BodyGation.iml" filepath="$PROJECT_DIR$/BodyGation.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/BodyGation-app.iml" filepath="$PROJECT_DIR$/app/BodyGation-app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/StudioProjects-BodyGation.iml" filepath="$PROJECT_DIR$/StudioProjects-BodyGation.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
