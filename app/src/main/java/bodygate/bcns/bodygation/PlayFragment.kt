@@ -326,7 +326,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             youtubeprogress = savedInstanceState.getInt("progress")
             video_camera = savedInstanceState.getBoolean("playyoutube")
             if (video_camera) {
-                videoPath = savedInstanceState.getString("videoPath")
+                videoPath = savedInstanceState.getString("videoPath")!!
                 videoPlaying = savedInstanceState.getBoolean("videoPlaying")
             }
         }
@@ -634,7 +634,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             val characteristics = manager.getCameraCharacteristics(cameraId)
             val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
             throw RuntimeException("Cannot get available preview/video sizes")
-            sensorOrientation = characteristics.get(SENSOR_ORIENTATION)
+            sensorOrientation = characteristics.get(SENSOR_ORIENTATION)!!
             Log.i("configureTransform", "sensorOrientation : " + sensorOrientation.toString())
             videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
             previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
@@ -922,7 +922,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         val characteristics = manager.getCameraCharacteristics(cameraId)
         val map = characteristics.get(SCALER_STREAM_CONFIGURATION_MAP) ?:
         throw RuntimeException("Cannot get available preview/video sizes")
-        sensorOrientation = characteristics.get(SENSOR_ORIENTATION)
+        sensorOrientation = characteristics.get(SENSOR_ORIENTATION)!!
         val rotation = activity!!.windowManager.defaultDisplay.rotation
         videoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder::class.java))
         previewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture::class.java),
