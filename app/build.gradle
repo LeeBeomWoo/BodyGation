@@ -33,13 +33,19 @@ android {
              storeFile file('D:\\APK\\BodyGation.jks')
             // storeFile file('D:/BCNS/APK/BodyGation.jks')
         }
+        debug {
+            storeFile file('C:\\Users\\LeeBW\\Downloads\\BodyGation.jks')
+            storePassword 'dlqjadn1482**'
+            keyAlias = 'bodygation.'
+            keyPassword 'dlqjadn1482**'
+        }
     }
     compileSdkVersion 29
     defaultConfig {
         applicationId "bodygate.bcns.bodygation"
         minSdkVersion 26
         targetSdkVersion 29
-        versionCode 66
+        versionCode 67
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -81,9 +87,9 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-auth:4.0.1'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'com.google.apis:google-api-services-people:v1-rev99-1.22.0'
-    implementation 'com.google.api-client:google-api-client:1.30.2'
+    implementation 'com.google.api-client:google-api-client:1.30.3'
     implementation 'com.google.apis:google-api-services-youtube:v3-rev99-1.17.0-rc'
-    implementation('com.google.api-client:google-api-client-android:1.30.2') {
+    implementation('com.google.api-client:google-api-client-android:1.30.3') {
         exclude group: 'org.apache.httpcomponents'
     }
     implementation 'com.squareup.picasso:picasso:2.71828'
