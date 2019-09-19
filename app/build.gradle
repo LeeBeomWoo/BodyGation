@@ -27,16 +27,16 @@ android {
     }
     signingConfigs {
         config {
-            keyAlias 'bodygation.'
+            keyAlias 'body'
             keyPassword 'dlqjadn1482**'
             storePassword 'dlqjadn1482**'
-             storeFile file('D:\\APK\\BodyGation.jks')
+             storeFile file('C:\\Users\\LeeBW\\APK\\BodyGation.jks')
             // storeFile file('D:/BCNS/APK/BodyGation.jks')
         }
         debug {
-            storeFile file('C:\\Users\\LeeBW\\Downloads\\BodyGation.jks')
+            storeFile file('C:\\Users\\LeeBW\\APK\\BodyGation.jks')
             storePassword 'dlqjadn1482**'
-            keyAlias = 'bodygation.'
+            keyAlias = 'body'
             keyPassword 'dlqjadn1482**'
         }
     }
