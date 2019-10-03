@@ -80,10 +80,8 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
     var switchlayout:ScaleRelativeLayout.LayoutParams? = null
     var loadlayout:ScaleRelativeLayout.LayoutParams? = null
     var play_recordlayout:ScaleRelativeLayout.LayoutParams? = null
-    var play_record: Boolean? = true //true 가 촬영모드, false 가 재생모드
     val CAMERA_FRONT = "1"
     val CAMERA_BACK = "0"
-    var change: String? = null
     var youtubeprogress:Int = 0
     var youtubePlaying:Boolean = false
     var videoprogress:Int = 0
@@ -150,7 +148,6 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         append(Surface.ROTATION_180, 90)
         append(Surface.ROTATION_270, 0)
     }
-    lateinit var mMediaPlayer:MediaPlayer
     private val surfaceTextureListener = object : TextureView.SurfaceTextureListener {
 
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
@@ -245,7 +242,7 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
         val state = Environment.getExternalStorageState()
         if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
             //Retrieve the primary External Storage:
-            baseDir = Environment.getExternalStoragePublicDirectory("DIRECTORY_MOVIES").path
+            baseDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).path
         }else{
             baseDir = Environment.DIRECTORY_MOVIES
         }
@@ -266,6 +263,9 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             openCamera(textureView.width, textureView.height)
         } else {
             textureView.surfaceTextureListener = surfaceTextureListener
+        }
+        if(videoPlaying){
+            video_View.seekTo(videoprogress)
         }
         when(requireActivity().windowManager.defaultDisplay.rotation){
 
@@ -789,14 +789,14 @@ class PlayFragment : Fragment(), View.OnClickListener, SeekBar.OnSeekBarChangeLi
             setVideoEncodingBitRate(10000000)
             setVideoFrameRate(30)
             setVideoSize(videoSize.width, videoSize.height)
-            setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT)
+            setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT)
             prepare()
         }
     }
     private fun startRecordingVideo() {
+        videoPlaying = false
         if (cameraDevice == null || !textureView.isAvailable) return
-
         try {
             record_Btn.setImageResource(R.drawable.record);
             closePreviewSession()
