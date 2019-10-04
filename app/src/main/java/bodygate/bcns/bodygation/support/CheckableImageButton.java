@@ -91,7 +91,7 @@ public class CheckableImageButton extends android.support.v7.widget.AppCompatIma
     /**
      * Interface definition for a callback.
      */
-    public static interface OnCheckedChangeListener {
+    public interface OnCheckedChangeListener {
         /**
          * Called when the checked state of a button has changed.
          *
